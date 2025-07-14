@@ -1,0 +1,69 @@
+# === General OS files ===
+.DS_Store
+Thumbs.db
+
+# === Java / Maven ===
+auth-service/target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/
+.mvn/wrapper/maven-wrapper.jar
+*.log
+
+# === Gradle (in case some service uses it) ===
+.gradle/
+build/
+!*/src/main/**/build/
+!*/src/test/**/build/
+
+# === IntelliJ IDEA ===
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# === Eclipse / Spring Tool Suite (STS) ===
+.apt_generated/
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache/
+
+# === VS Code ===
+.vscode/
+
+# === NetBeans ===
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# === Logs and temporary files ===
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+*.swn
+
+# === Ignore service-level target folders ===
+**/target/
+
+# === Ignore compiled class files ===
+*.class
+
+# === Node / frontend ===
+node_modules/
+dist/
+.env
+
+# === Ignore help files (Spring Initializr generated) ===
+HELP.md
