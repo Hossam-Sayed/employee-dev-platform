@@ -4,6 +4,7 @@ import com.edp.auth.data.entity.AppUser;
 import com.edp.auth.model.UserDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.Mappings;
 
 @Mapper(componentModel = "spring")
@@ -40,4 +41,11 @@ public interface UserMapper {
             @Mapping(target = "reportsTo", ignore = true)
     })
     AppUser toEntity(UserDto dto);
+
+    @Mappings({
+            @Mapping(target = "id", ignore = true),
+            @Mapping(target = "reportsTo", ignore = true),
+            @Mapping(target = "password", ignore = true)
+    })
+    void updateUserFromDto(UserDto dto, @MappingTarget AppUser entity);
 }

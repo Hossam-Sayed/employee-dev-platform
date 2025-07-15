@@ -6,6 +6,7 @@ import com.edp.auth.model.UserDto;
 import com.edp.auth.mapper.UserMapper;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,10 +18,13 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepo;
     private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public UserDto createUser(UserDto dto) {
         AppUser user = userMapper.toEntity(dto);
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
+
         if (dto.getReportsToId() != null) {
             user.setReportsTo(userRepo.findById(dto.getReportsToId()).orElse(null));
         }
@@ -45,11 +49,18 @@ public class UserServiceImpl implements UserService {
         AppUser existingUser = userRepo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-        AppUser updated = userMapper.toEntity(dto);
-        updated.setId(id); // Ensure we're updating the correct record
-        if (dto.getReportsToId() != null) {
-            updated.setReportsTo(userRepo.findById(dto.getReportsToId()).orElse(null));
+        userMapper.updateUserFromDto(dto, existingUser);
+
+        if (dto.getPassword() != null && !dto.getPassword().isEmpty()) {
+            existingUser.setPassword(passwordEncoder.encode(dto.getPassword()));
         }
+
+        if (dto.getReportsToId() != null) {
+            existingUser.setReportsTo(userRepo.findById(dto.getReportsToId()).orElse(null));
+        } else if (existingUser.getReportsTo() != null) {
+            existingUser.setReportsTo(null);
+        }
+        userRepo.save(existingUser);
     }
 
     @Override
