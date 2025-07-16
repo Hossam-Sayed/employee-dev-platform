@@ -10,7 +10,7 @@ import java.util.Optional;
 public interface UserService {
     UserResponseDto createUser(UserRegisterRequestDto request);
 
-    Optional<UserResponseDto> getUserById(Long id);
+    UserResponseDto getUserById(Long id);
 
     List<UserResponseDto> getAllUsers();
 

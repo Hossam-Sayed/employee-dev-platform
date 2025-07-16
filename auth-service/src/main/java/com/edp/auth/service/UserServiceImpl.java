@@ -12,7 +12,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -34,8 +33,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Optional<UserResponseDto> getUserById(Long id) {
-        return userRepo.findById(id).map(userMapper::toUserResponse);
+    public UserResponseDto getUserById(Long id) {
+        return userMapper.toUserResponse(userRepo.findById(id).orElseThrow(() -> new EntityNotFoundException("User not found")));
     }
 
     @Override
