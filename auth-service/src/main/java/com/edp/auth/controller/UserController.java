@@ -25,9 +25,7 @@ public class UserController implements UserControllerApi {
 
     @Override
     public ResponseEntity<UserDto> getUser(Long id) {
-        return userService.getUserById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.ok(userService.getUserById(id));
     }
 
     @Override

@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+import com.edp.auth.exception.JwtValidationException;
+
 @Service
 public class JwtService {
 
@@ -63,12 +65,24 @@ public class JwtService {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts
-                .parser()
-                .setSigningKey(getSignInKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+        try {
+            return Jwts
+                    .parser()
+                    .setSigningKey(getSignInKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            throw new JwtValidationException("JWT token is expired", e);
+        } catch (io.jsonwebtoken.SignatureException e) {
+            throw new JwtValidationException("Invalid JWT signature", e);
+        } catch (io.jsonwebtoken.MalformedJwtException e) {
+            throw new JwtValidationException("Malformed JWT token", e);
+        } catch (io.jsonwebtoken.UnsupportedJwtException e) {
+            throw new JwtValidationException("Unsupported JWT token", e);
+        } catch (IllegalArgumentException e) {
+            throw new JwtValidationException("JWT token is invalid or empty", e);
+        }
     }
 
     private Key getSignInKey() {
