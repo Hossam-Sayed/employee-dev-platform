@@ -1,18 +1,20 @@
 package com.edp.auth.service;
 
-import com.edp.auth.model.UserDto;
+import com.edp.auth.model.UserRegisterRequestDto;
+import com.edp.auth.model.UserUpdateRequestDto;
+import com.edp.auth.model.UserResponseDto;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface UserService {
-    UserDto createUser(UserDto userDto);
+    UserResponseDto createUser(UserRegisterRequestDto request);
 
-    Optional<UserDto> getUserById(Long id);
+    Optional<UserResponseDto> getUserById(Long id);
 
-    List<UserDto> getAllUsers();
+    List<UserResponseDto> getAllUsers();
 
-    void updateUser(Long id, UserDto userDto);
+    void updateUser(Long id, UserUpdateRequestDto request);
 
     void deleteUser(Long id);
 }

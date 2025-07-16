@@ -1,6 +1,9 @@
 package com.edp.auth.model;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
@@ -8,13 +11,12 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserDto {
+public class UserResponseDto {
     private Long id;
     private String firstName;
     private String lastName;
     private String username;
     private String email;
-    private String password;
     private LocalDate birthdate;
     private String phoneNumber;
     private String department;

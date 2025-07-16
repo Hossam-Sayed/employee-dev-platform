@@ -2,7 +2,8 @@ package com.edp.auth.controller;
 
 import com.edp.auth.model.AuthRequestDto;
 import com.edp.auth.model.AuthResponseDto;
-import com.edp.auth.model.UserDto;
+import com.edp.auth.model.UserRegisterRequestDto;
+import com.edp.auth.model.UserResponseDto;
 import com.edp.auth.service.UserService;
 import com.edp.auth.security.jwt.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -31,11 +32,10 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponseDto> register(
-            @RequestBody UserDto userDto,
+            @RequestBody UserRegisterRequestDto userRegisterRequestDto,
             UriComponentsBuilder uriBuilder
     ) {
-        UserDto createdUser = userService.createUser(userDto);
-
+        UserResponseDto createdUser = userService.createUser(userRegisterRequestDto);
         UserDetails userDetails = userDetailsService.loadUserByUsername(createdUser.getUsername());
         String jwtToken = jwtService.generateToken(userDetails);
 

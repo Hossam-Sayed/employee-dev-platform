@@ -1,7 +1,9 @@
 package com.edp.auth.mapper;
 
 import com.edp.auth.data.entity.AppUser;
-import com.edp.auth.model.UserDto;
+import com.edp.auth.model.UserRegisterRequestDto;
+import com.edp.auth.model.UserResponseDto;
+import com.edp.auth.model.UserUpdateRequestDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -16,7 +18,6 @@ public interface UserMapper {
             @Mapping(source = "lastName", target = "lastName"),
             @Mapping(source = "username", target = "username"),
             @Mapping(source = "email", target = "email"),
-            @Mapping(source = "password", target = "password"),
             @Mapping(source = "birthdate", target = "birthdate"),
             @Mapping(source = "phoneNumber", target = "phoneNumber"),
             @Mapping(source = "department", target = "department"),
@@ -24,10 +25,10 @@ public interface UserMapper {
             @Mapping(source = "admin", target = "admin"),
             @Mapping(source = "reportsTo.id", target = "reportsToId")
     })
-    UserDto toDto(AppUser user);
+    UserResponseDto toUserResponse(AppUser user);
 
     @Mappings({
-            @Mapping(source = "id", target = "id"),
+            @Mapping(target = "id", ignore = true),
             @Mapping(source = "firstName", target = "firstName"),
             @Mapping(source = "lastName", target = "lastName"),
             @Mapping(source = "username", target = "username"),
@@ -40,12 +41,21 @@ public interface UserMapper {
             @Mapping(source = "admin", target = "admin"),
             @Mapping(target = "reportsTo", ignore = true)
     })
-    AppUser toEntity(UserDto dto);
+    AppUser toAppUser(UserRegisterRequestDto request);
 
     @Mappings({
             @Mapping(target = "id", ignore = true),
+            @Mapping(source = "firstName", target = "firstName"),
+            @Mapping(source = "lastName", target = "lastName"),
+            @Mapping(source = "username", target = "username"),
+            @Mapping(source = "email", target = "email"),
+            @Mapping(target = "password", ignore = true),
+            @Mapping(source = "birthdate", target = "birthdate"),
+            @Mapping(source = "phoneNumber", target = "phoneNumber"),
+            @Mapping(source = "department", target = "department"),
+            @Mapping(source = "position", target = "position"),
+            @Mapping(source = "admin", target = "admin"),
             @Mapping(target = "reportsTo", ignore = true),
-            @Mapping(target = "password", ignore = true)
     })
-    void updateUserFromDto(UserDto dto, @MappingTarget AppUser entity);
+    void updateAppUserFromRequest(UserUpdateRequestDto request, @MappingTarget AppUser entity);
 }
