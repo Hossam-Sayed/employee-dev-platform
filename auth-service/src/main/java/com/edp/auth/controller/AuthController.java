@@ -1,9 +1,9 @@
 package com.edp.auth.controller;
 
-import com.edp.auth.model.AuthRequestDto;
-import com.edp.auth.model.AuthResponseDto;
-import com.edp.auth.model.UserRegisterRequestDto;
-import com.edp.auth.model.UserResponseDto;
+import com.edp.auth.data.entity.AppUser;
+import com.edp.auth.data.entity.RefreshToken;
+import com.edp.auth.model.*;
+import com.edp.auth.service.RefreshTokenService;
 import com.edp.auth.service.UserService;
 import com.edp.auth.security.jwt.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +27,7 @@ public class AuthController {
 
     private final UserService userService;
     private final JwtService jwtService;
+    private final RefreshTokenService refreshTokenService;
     private final AuthenticationManager authenticationManager;
     private final UserDetailsService userDetailsService;
 
@@ -37,11 +38,16 @@ public class AuthController {
     ) {
         UserResponseDto createdUser = userService.createUser(userRegisterRequestDto);
         UserDetails userDetails = userDetailsService.loadUserByUsername(createdUser.getUsername());
-        String jwtToken = jwtService.generateToken(userDetails);
+        String accessToken = jwtService.generateToken(userDetails);
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken((AppUser) userDetails);
+
 
         URI location = uriBuilder.path("/api/users/{id}").buildAndExpand(createdUser.getId()).toUri();
 
-        return ResponseEntity.created(location).body(AuthResponseDto.builder().token(jwtToken).build());
+        return ResponseEntity.created(location).body(AuthResponseDto.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken.getToken())
+                .build());
     }
 
     @PostMapping("/login")
@@ -56,8 +62,32 @@ public class AuthController {
         );
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
-        String jwtToken = jwtService.generateToken(userDetails);
+        String accessToken = jwtService.generateToken(userDetails);
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken((AppUser) userDetails);
 
-        return ResponseEntity.ok(AuthResponseDto.builder().token(jwtToken).build());
+        return ResponseEntity.ok(AuthResponseDto.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken.getToken())
+                .build());
     }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<RefreshResponseDto> refreshToken(@RequestBody RefreshRequestDto request) {
+        RefreshToken token = refreshTokenService.getValidRefreshToken(request.getRefreshToken());
+        String newAccessToken = jwtService.generateToken(token.getUser());
+
+        return ResponseEntity.ok(RefreshResponseDto.builder()
+                .accessToken(newAccessToken)
+                .build());
+    }
+
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@RequestBody LogoutRequestDto request) {
+        AppUser user = (AppUser) userDetailsService.loadUserByUsername(request.getUsername());
+        refreshTokenService.deleteByUser(user);
+        return ResponseEntity.noContent().build();
+    }
+
+
 }

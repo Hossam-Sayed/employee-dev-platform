@@ -16,6 +16,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+import static com.edp.auth.util.ErrorResponseUtil.toJsonError;
+
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -25,7 +27,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-        return request.getRequestURI().equals("/api/auth/register") || request.getRequestURI().equals("/api/auth/login");
+        return request.getRequestURI().equals("/api/auth/register") || request.getRequestURI().equals("/api/auth/login") || request.getRequestURI().equals("/api/auth/refresh") || request.getRequestURI().equals("/api/auth/logout");
     }
 
     @Override
@@ -41,7 +43,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
-            response.getWriter().write("{\"error\":\"Missing or invalid authorization token\"}");
+            response.getWriter().write(toJsonError("Missing or invalid authorization token"));
             return;
         }
 
@@ -69,7 +71,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         } catch (com.edp.auth.exception.JwtValidationException ex) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
-            response.getWriter().write("{\"error\":\"" + ex.getMessage() + "\"}");
+            response.getWriter().write(toJsonError(ex.getMessage()));
         }
     }
 }
