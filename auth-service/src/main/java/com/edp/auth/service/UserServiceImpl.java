@@ -50,6 +50,7 @@ public class UserServiceImpl implements UserService {
         AppUser existingUser = userRepo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
+        // TODO: Vague validations exception messages are returned in case of validation errors
         userMapper.updateAppUserFromRequest(request, existingUser);
 
         if (request.getPassword() != null && !request.getPassword().isEmpty()) {
