@@ -14,6 +14,10 @@ buildNumber.properties
 .mvn/wrapper/maven-wrapper.jar
 *.log
 
+**/secrets/
+**/keystore/
+**/application-dev.properties
+
 # === Gradle (in case some service uses it) ===
 .gradle/
 build/
