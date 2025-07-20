@@ -71,3 +71,21 @@ dist/
 
 # === Ignore help files (Spring Initializr generated) ===
 HELP.md
+
+# === Angular frontend-specific ===
+edp-frontend/tmp/
+edp-frontend/out-tsc/
+edp-frontend/bazel-out/
+edp-frontend/npm-debug.log
+edp-frontend/yarn-error.log
+edp-frontend/.angular/cache/
+edp-frontend/.sass-cache/
+edp-frontend/connect.lock
+edp-frontend/coverage/
+edp-frontend/libpeerconnection.log
+edp-frontend/testem.log
+edp-frontend/typings/
+edp-frontend/.history/
+edp-frontend/node_modules/
+edp-frontend/dist/
+
