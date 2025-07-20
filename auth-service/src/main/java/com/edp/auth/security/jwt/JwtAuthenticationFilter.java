@@ -1,6 +1,5 @@
 package com.edp.auth.security.jwt;
 
-import com.edp.auth.model.ErrorResponseDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -18,6 +17,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+
+import static com.edp.shared.error.util.JsonErrorUtil.toJsonError;
 
 
 @Component
@@ -47,8 +48,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
             response.getWriter().write(toJsonError(
+                    HttpServletResponse.SC_UNAUTHORIZED,
+                    "Unauthorized",
                     "Missing or invalid authorization token",
-                    request.getRequestURI()
+                    request.getRequestURI(),
+                    LocalDateTime.now()
             ));
             return;
         }
@@ -78,25 +82,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
             response.getWriter().write(toJsonError(
+                    HttpServletResponse.SC_UNAUTHORIZED,
+                    "Unauthorized",
                     ex.getMessage(),
-                    request.getRequestURI()
+                    request.getRequestURI(),
+                    LocalDateTime.now()
             ));
-        }
-    }
-
-    private String toJsonError(String message ,String path) {
-        try {
-            ErrorResponseDto error = ErrorResponseDto.builder()
-                    .timestamp(LocalDateTime.now())
-                    .status(HttpServletResponse.SC_UNAUTHORIZED)
-                    .error("Unauthorized")
-                    .message(message)
-                    .path(path)
-                    .build();
-
-            return objectMapper.writeValueAsString(error);
-        } catch (Exception e) {
-            return "{\"error\":\"Unexpected serialization error: " + e.getMessage() + "\"}";
         }
     }
 }
