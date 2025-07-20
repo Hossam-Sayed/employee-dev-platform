@@ -31,7 +31,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-        return request.getRequestURI().equals("/api/auth/register") || request.getRequestURI().equals("/api/auth/login") || request.getRequestURI().equals("/api/auth/refresh") || request.getRequestURI().equals("/api/auth/logout");
+        return request.getRequestURI().equals("/api/auth/register") || request.getRequestURI().equals("/api/auth/login") || request.getRequestURI().equals("/api/auth/refresh") ;
     }
 
     @Override

@@ -29,6 +29,16 @@ public class RefreshTokenService {
                 .build();
         return refreshTokenRepository.save(refreshToken);
     }
+    @Transactional
+    public RefreshToken rotateRefreshToken(String oldTokenValue) {
+        RefreshToken oldToken = getValidRefreshToken(oldTokenValue);
+
+        AppUser user = oldToken.getUser();
+        refreshTokenRepository.deleteByUser(user);
+        refreshTokenRepository.flush();
+
+        return createRefreshToken(user);
+    }
 
     public RefreshToken getValidRefreshToken(String refreshToken) {
         return refreshTokenRepository.findByToken(refreshToken)
