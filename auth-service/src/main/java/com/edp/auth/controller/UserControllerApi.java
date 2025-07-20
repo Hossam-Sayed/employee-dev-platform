@@ -19,7 +19,7 @@ public interface UserControllerApi {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or #id == T(com.edp.auth.data.entity.AppUser).cast(authentication.principal).id")
-    ResponseEntity<UserResponseDto> getUser(@PathVariable Long id);
+    ResponseEntity<UserResponseDto> getUser(@PathVariable("id") Long id);
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
@@ -27,9 +27,9 @@ public interface UserControllerApi {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or #id == T(com.edp.auth.data.entity.AppUser).cast(authentication.principal).id")
-    ResponseEntity<Void> updateUser(@PathVariable Long id, @RequestBody UserUpdateRequestDto userUpdateRequestDto);
+    ResponseEntity<Void> updateUser(@PathVariable("id") Long id, @RequestBody UserUpdateRequestDto userUpdateRequestDto);
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    ResponseEntity<Void> deleteUser(@PathVariable Long id);
+    ResponseEntity<Void> deleteUser(@PathVariable("id") Long id);
 }
