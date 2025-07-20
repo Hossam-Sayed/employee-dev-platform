@@ -1,5 +1,7 @@
 package com.edp.auth.security.jwt;
 
+import com.edp.auth.model.ErrorResponseDto;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,8 +17,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 
-import static com.edp.auth.util.ErrorResponseUtil.toJsonError;
 
 @Component
 @RequiredArgsConstructor
@@ -24,6 +26,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+    private final ObjectMapper objectMapper;
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
@@ -43,7 +46,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
-            response.getWriter().write(toJsonError("Missing or invalid authorization token"));
+            response.getWriter().write(toJsonError(
+                    "Missing or invalid authorization token",
+                    request.getRequestURI()
+            ));
             return;
         }
 
@@ -71,7 +77,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         } catch (com.edp.auth.exception.JwtValidationException ex) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
-            response.getWriter().write(toJsonError(ex.getMessage()));
+            response.getWriter().write(toJsonError(
+                    ex.getMessage(),
+                    request.getRequestURI()
+            ));
+        }
+    }
+
+    private String toJsonError(String message ,String path) {
+        try {
+            ErrorResponseDto error = ErrorResponseDto.builder()
+                    .timestamp(LocalDateTime.now())
+                    .status(HttpServletResponse.SC_UNAUTHORIZED)
+                    .error("Unauthorized")
+                    .message(message)
+                    .path(path)
+                    .build();
+
+            return objectMapper.writeValueAsString(error);
+        } catch (Exception e) {
+            return "{\"error\":\"Unexpected serialization error: " + e.getMessage() + "\"}";
         }
     }
 }
