@@ -74,7 +74,7 @@ public interface UserControllerApi {
     })
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or #id == T(com.edp.auth.data.entity.AppUser).cast(authentication.principal).id")
-    ResponseEntity<UserResponseDto> getUser(@Parameter(description = "ID of the user to retrieve", required = true) @PathVariable Long id);
+    ResponseEntity<UserResponseDto> getUser(@Parameter(description = "ID of the user to retrieve", required = true) @PathVariable("id") Long id);
 
     @Operation(
             summary = "Get all users",
@@ -129,7 +129,7 @@ public interface UserControllerApi {
     })
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or #id == T(com.edp.auth.data.entity.AppUser).cast(authentication.principal).id")
-    ResponseEntity<Void> updateUser(@Parameter(description = "ID of the user to update", required = true) @PathVariable Long id, @Valid @org.springframework.web.bind.annotation.RequestBody UserUpdateRequestDto userUpdateRequestDto);
+    ResponseEntity<Void> updateUser(@Parameter(description = "ID of the user to update", required = true) @PathVariable("id") Long id, @Valid @org.springframework.web.bind.annotation.RequestBody UserUpdateRequestDto userUpdateRequestDto);
 
     @Operation(
             summary = "Delete user by ID (Admin only)",
@@ -150,5 +150,5 @@ public interface UserControllerApi {
     })
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    ResponseEntity<Void> deleteUser(@Parameter(description = "ID of the user to delete", required = true) @PathVariable Long id);
+    ResponseEntity<Void> deleteUser(@Parameter(description = "ID of the user to delete", required = true) @PathVariable("id") Long id);
 }
