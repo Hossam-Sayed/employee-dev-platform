@@ -12,8 +12,10 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -22,6 +24,7 @@ import java.util.List;
 import com.edp.shared.error.model.ErrorResponse;
 
 @Tag(name = "User Management", description = "APIs for managing user accounts")
+@Validated
 @RequestMapping("/api/users")
 public interface UserControllerApi {
 
@@ -49,7 +52,7 @@ public interface UserControllerApi {
     })
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    ResponseEntity<Void> createUser(@RequestBody UserRegisterRequestDto userRegisterRequestDto, UriComponentsBuilder uriBuilder);
+    ResponseEntity<Void> createUser(@Valid @org.springframework.web.bind.annotation.RequestBody UserRegisterRequestDto userRegisterRequestDto, UriComponentsBuilder uriBuilder);
 
     @Operation(
             summary = "Get user by ID",
@@ -126,7 +129,7 @@ public interface UserControllerApi {
     })
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or #id == T(com.edp.auth.data.entity.AppUser).cast(authentication.principal).id")
-    ResponseEntity<Void> updateUser(@Parameter(description = "ID of the user to update", required = true) @PathVariable Long id, UserUpdateRequestDto userUpdateRequestDto);
+    ResponseEntity<Void> updateUser(@Parameter(description = "ID of the user to update", required = true) @PathVariable Long id, @Valid @org.springframework.web.bind.annotation.RequestBody UserUpdateRequestDto userUpdateRequestDto);
 
     @Operation(
             summary = "Delete user by ID (Admin only)",
