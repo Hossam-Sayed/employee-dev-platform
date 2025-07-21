@@ -6,7 +6,7 @@ import com.edp.auth.model.UserUpdateRequestDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject; // Import ExampleObject
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -70,7 +70,7 @@ public interface UserControllerApi {
                             examples = @ExampleObject(value = "{\"timestamp\":\"2025-07-21T10:00:00\",\"status\":404,\"error\":\"Not Found\",\"message\":\"User not found\",\"path\":\"/api/users/999\"}")))
     })
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or (@userService.getUserById(#id).orElse(null)?.username == authentication.name)")
+    @PreAuthorize("hasRole('ADMIN') or #id == T(com.edp.auth.data.entity.AppUser).cast(authentication.principal).id")
     ResponseEntity<UserResponseDto> getUser(@Parameter(description = "ID of the user to retrieve", required = true) @PathVariable Long id);
 
     @Operation(
@@ -125,7 +125,7 @@ public interface UserControllerApi {
                             examples = @ExampleObject(value = "{\"timestamp\":\"2025-07-21T10:00:00\",\"status\":500,\"error\":\"Internal Server Error\",\"message\":\"An unexpected error occurred.\",\"path\":\"/api/users/1\"}")))
     })
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or (@userService.getUserById(#id).orElse(null)?.username == authentication.name)")
+    @PreAuthorize("hasRole('ADMIN') or #id == T(com.edp.auth.data.entity.AppUser).cast(authentication.principal).id")
     ResponseEntity<Void> updateUser(@Parameter(description = "ID of the user to update", required = true) @PathVariable Long id, UserUpdateRequestDto userUpdateRequestDto);
 
     @Operation(
