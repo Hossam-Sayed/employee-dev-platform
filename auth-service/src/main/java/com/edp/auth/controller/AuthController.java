@@ -21,7 +21,7 @@ import java.net.URI;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-public class AuthController {
+public class AuthController implements AuthControllerApi{
 
     private final UserService userService;
     private final JwtService jwtService;
@@ -29,7 +29,7 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final UserDetailsService userDetailsService;
 
-    @PostMapping("/register")
+    @Override
     public ResponseEntity<AuthResponseDto> register(
             @RequestBody UserRegisterRequestDto userRegisterRequestDto,
             UriComponentsBuilder uriBuilder
@@ -48,7 +48,7 @@ public class AuthController {
                 .build());
     }
 
-    @PostMapping("/login")
+    @Override
     public ResponseEntity<AuthResponseDto> authenticate(
             @RequestBody AuthRequestDto request
     ) {
@@ -69,7 +69,7 @@ public class AuthController {
                 .build());
     }
 
-    @PostMapping("/refresh")
+    @Override
     public ResponseEntity<AuthResponseDto> refreshToken(@RequestBody RefreshRequestDto request) {
         RefreshToken newRefreshToken = refreshTokenService.rotateRefreshToken(request.getRefreshToken());
 
@@ -82,8 +82,7 @@ public class AuthController {
                 .build());
     }
 
-
-    @PostMapping("/logout")
+    @Override
     public ResponseEntity<Void> logout(@RequestBody LogoutRequestDto request) {
         AppUser user = (AppUser) userDetailsService.loadUserByUsername(request.getUsername());
         refreshTokenService.deleteByUser(user);
