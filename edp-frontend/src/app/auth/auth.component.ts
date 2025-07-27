@@ -13,10 +13,12 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { Observable, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { Router } from '@angular/router';
-import { MatStepper, MatStepperModule } from '@angular/material/stepper';
+import { MatStepperModule } from '@angular/material/stepper';
 import { BreakpointObserver } from '@angular/cdk/layout';
+import { AuthService } from './service/auth.service';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 
 @Component({
   selector: 'app-auth',
@@ -29,6 +31,7 @@ import { BreakpointObserver } from '@angular/cdk/layout';
     MatProgressSpinnerModule,
     MatIconModule,
     MatStepperModule,
+    MatDatepickerModule,
   ],
   templateUrl: './auth.component.html',
   styleUrl: './auth.component.css',
@@ -40,12 +43,13 @@ export class AuthComponent implements OnInit {
   stepperOrientation = signal<'horizontal' | 'vertical'>('horizontal');
   private breakpointSub?: Subscription;
 
+  private authService = inject(AuthService);
   router = inject(Router);
   breakPointObserver = inject(BreakpointObserver);
 
   loginForm = new FormGroup({
-    email: new FormControl('', {
-      validators: [Validators.email, Validators.required],
+    username: new FormControl('', {
+      validators: [Validators.required],
     }),
     password: new FormControl('', {
       validators: [Validators.required, Validators.minLength(6)],
@@ -54,7 +58,7 @@ export class AuthComponent implements OnInit {
   signupForm = new FormGroup({
     formArray: new FormArray<FormGroup>([
       new FormGroup({
-        email: new FormControl('', [Validators.required, Validators.email]),
+        username: new FormControl('', [Validators.required]),
         password: new FormControl('', [
           Validators.required,
           Validators.minLength(6),
@@ -63,10 +67,11 @@ export class AuthComponent implements OnInit {
       new FormGroup({
         firstName: new FormControl('', [Validators.required]),
         lastName: new FormControl('', [Validators.required]),
+        birthdate: new FormControl('', [Validators.required]),
       }),
       new FormGroup({
-        phone: new FormControl('', [Validators.required]),
-        address: new FormControl('', [Validators.required]),
+        email: new FormControl('', [Validators.required, Validators.email]),
+        phoneNumber: new FormControl('', [Validators.required]),
       }),
     ]),
   });
@@ -76,9 +81,80 @@ export class AuthComponent implements OnInit {
   }
 
   onLogin() {
-  }
-  onSignUp() {
+    if (this.loginForm.invalid) return;
 
+    this.isLoading.set(true);
+    this.error.set('');
+
+    const { username, password } = this.loginForm.value;
+    if (typeof username !== 'string' || typeof password !== 'string') {
+      this.error.set('Username and password are required.');
+      this.isLoading.set(false);
+      return;
+    }
+
+    const authrequestDto = {
+      username,
+      password,
+    };
+
+    this.authService.login(authrequestDto).subscribe({
+      next: () => this.router.navigate(['/inside']),
+      error: (error) => {
+        this.error.set(error?.message || 'Login failed');
+        this.isLoading.set(false);
+      },
+    });
+  }
+
+  onSignUp() {
+    if (this.signupForm.invalid) return;
+
+    this.isLoading.set(true);
+    this.error.set('');
+
+    const [step1, step2, step3] = this.formGroups;
+    if (
+      !step1.get('username')?.value ||
+      !step1.get('password')?.value ||
+      !step2.get('firstName')?.value ||
+      !step2.get('lastName')?.value ||
+      !step2.get('birthdate')?.value ||
+      !step3.get('email')?.value ||
+      !step3.get('phoneNumber')?.value
+    ) {
+      this.error.set('All fields are required.');
+      this.isLoading.set(false);
+
+      return;
+    }
+    const rawBirthdate = step2.get('birthdate')?.value;
+    const birthdate =
+      rawBirthdate instanceof Date
+        ? rawBirthdate.toISOString().split('T')[0]
+        : '';
+
+    const request = {
+      username: step1.get('username')?.value,
+      password: step1.get('password')?.value,
+      firstName: step2.get('firstName')?.value,
+      lastName: step2.get('lastName')?.value,
+      birthdate,
+      email: step3.get('email')?.value,
+      phoneNumber: step3.get('phoneNumber')?.value,
+      admin: false,
+    };
+
+    this.isLoading.set(true);
+    this.error.set('');
+
+    this.authService.register(request).subscribe({
+      next: () => this.router.navigate(['/inside']),
+      error: (error) => {
+        this.error.set(error?.message || 'Signup failed');
+        this.isLoading.set(false);
+      },
+    });
   }
 
   onSwitchmode() {

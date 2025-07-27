@@ -16,8 +16,8 @@
       <mat-card-content>
         <form [formGroup]="loginForm" (ngSubmit)="onLogin()">
           <mat-form-field appearance="outline" class="w-100 mb-3">
-            <mat-label>Email</mat-label>
-            <input matInput type="email" formControlName="email" />
+            <mat-label>Username</mat-label>
+            <input matInput type="text" formControlName="username" />
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="w-100 mb-4">
@@ -57,11 +57,11 @@
           >
             <mat-step [stepControl]="formGroups[0]">
               <div [formGroup]="formGroups[0]">
-                <ng-template matStepLabel>Email & Password</ng-template>
+                <ng-template matStepLabel>Username & Password</ng-template>
 
                 <mat-form-field appearance="outline" class="w-100 mb-3">
-                  <mat-label>Email</mat-label>
-                  <input matInput formControlName="email" type="email" />
+                  <mat-label>Username</mat-label>
+                  <input matInput formControlName="username" type="text" />
                 </mat-form-field>
 
                 <mat-form-field appearance="outline" class="w-100 mb-3">
@@ -78,7 +78,13 @@
                   >
                     Switch to: Login
                   </button>
-                  <button [disabled]="formGroups[0].invalid" mat-raised-button color="primary" type="button" matStepperNext>
+                  <button
+                    [disabled]="formGroups[0].invalid"
+                    mat-raised-button
+                    color="primary"
+                    type="button"
+                    matStepperNext
+                  >
                     Next
                   </button>
                 </div>
@@ -99,6 +105,20 @@
                   <input matInput formControlName="lastName" />
                 </mat-form-field>
 
+                <mat-form-field appearance="outline" class="w-100 mb-3">
+                  <mat-label>Birthdate</mat-label>
+                  <input
+                    matInput
+                    [matDatepicker]="picker"
+                    formControlName="birthdate"
+                  />
+                  <mat-datepicker-toggle
+                    matSuffix
+                    [for]="picker"
+                  ></mat-datepicker-toggle>
+                  <mat-datepicker #picker></mat-datepicker>
+                </mat-form-field>
+
                 <div class="d-flex justify-content-between">
                   <button
                     mat-stroked-button
@@ -109,7 +129,13 @@
                     Switch to: Login
                   </button>
                   <button mat-button matStepperPrevious>Back</button>
-                  <button [disabled]="formGroups[1].invalid" mat-raised-button color="primary" type="button" matStepperNext>
+                  <button
+                    [disabled]="formGroups[1].invalid"
+                    mat-raised-button
+                    color="primary"
+                    type="button"
+                    matStepperNext
+                  >
                     Next
                   </button>
                 </div>
@@ -121,13 +147,13 @@
                 <ng-template matStepLabel>Contact Info</ng-template>
 
                 <mat-form-field appearance="outline" class="w-100 mb-3">
-                  <mat-label>Phone</mat-label>
-                  <input matInput formControlName="phone" />
+                  <mat-label>E-mail</mat-label>
+                  <input matInput formControlName="email" type="email" />
                 </mat-form-field>
 
                 <mat-form-field appearance="outline" class="w-100 mb-3">
-                  <mat-label>Address</mat-label>
-                  <input matInput formControlName="address" />
+                  <mat-label>Phone Number</mat-label>
+                  <input matInput formControlName="phoneNumber" type="tel" />
                 </mat-form-field>
 
                 <div class="d-flex justify-content-between">
@@ -140,7 +166,12 @@
                     Switch to: Login
                   </button>
                   <button mat-button matStepperPrevious>Back</button>
-                  <button [disabled]="signupForm.invalid" mat-raised-button color="primary" type="submit">
+                  <button
+                    [disabled]="signupForm.invalid"
+                    mat-raised-button
+                    color="primary"
+                    type="submit"
+                  >
                     Sign Up
                   </button>
                 </div>
@@ -150,7 +181,6 @@
         </form>
       </mat-card-content>
     </mat-card>
-
 
     } }
   </div>
