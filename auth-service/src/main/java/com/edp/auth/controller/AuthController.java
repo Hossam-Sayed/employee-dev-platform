@@ -16,12 +16,14 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 
 @CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-public class AuthController implements AuthControllerApi{
+public class AuthController implements AuthControllerApi {
 
     private final UserService userService;
     private final JwtService jwtService;
@@ -36,7 +38,10 @@ public class AuthController implements AuthControllerApi{
     ) {
         UserResponseDto createdUser = userService.createUser(userRegisterRequestDto);
         UserDetails userDetails = userDetailsService.loadUserByUsername(createdUser.getUsername());
-        String accessToken = jwtService.generateToken(userDetails);
+
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", createdUser.getId());
+        String accessToken = jwtService.generateToken(claims, userDetails);
         RefreshToken refreshToken = refreshTokenService.createRefreshToken((AppUser) userDetails);
 
 
@@ -59,9 +64,14 @@ public class AuthController implements AuthControllerApi{
                 )
         );
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
-        String accessToken = jwtService.generateToken(userDetails);
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken((AppUser) userDetails);
+        AppUser appUser = (AppUser) userDetailsService.loadUserByUsername(request.getUsername());
+
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", appUser.getId());
+
+        String accessToken = jwtService.generateToken(claims, appUser);
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(appUser);
+
 
         return ResponseEntity.ok(AuthResponseDto.builder()
                 .accessToken(accessToken)
@@ -74,7 +84,10 @@ public class AuthController implements AuthControllerApi{
         RefreshToken newRefreshToken = refreshTokenService.rotateRefreshToken(request.getRefreshToken());
 
 
-        String newAccessToken = jwtService.generateToken(newRefreshToken.getUser());
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", newRefreshToken.getUser().getId());
+
+        String newAccessToken = jwtService.generateToken(claims, newRefreshToken.getUser());
 
         return ResponseEntity.ok(AuthResponseDto.builder()
                 .accessToken(newAccessToken)
