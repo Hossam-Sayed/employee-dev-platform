@@ -15,7 +15,7 @@ export class HeaderComponent {
   authService = inject(AuthService);
   router = inject(Router);
   onLogout() {
-    const username = this.tokenService.getUsernameFromAccessToken();
+    const username = this.tokenService.getPayload()?.sub;
     if (!username) {
       console.error('No valid access token found');
       return;

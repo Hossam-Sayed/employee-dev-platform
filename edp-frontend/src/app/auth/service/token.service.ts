@@ -31,16 +31,16 @@ export class TokenService {
     return !!this.getRefreshToken();
   }
 
-  getUsernameFromAccessToken(): string | null {
-    const token = this.getAccessToken();
-    if (!token) return null;
+getPayload(): JwtPayload | null {
+  const token = this.getAccessToken();
+  if (!token) return null;
 
-    try {
-      const payload: JwtPayload = jwtDecode(token);
-      return payload.sub || null;
-    } catch (e) {
-      console.error('Failed to decode access token', e);
-      return null;
-    }
+  try {
+    return jwtDecode<JwtPayload>(token);
+  } catch (e) {
+    console.error('Invalid access token', e);
+    return null;
   }
+}
+
 }

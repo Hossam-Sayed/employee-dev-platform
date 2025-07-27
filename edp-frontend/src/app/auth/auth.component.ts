@@ -99,7 +99,10 @@ export class AuthComponent implements OnInit {
     };
 
     this.authService.login(authrequestDto).subscribe({
-      next: () => this.router.navigate(['/inside']),
+      next: () => {
+        this.router.navigate(['/inside']);
+        this.authService.setUserFromToken();
+      },
       error: (error) => {
         this.error.set(error?.message || 'Login failed');
         this.isLoading.set(false);
@@ -149,7 +152,10 @@ export class AuthComponent implements OnInit {
     this.error.set('');
 
     this.authService.register(request).subscribe({
-      next: () => this.router.navigate(['/inside']),
+      next: () => {
+        this.router.navigate(['/inside']);
+        this.authService.setUserFromToken();
+      },
       error: (error) => {
         this.error.set(error?.message || 'Signup failed');
         this.isLoading.set(false);

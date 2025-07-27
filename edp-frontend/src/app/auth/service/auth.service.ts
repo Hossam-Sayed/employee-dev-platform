@@ -1,8 +1,7 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
-
 import { AuthRequestDto } from '../model/auth-request.dto';
 import { AuthResponseDto } from '../model/auth-response.dto';
 import { UserRegisterRequestDto } from '../model/user-register-request.dto';
@@ -10,28 +9,64 @@ import { LogoutRequestDto } from '../model/logout-request.dto';
 import { RefreshRequestDto } from '../model/refresh-request.dto';
 import { ErrorResponse } from '../model/error-response.dto';
 import { TokenService } from './token.service';
+import { User } from '../model/user.model';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
+  private _user = signal<User | null>(null);
+  readonly user = computed(() => this._user());
+
+  getUser(): User | null {
+    return this._user();
+  }
+
+  setUserFromToken(): void {
+    const payload = this.tokenService.getPayload();
+    if (!payload) {
+      this.clearUser();
+      return;
+    }
+
+    //TODO: Call the get user endpoint to fetch full user details and add it to the signal
+    // For now, we will just set the user with minimal details from the token
+    this._user.set({
+      id: payload.userId,
+      username: payload.sub
+    });
+    console.log('User set from token:', this._user());
+  }
+
+  clearUser(): void {
+    this._user.set(null);
+  }
+
   private readonly API_URL = 'http://localhost:8080/api/auth';
 
   private httpClient = inject(HttpClient);
   private tokenService = inject(TokenService);
 
   login(dto: AuthRequestDto): Observable<AuthResponseDto> {
-    return this.httpClient.post<AuthResponseDto>(`${this.API_URL}/login`, dto).pipe(
-      tap((res) => this.tokenService.saveTokens(res.accessToken, res.refreshToken)),
-      catchError((error) => this.handleError(error, 'login'))
-    );
+    return this.httpClient
+      .post<AuthResponseDto>(`${this.API_URL}/login`, dto)
+      .pipe(
+        tap((res) =>
+          this.tokenService.saveTokens(res.accessToken, res.refreshToken)
+        ),
+        catchError((error) => this.handleError(error, 'login'))
+      );
   }
 
   register(dto: UserRegisterRequestDto): Observable<AuthResponseDto> {
-    return this.httpClient.post<AuthResponseDto>(`${this.API_URL}/register`, dto).pipe(
-      tap((res) => this.tokenService.saveTokens(res.accessToken, res.refreshToken)),
-      catchError((error) => this.handleError(error, 'register'))
-    );
+    return this.httpClient
+      .post<AuthResponseDto>(`${this.API_URL}/register`, dto)
+      .pipe(
+        tap((res) =>
+          this.tokenService.saveTokens(res.accessToken, res.refreshToken)
+        ),
+        catchError((error) => this.handleError(error, 'register'))
+      );
   }
 
   logout(dto: LogoutRequestDto): Observable<void> {
@@ -42,13 +77,20 @@ export class AuthService {
   }
 
   refresh(dto: RefreshRequestDto): Observable<AuthResponseDto> {
-    return this.httpClient.post<AuthResponseDto>(`${this.API_URL}/refresh`, dto).pipe(
-      tap((res) => this.tokenService.saveTokens(res.accessToken, res.refreshToken)),
-      catchError((error) => this.handleError(error, 'refresh'))
-    );
+    return this.httpClient
+      .post<AuthResponseDto>(`${this.API_URL}/refresh`, dto)
+      .pipe(
+        tap((res) =>
+          this.tokenService.saveTokens(res.accessToken, res.refreshToken)
+        ),
+        catchError((error) => this.handleError(error, 'refresh'))
+      );
   }
 
-  private handleError(error: HttpErrorResponse, operation: string): Observable<never> {
+  private handleError(
+    error: HttpErrorResponse,
+    operation: string
+  ): Observable<never> {
     console.error(`AuthService ${operation} failed`, error);
 
     let message = 'An unexpected error occurred';

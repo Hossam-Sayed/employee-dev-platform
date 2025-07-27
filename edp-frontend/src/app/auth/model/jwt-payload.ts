@@ -1,6 +1,6 @@
 export interface JwtPayload {
   sub: string;
-  exp: number;
-  iat: number;
-  [key: string]: any;
+  userId: number;
+  exp?: number;
+  iat?: number;
 }
