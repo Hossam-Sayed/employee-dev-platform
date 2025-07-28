@@ -15,6 +15,6 @@ export class AppComponent {
   private authService = inject(AuthService);
 
   ngOnInit(): void {
-    this.authService.setUserFromToken();
+    this.authService.setUserFromToken().subscribe();
   }
 }
