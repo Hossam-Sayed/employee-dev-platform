@@ -1,13 +1,13 @@
 export interface User {
   id: number;
-  firstName?: string;
-  lastName?: string;
+  firstName: string;
+  lastName: string;
   username: string;
-  email?: string;
-  birthdate?: string;
-  phoneNumber?: string;
+  email: string;
+  birthdate: string;
+  phoneNumber: string;
   department?: string;
   position?: string;
-  admin?: boolean;
+  admin: boolean;
   reportsToId?: number;
 }
