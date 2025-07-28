@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { AuthComponent } from './auth/auth.component';
 import { HeaderComponent } from './header/header.component';
 import { authGuard, reverseAuthGuard } from './auth/guard/auth.guard';
+import { UserUpdateComponent } from './user/user-update/user-update.component';
 
 export const routes: Routes = [
   {
@@ -15,9 +16,13 @@ export const routes: Routes = [
     canActivate: [reverseAuthGuard],
   },
   {
-    path:'inside',
+    path: 'inside',
     component: HeaderComponent,
-    canActivate:[authGuard],
-  }
-
+    canActivate: [authGuard],
+  },
+  {
+    path: 'update/:id',
+    component: UserUpdateComponent,
+    canActivate: [authGuard],
+  },
 ];

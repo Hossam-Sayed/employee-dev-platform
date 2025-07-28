@@ -1,0 +1,248 @@
+<div class="user-update-container">
+  <mat-card class="user-update-card">
+    <mat-card-header>
+      <mat-card-title>Update User Profile</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <form
+        [formGroup]="userUpdateForm"
+        (ngSubmit)="onSubmit()"
+        class="user-update-form"
+      >
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>First Name</mat-label>
+            <input matInput formControlName="firstName" />
+            @if (getFormControl('firstName')?.invalid &&
+            (getFormControl('firstName')?.touched ||
+            getFormControl('firstName')?.dirty)) {
+            <mat-error>
+              {{ getErrorMessage("firstName", "minlength") }}
+              {{ getErrorMessage("firstName", "maxlength") }}
+              {{ getErrorMessage("firstName", "serverError") }}
+            </mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Last Name</mat-label>
+            <input matInput formControlName="lastName" />
+            @if (getFormControl('lastName')?.invalid &&
+            (getFormControl('lastName')?.touched ||
+            getFormControl('lastName')?.dirty)) {
+            <mat-error>
+              {{ getErrorMessage("lastName", "minlength") }}
+              {{ getErrorMessage("lastName", "maxlength") }}
+              {{ getErrorMessage("lastName", "serverError") }}
+            </mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Username</mat-label>
+            <input matInput formControlName="username" />
+            @if (getFormControl('username')?.invalid &&
+            (getFormControl('username')?.touched ||
+            getFormControl('username')?.dirty)) {
+            <mat-error>
+              {{ getErrorMessage("username", "minlength") }}
+              {{ getErrorMessage("username", "maxlength") }}
+              {{ getErrorMessage("username", "serverError") }}
+            </mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Email</mat-label>
+            <input matInput formControlName="email" />
+            @if (getFormControl('email')?.invalid &&
+            (getFormControl('email')?.touched ||
+            getFormControl('email')?.dirty)) {
+            <mat-error>
+              {{ getErrorMessage("email", "email") }}
+              {{ getErrorMessage("email", "maxlength") }}
+              {{ getErrorMessage("email", "serverError") }}
+            </mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Birthdate</mat-label>
+            <input
+              matInput
+              [matDatepicker]="picker"
+              formControlName="birthdate"
+            />
+            <mat-datepicker-toggle
+              matSuffix
+              [for]="picker"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+            @if (getFormControl('birthdate')?.invalid &&
+            (getFormControl('birthdate')?.touched ||
+            getFormControl('birthdate')?.dirty)) {
+            <mat-error>
+              {{ getErrorMessage("birthdate", "pastDate") }}
+              {{ getErrorMessage("birthdate", "serverError") }}
+            </mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Phone Number</mat-label>
+            <input matInput formControlName="phoneNumber" />
+            @if (getFormControl('phoneNumber')?.invalid &&
+            (getFormControl('phoneNumber')?.touched ||
+            getFormControl('phoneNumber')?.dirty)) {
+            <mat-error>
+              {{ getErrorMessage("phoneNumber", "pattern") }}
+              {{ getErrorMessage("phoneNumber", "serverError") }}
+            </mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Department</mat-label>
+            <input matInput formControlName="department" />
+            @if (getFormControl('department')?.invalid &&
+            (getFormControl('department')?.touched ||
+            getFormControl('department')?.dirty)) {
+            <mat-error>
+              {{ getErrorMessage("department", "maxlength") }}
+              {{ getErrorMessage("department", "serverError") }}
+            </mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Position</mat-label>
+            <input matInput formControlName="position" />
+            @if (getFormControl('position')?.invalid &&
+            (getFormControl('position')?.touched ||
+            getFormControl('position')?.dirty)) {
+            <mat-error>
+              {{ getErrorMessage("position", "maxlength") }}
+              {{ getErrorMessage("position", "serverError") }}
+            </mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        @if (isAdmin) {
+        <div class="form-row admin-fields">
+          <mat-checkbox formControlName="admin" class="full-width"
+            >Is Admin</mat-checkbox
+          >
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Reports To ID</mat-label>
+            <input matInput type="number" formControlName="reportsToId" />
+            @if (getFormControl('reportsToId')?.invalid &&
+            (getFormControl('reportsToId')?.touched ||
+            getFormControl('reportsToId')?.dirty)) {
+            <mat-error>
+              {{ getErrorMessage("reportsToId", "min") }}
+              {{ getErrorMessage("reportsToId", "serverError") }}
+            </mat-error>
+            }
+          </mat-form-field>
+        </div>
+        }
+
+        <mat-slide-toggle
+          formControlName="changePassword"
+          class="change-password-toggle"
+        >
+          Change Password
+        </mat-slide-toggle>
+
+        <div
+          *ngIf="getFormControl('changePassword')?.value"
+          class="password-fields"
+        >
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>New Password</mat-label>
+              <input
+                matInput
+                [type]="isPasswordVisible ? 'text' : 'password'"
+                formControlName="password"
+              />
+              <button
+                mat-icon-button
+                matSuffix
+                (click)="togglePasswordVisibility()"
+                type="button"
+              >
+                <mat-icon>{{
+                  isPasswordVisible ? "visibility" : "visibility_off"
+                }}</mat-icon>
+              </button>
+              @if (getFormControl('password')?.invalid &&
+              (getFormControl('password')?.touched ||
+              getFormControl('password')?.dirty)) {
+              <mat-error>
+                {{ getErrorMessage("password", "required") }}
+                {{ getErrorMessage("password", "minlength") }}
+                {{ getErrorMessage("password", "passwordStrength") }}
+                {{ getErrorMessage("password", "serverError") }}
+              </mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Confirm New Password</mat-label>
+              <input
+                matInput
+                [type]="isConfirmPasswordVisible ? 'text' : 'password'"
+                formControlName="confirmPassword"
+              />
+              <button
+                mat-icon-button
+                matSuffix
+                (click)="toggleConfirmPasswordVisibility()"
+                type="button"
+              >
+                <mat-icon>{{
+                  isConfirmPasswordVisible ? "visibility" : "visibility_off"
+                }}</mat-icon>
+              </button>
+              @if (getFormControl('confirmPassword')?.invalid &&
+              (getFormControl('confirmPassword')?.touched ||
+              getFormControl('confirmPassword')?.dirty)) {
+              <mat-error>
+                {{ getErrorMessage("confirmPassword", "required") }}
+                {{ getErrorMessage("confirmPassword", "passwordMismatch") }}
+                {{ getErrorMessage("confirmPassword", "serverError") }}
+              </mat-error>
+              }
+            </mat-form-field>
+          </div>
+        </div>
+
+        <mat-card-actions class="form-actions">
+          <button
+            mat-raised-button
+            color="primary"
+            type="submit"
+            [disabled]="userUpdateForm.invalid || !userUpdateForm.dirty"
+          >
+            Update Profile
+          </button>
+          <button
+            mat-button
+            type="button"
+            (click)="router.navigate(['/'])"
+          >
+            Cancel
+          </button>
+        </mat-card-actions>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>
