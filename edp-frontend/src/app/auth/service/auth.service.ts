@@ -1,7 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { Observable, of, throwError } from 'rxjs';
+import { catchError, map, tap } from 'rxjs/operators';
 import { AuthRequestDto } from '../model/auth-request.dto';
 import { AuthResponseDto } from '../model/auth-response.dto';
 import { UserRegisterRequestDto } from '../model/user-register-request.dto';
@@ -9,43 +9,49 @@ import { LogoutRequestDto } from '../model/logout-request.dto';
 import { RefreshRequestDto } from '../model/refresh-request.dto';
 import { ErrorResponse } from '../model/error-response.dto';
 import { TokenService } from './token.service';
-import { User } from '../model/user.model';
+import { User } from '../../user/models/user.model';
+import { UserService } from '../../user/services/user.service';
+import { UserResponse } from '../../user/models/user-response.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private _user = signal<User | null>(null);
-  readonly user = computed(() => this._user());
-
-  getUser(): User | null {
-    return this._user();
-  }
-
-  setUserFromToken(): void {
-    const payload = this.tokenService.getPayload();
-    if (!payload) {
-      this.clearUser();
-      return;
-    }
-
-    //TODO: Call the get user endpoint to fetch full user details and add it to the signal
-    // For now, we will just set the user with minimal details from the token
-    this._user.set({
-      id: payload.userId,
-      username: payload.sub
-    });
-    console.log('User set from token:', this._user());
-  }
-
-  clearUser(): void {
-    this._user.set(null);
-  }
-
   private readonly API_URL = 'http://localhost:8080/api/auth';
 
   private httpClient = inject(HttpClient);
   private tokenService = inject(TokenService);
+  private userService = inject(UserService);
+
+  private fetchAndSetUser(userId: number): Observable<void> {
+    return this.userService.getUser(userId).pipe(
+      tap((userResponse: UserResponse) => {
+        const fullUser: User = {
+          ...userResponse,
+        };
+
+        this.userService.setAuthenticatedUser(fullUser);
+      }),
+      map(() => {}),
+      catchError((err) => {
+        console.error('Failed to fetch full user details:', err);
+        this.userService.clearCurrentUser();
+        this.tokenService.clearTokens();
+        return throwError(() => new Error('Failed to load user profile.'));
+      })
+    );
+  }
+
+  setUserFromToken(): Observable<void> {
+    const payload = this.tokenService.getPayload();
+
+    if (!payload || !payload.userId) {
+      this.userService.clearCurrentUser();
+      return of(undefined);
+    }
+
+    return this.fetchAndSetUser(payload.userId);
+  }
 
   login(dto: AuthRequestDto): Observable<AuthResponseDto> {
     return this.httpClient
