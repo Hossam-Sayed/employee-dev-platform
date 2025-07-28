@@ -15,6 +15,7 @@ export class AppComponent {
   private authService = inject(AuthService);
 
   ngOnInit(): void {
-    this.authService.setUserFromToken().subscribe();
+    // TODO: search initialize before update and double request
+    // this.authService.setUserFromToken().subscribe();
   }
 }
