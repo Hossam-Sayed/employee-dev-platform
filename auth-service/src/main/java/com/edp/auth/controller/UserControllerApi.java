@@ -24,6 +24,7 @@ import java.util.List;
 import com.edp.shared.error.model.ErrorResponse;
 
 @Tag(name = "User Management", description = "APIs for managing user accounts")
+@CrossOrigin(origins = "http://localhost:4200")
 @Validated
 @RequestMapping("/api/users")
 public interface UserControllerApi {
@@ -73,7 +74,7 @@ public interface UserControllerApi {
                             examples = @ExampleObject(value = "{\"timestamp\":\"2025-07-21T10:00:00\",\"status\":404,\"error\":\"Not Found\",\"message\":\"User not found\",\"path\":\"/api/users/999\"}")))
     })
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or #id == T(com.edp.auth.data.entity.AppUser).cast(authentication.principal).id")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     ResponseEntity<UserResponseDto> getUser(@Parameter(description = "ID of the user to retrieve", required = true) @PathVariable("id") Long id);
 
     @Operation(
