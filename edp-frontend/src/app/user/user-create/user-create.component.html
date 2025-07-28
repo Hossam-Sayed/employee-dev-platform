@@ -1,11 +1,11 @@
 <div class="user-update-container">
   <mat-card class="user-update-card">
     <mat-card-header>
-      <mat-card-title>Update User Profile</mat-card-title>
+      <mat-card-title>Create New User</mat-card-title>
     </mat-card-header>
     <mat-card-content>
       <form
-        [formGroup]="userUpdateForm"
+        [formGroup]="userCreateForm"
         (ngSubmit)="onSubmit()"
         class="user-update-form"
       >
@@ -17,6 +17,7 @@
             (getFormControl('firstName')?.touched ||
             getFormControl('firstName')?.dirty)) {
             <mat-error>
+              {{ getErrorMessage("firstName", "required") }}
               {{ getErrorMessage("firstName", "minlength") }}
               {{ getErrorMessage("firstName", "maxlength") }}
               {{ getErrorMessage("firstName", "serverError") }}
@@ -31,6 +32,7 @@
             (getFormControl('lastName')?.touched ||
             getFormControl('lastName')?.dirty)) {
             <mat-error>
+              {{ getErrorMessage("lastName", "required") }}
               {{ getErrorMessage("lastName", "minlength") }}
               {{ getErrorMessage("lastName", "maxlength") }}
               {{ getErrorMessage("lastName", "serverError") }}
@@ -47,6 +49,7 @@
             (getFormControl('username')?.touched ||
             getFormControl('username')?.dirty)) {
             <mat-error>
+              {{ getErrorMessage("username", "required") }}
               {{ getErrorMessage("username", "minlength") }}
               {{ getErrorMessage("username", "maxlength") }}
               {{ getErrorMessage("username", "serverError") }}
@@ -58,15 +61,76 @@
             <mat-label>Email</mat-label>
             <input matInput formControlName="email" />
             @if (getFormControl('email')?.invalid &&
-            (getFormControl('email')?.touched ||
-            getFormControl('email')?.dirty)) {
+            (getFormControl('email')?.touched || getFormControl('email')?.dirty
+            )) {
             <mat-error>
+              {{ getErrorMessage("email", "required") }}
               {{ getErrorMessage("email", "email") }}
               {{ getErrorMessage("email", "maxlength") }}
               {{ getErrorMessage("email", "serverError") }}
             </mat-error>
             }
           </mat-form-field>
+        </div>
+
+        <div class="password-fields">
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Password</mat-label>
+              <input
+                matInput
+                [type]="isPasswordVisible ? 'text' : 'password'"
+                formControlName="password"
+              />
+              <button
+                mat-icon-button
+                matSuffix
+                (click)="togglePasswordVisibility()"
+                type="button"
+              >
+                <mat-icon>{{
+                  isPasswordVisible ? "visibility" : "visibility_off"
+                }}</mat-icon>
+              </button>
+              @if (getFormControl('password')?.invalid &&
+              (getFormControl('password')?.touched ||
+              getFormControl('password')?.dirty)) {
+              <mat-error>
+                {{ getErrorMessage("password", "required") }}
+                {{ getErrorMessage("password", "passwordStrength") }}
+                {{ getErrorMessage("password", "serverError") }}
+              </mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Confirm Password</mat-label>
+              <input
+                matInput
+                [type]="isConfirmPasswordVisible ? 'text' : 'password'"
+                formControlName="confirmPassword"
+              />
+              <button
+                mat-icon-button
+                matSuffix
+                (click)="toggleConfirmPasswordVisibility()"
+                type="button"
+              >
+                <mat-icon>{{
+                  isConfirmPasswordVisible ? "visibility" : "visibility_off"
+                }}</mat-icon>
+              </button>
+              @if (getFormControl('confirmPassword')?.invalid &&
+              (getFormControl('confirmPassword')?.touched ||
+              getFormControl('confirmPassword')?.dirty)) {
+              <mat-error>
+                {{ getErrorMessage("confirmPassword", "required") }}
+                {{ getErrorMessage("confirmPassword", "passwordMismatch") }}
+                {{ getErrorMessage("confirmPassword", "serverError") }}
+              </mat-error>
+              }
+            </mat-form-field>
+          </div>
         </div>
 
         <div class="form-row">
@@ -86,6 +150,7 @@
             (getFormControl('birthdate')?.touched ||
             getFormControl('birthdate')?.dirty)) {
             <mat-error>
+              {{ getErrorMessage("birthdate", "required") }}
               {{ getErrorMessage("birthdate", "pastDate") }}
               {{ getErrorMessage("birthdate", "serverError") }}
             </mat-error>
@@ -154,91 +219,16 @@
         </div>
         }
 
-        <mat-slide-toggle
-          formControlName="changePassword"
-          class="change-password-toggle"
-        >
-          Change Password
-        </mat-slide-toggle>
-
-        <div
-          *ngIf="getFormControl('changePassword')?.value"
-          class="password-fields"
-        >
-          <div class="form-row">
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>New Password</mat-label>
-              <input
-                matInput
-                [type]="isPasswordVisible ? 'text' : 'password'"
-                formControlName="password"
-              />
-              <button
-                mat-icon-button
-                matSuffix
-                (click)="togglePasswordVisibility()"
-                type="button"
-              >
-                <mat-icon>{{
-                  isPasswordVisible ? "visibility" : "visibility_off"
-                }}</mat-icon>
-              </button>
-              @if (getFormControl('password')?.invalid &&
-              (getFormControl('password')?.touched ||
-              getFormControl('password')?.dirty)) {
-              <mat-error>
-                {{ getErrorMessage("password", "required") }}
-                {{ getErrorMessage("password", "minlength") }}
-                {{ getErrorMessage("password", "passwordStrength") }}
-                {{ getErrorMessage("password", "serverError") }}
-              </mat-error>
-              }
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Confirm New Password</mat-label>
-              <input
-                matInput
-                [type]="isConfirmPasswordVisible ? 'text' : 'password'"
-                formControlName="confirmPassword"
-              />
-              <button
-                mat-icon-button
-                matSuffix
-                (click)="toggleConfirmPasswordVisibility()"
-                type="button"
-              >
-                <mat-icon>{{
-                  isConfirmPasswordVisible ? "visibility" : "visibility_off"
-                }}</mat-icon>
-              </button>
-              @if (getFormControl('confirmPassword')?.invalid &&
-              (getFormControl('confirmPassword')?.touched ||
-              getFormControl('confirmPassword')?.dirty)) {
-              <mat-error>
-                {{ getErrorMessage("confirmPassword", "required") }}
-                {{ getErrorMessage("confirmPassword", "passwordMismatch") }}
-                {{ getErrorMessage("confirmPassword", "serverError") }}
-              </mat-error>
-              }
-            </mat-form-field>
-          </div>
-        </div>
-
         <mat-card-actions class="form-actions">
           <button
             mat-raised-button
             color="primary"
             type="submit"
-            [disabled]="userUpdateForm.invalid || !userUpdateForm.dirty"
+            [disabled]="userCreateForm.invalid"
           >
-            Update Profile
+            Create User
           </button>
-          <button
-            mat-button
-            type="button"
-            (click)="router.navigate(['/create'])"
-          >
+          <button mat-button type="button" (click)="router.navigate(['/'])">
             Cancel
           </button>
         </mat-card-actions>

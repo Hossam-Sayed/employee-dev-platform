@@ -1,0 +1,84 @@
+.user-update-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* Align to top */
+  min-height: 100vh; /* Ensure it takes full viewport height */
+  padding: 20px;
+  background-color: #f0f2f5; /* Light background */
+}
+
+.user-update-card {
+  width: 100%;
+  max-width: 800px; /* Max width for larger screens */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+mat-card-header {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center; /* Center the title */
+}
+
+mat-card-title {
+  font-size: 1.8em;
+  font-weight: 600;
+  color: #3f51b5; /* Material primary color */
+}
+
+.user-update-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Space between form rows/elements */
+}
+
+.form-row {
+  display: flex;
+  gap: 20px; /* Space between fields in a row */
+  flex-wrap: wrap; /* Allow wrapping on smaller screens */
+}
+
+.full-width {
+  flex: 1; /* Each item takes equal space */
+  min-width: 280px; /* Minimum width before wrapping */
+}
+
+/* Specific styling for admin fields */
+.admin-fields {
+  border-top: 1px solid #e0e0e0;
+  padding-top: 15px;
+  margin-top: 15px;
+}
+
+.change-password-toggle {
+  margin-top: 15px;
+  margin-bottom: 10px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end; /* Align buttons to the right */
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .form-row {
+    flex-direction: column; /* Stack fields vertically on small screens */
+    gap: 10px;
+  }
+
+  .full-width {
+    min-width: unset; /* Remove min-width constraint */
+  }
+
+  .user-update-card {
+    padding: 15px;
+  }
+
+  mat-card-title {
+    font-size: 1.5em;
+  }
+}
