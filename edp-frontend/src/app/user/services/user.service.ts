@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { UserResponse } from '../models/user-response.model';
 import { UserUpdateRequest } from '../models/user-update-request.model';
 import { User } from '../models/user.model';
+import { UserRegisterRequestDto } from '../../auth/model/user-register-request.dto';
 
 @Injectable({
   providedIn: 'root',
@@ -34,5 +35,10 @@ export class UserService {
 
   updateUser(id: number, userData: UserUpdateRequest): Observable<void> {
     return this.http.put<void>(`${this.apiUrl}/${id}`, userData);
+  }
+
+  createUser(userData: UserRegisterRequestDto): Observable<void> {
+    console.log('UserService: Creating user:', userData);
+    return this.http.post<void>(this.apiUrl, userData);
   }
 }
