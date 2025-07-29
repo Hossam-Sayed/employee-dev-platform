@@ -1,0 +1,32 @@
+package com.edp.careerpackage.controller;
+
+import com.edp.careerpackage.model.SectionRequestDto;
+import com.edp.careerpackage.model.SectionResponseDto;
+import com.edp.careerpackage.service.SectionService;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import java.util.List;
+
+@RestController
+@RequiredArgsConstructor
+public class SectionController implements SectionControllerApi {
+
+    private final SectionService sectionService;
+
+    @Override
+    public ResponseEntity<List<SectionResponseDto>> searchSections(String query) {
+        return ResponseEntity.ok(sectionService.searchSections(query));
+    }
+
+    @Override
+    public ResponseEntity<SectionResponseDto> createSection(SectionRequestDto request, UriComponentsBuilder uriBuilder) {
+        SectionResponseDto created = sectionService.createSection(request);
+        return ResponseEntity
+                .created(uriBuilder.path("/api/admin/sections/{id}").buildAndExpand(created.getId()).toUri())
+                .body(created);
+    }
+}
