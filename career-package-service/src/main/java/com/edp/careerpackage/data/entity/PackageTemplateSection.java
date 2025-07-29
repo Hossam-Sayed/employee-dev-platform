@@ -2,6 +2,8 @@ package com.edp.careerpackage.data.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.util.List;
+
 
 @Entity
 @Table(name = "package_template_sections")
@@ -23,4 +25,7 @@ public class PackageTemplateSection {
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "section_id",nullable = false)
     private Section section;
+
+    @OneToMany(mappedBy = "packageTemplateSection", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TemplateSectionRequiredTag> requiredTags;
 }
