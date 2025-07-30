@@ -10,6 +10,9 @@ import lombok.*;
 @Builder
 public class TemplateSectionRequestDto {
 
+    @NotNull(message = "TemplateId is required")
+    private Long templateId;
+
     @NotNull(message = "SectionId is required")
     private Long sectionId;
 }

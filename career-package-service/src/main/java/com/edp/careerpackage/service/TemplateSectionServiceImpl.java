@@ -9,6 +9,7 @@ import com.edp.careerpackage.data.repository.SectionRepository;
 import com.edp.careerpackage.mapper.TemplateMapper;
 import com.edp.careerpackage.model.templatesection.TemplateSectionRequestDto;
 import com.edp.careerpackage.model.templatesection.TemplateSectionResponseDto;
+import com.edp.careerpackage.model.requiredtag.TemplateSectionRequiredTagResponseDto;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -27,14 +28,6 @@ public class TemplateSectionServiceImpl implements TemplateSectionService {
     private final SectionRepository sectionRepository;
     private final PackageTemplateSectionRepository templateSectionRepository;
     private final TemplateMapper templateMapper;
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<TemplateSectionResponseDto> listSections(Long templateId) {
-        PackageTemplate template = templateRepository.findById(templateId)
-                .orElseThrow(() -> new EntityNotFoundException("Template not found with id " + templateId));
-        return templateMapper.toTemplateSectionResponseList(template.getSections());
-    }
 
     @Override
     public TemplateSectionResponseDto addSection(Long templateId, TemplateSectionRequestDto request) {
@@ -57,13 +50,17 @@ public class TemplateSectionServiceImpl implements TemplateSectionService {
     }
 
     @Override
-    public void removeSection(Long templateId, Long templateSectionId) {
+    public void removeSection(Long templateSectionId) {
         PackageTemplateSection templateSection = templateSectionRepository.findById(templateSectionId)
                 .orElseThrow(() -> new EntityNotFoundException("TemplateSection not found with id " + templateSectionId));
-
-        if (!templateSection.getTemplate().getId().equals(templateId)) {
-            throw new EntityNotFoundException("TemplateSection does not belong to the given template");
-        }
         templateSectionRepository.delete(templateSection);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TemplateSectionRequiredTagResponseDto> listRequiredTags(Long templateSectionId) {
+        PackageTemplateSection section = templateSectionRepository.findById(templateSectionId)
+                .orElseThrow(() -> new EntityNotFoundException("TemplateSection not found with id " + templateSectionId));
+        return templateMapper.toTemplateSectionRequiredTagResponseList(section.getRequiredTags());
     }
 }

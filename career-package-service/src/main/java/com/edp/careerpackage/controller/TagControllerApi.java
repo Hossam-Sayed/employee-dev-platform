@@ -17,11 +17,11 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.util.List;
 
 @Tag(
-        name = "Tags (Admin)",
+        name = "Tags",
         description = "Lookup and create tags used in templates"
 )
 @Validated
-@RequestMapping("/api/admin/tags")
+@RequestMapping("/api/tags")
 public interface TagControllerApi {
 
     @Operation(

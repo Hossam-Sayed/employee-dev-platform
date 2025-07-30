@@ -4,7 +4,10 @@ import com.edp.careerpackage.model.template.TemplateRequestDto;
 import com.edp.careerpackage.model.template.TemplateUpdateRequestDto;
 import com.edp.careerpackage.model.template.TemplateResponseDto;
 import com.edp.careerpackage.model.template.TemplateDetailResponseDto;
+import com.edp.careerpackage.model.templatesection.TemplateSectionResponseDto;
 import org.springframework.data.domain.Page;
+
+import java.util.List;
 
 public interface TemplateService {
 
@@ -17,4 +20,7 @@ public interface TemplateService {
     TemplateDetailResponseDto updateTemplate(Long id, TemplateUpdateRequestDto request);
 
     void deleteTemplate(Long id);
+
+    List<TemplateSectionResponseDto> listSections(Long templateId);
+
 }

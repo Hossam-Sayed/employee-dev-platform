@@ -11,6 +11,9 @@ import lombok.*;
 @Builder
 public class TemplateSectionRequiredTagRequestDto {
 
+    @NotNull(message = "TemplateSectionId is required")
+    private Long templateSectionId;
+
     @NotNull(message = "TagId is required")
     private Long tagId;
 

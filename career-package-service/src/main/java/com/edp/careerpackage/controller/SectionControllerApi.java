@@ -17,11 +17,11 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.util.List;
 
 @Tag(
-        name = "Sections (Admin)",
+        name = "Sections",
         description = "Lookup and create sections used in templates"
 )
 @Validated
-@RequestMapping("/api/admin/sections")
+@RequestMapping("/api/sections")
 public interface SectionControllerApi {
 
     @Operation(

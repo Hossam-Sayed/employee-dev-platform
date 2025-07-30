@@ -26,7 +26,7 @@ public class TagController implements TagControllerApi {
     public ResponseEntity<TagResponseDto> createTag(TagRequestDto request, UriComponentsBuilder uriBuilder) {
         TagResponseDto created = tagService.createTag(request);
         return ResponseEntity
-                .created(uriBuilder.path("/api/admin/tags/{id}").buildAndExpand(created.getId()).toUri())
+                .created(uriBuilder.path("/api/tags/{id}").buildAndExpand(created.getId()).toUri())
                 .body(created);
     }
 }

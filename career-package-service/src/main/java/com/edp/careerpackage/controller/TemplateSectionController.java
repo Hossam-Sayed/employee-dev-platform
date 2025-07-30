@@ -2,6 +2,7 @@ package com.edp.careerpackage.controller;
 
 import com.edp.careerpackage.model.templatesection.TemplateSectionRequestDto;
 import com.edp.careerpackage.model.templatesection.TemplateSectionResponseDto;
+import com.edp.careerpackage.model.requiredtag.TemplateSectionRequiredTagResponseDto;
 import com.edp.careerpackage.service.TemplateSectionService;
 
 import lombok.RequiredArgsConstructor;
@@ -18,22 +19,24 @@ public class TemplateSectionController implements TemplateSectionControllerApi {
     private final TemplateSectionService templateSectionService;
 
     @Override
-    public ResponseEntity<List<TemplateSectionResponseDto>> listSections(Long templateId) {
-        return ResponseEntity.ok(templateSectionService.listSections(templateId));
-    }
-
-    @Override
-    public ResponseEntity<TemplateSectionResponseDto> addSection(Long templateId, TemplateSectionRequestDto request, UriComponentsBuilder uriBuilder) {
-        TemplateSectionResponseDto created = templateSectionService.addSection(templateId, request);
+    public ResponseEntity<TemplateSectionResponseDto> attachSection(
+            TemplateSectionRequestDto request, UriComponentsBuilder uriBuilder
+    ) {
+        TemplateSectionResponseDto created = templateSectionService.addSection(request.getTemplateId(), request);
         return ResponseEntity
-                .created(uriBuilder.path("/api/admin/templates/{templateId}/sections/{id}")
-                        .buildAndExpand(templateId, created.getId()).toUri())
+                .created(uriBuilder.path("/api/template-sections/{id}")
+                        .buildAndExpand(created.getId()).toUri())
                 .body(created);
     }
 
     @Override
-    public ResponseEntity<Void> removeSection(Long templateId, Long templateSectionId) {
-        templateSectionService.removeSection(templateId, templateSectionId);
+    public ResponseEntity<Void> detachSection(Long templateSectionId) {
+        templateSectionService.removeSection(templateSectionId);
         return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    public ResponseEntity<List<TemplateSectionRequiredTagResponseDto>> listRequiredTags(Long templateSectionId) {
+        return ResponseEntity.ok(templateSectionService.listRequiredTags(templateSectionId));
     }
 }

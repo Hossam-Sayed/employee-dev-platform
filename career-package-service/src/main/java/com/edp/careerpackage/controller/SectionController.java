@@ -26,7 +26,7 @@ public class SectionController implements SectionControllerApi {
     public ResponseEntity<SectionResponseDto> createSection(SectionRequestDto request, UriComponentsBuilder uriBuilder) {
         SectionResponseDto created = sectionService.createSection(request);
         return ResponseEntity
-                .created(uriBuilder.path("/api/admin/sections/{id}").buildAndExpand(created.getId()).toUri())
+                .created(uriBuilder.path("/api/sections/{id}").buildAndExpand(created.getId()).toUri())
                 .body(created);
     }
 }

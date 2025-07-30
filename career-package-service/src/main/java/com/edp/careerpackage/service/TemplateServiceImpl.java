@@ -7,6 +7,7 @@ import com.edp.careerpackage.model.template.TemplateDetailResponseDto;
 import com.edp.careerpackage.model.template.TemplateRequestDto;
 import com.edp.careerpackage.model.template.TemplateResponseDto;
 import com.edp.careerpackage.model.template.TemplateUpdateRequestDto;
+import com.edp.careerpackage.model.templatesection.TemplateSectionResponseDto;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -68,4 +70,13 @@ public class TemplateServiceImpl implements TemplateService {
                 .orElseThrow(() -> new EntityNotFoundException("Template not found with id " + id));
         templateRepository.delete(template);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TemplateSectionResponseDto> listSections(Long templateId) {
+        PackageTemplate template = templateRepository.findById(templateId)
+                .orElseThrow(() -> new EntityNotFoundException("Template not found with id " + templateId));
+        return templateMapper.toTemplateSectionResponseList(template.getSections());
+    }
+
 }

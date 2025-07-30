@@ -14,60 +14,38 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.List;
-
 @Tag(
-        name = "Template Section Required Tags (Admin)",
-        description = "Attach, remove or list required tags & criteria for a template section"
+        name = "Template Section Required Tags",
+        description = "Attach or detach required tags from template sections"
 )
 @Validated
-@RequestMapping("/api/admin/templates/{templateId}/sections/{templateSectionId}/required-tags")
+@RequestMapping("/api/section-required-tags")
 public interface TemplateSectionRequiredTagControllerApi {
 
     @Operation(
-            summary = "List required tags in template section",
-            description = "Returns all required tags and criteria for the given template section."
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Required tags fetched successfully"),
-            @ApiResponse(responseCode = "404", description = "Template or section not found")
-    })
-    @GetMapping
-    ResponseEntity<List<TemplateSectionRequiredTagResponseDto>> listRequiredTags(
-            @PathVariable Long templateId,
-            @PathVariable Long templateSectionId
-    );
-
-    @Operation(
-            summary = "Attach required tag to template section",
-            description = "Attaches a tag with criteria type & min value to the template section."
+            summary = "Attach required tag",
+            description = "Attach a required tag to a template section"
     )
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Required tag attached successfully"),
             @ApiResponse(responseCode = "400", description = "Validation failed"),
-            @ApiResponse(responseCode = "404", description = "Template, section, or tag not found"),
-            @ApiResponse(responseCode = "409", description = "Tag already attached to this section")
+            @ApiResponse(responseCode = "404", description = "TemplateSection or Tag not found"),
+            @ApiResponse(responseCode = "409", description = "Tag already attached")
     })
     @PostMapping
-    ResponseEntity<TemplateSectionRequiredTagResponseDto> addRequiredTag(
-            @PathVariable Long templateId,
-            @PathVariable Long templateSectionId,
+    ResponseEntity<TemplateSectionRequiredTagResponseDto> attachRequiredTag(
             @Valid @RequestBody TemplateSectionRequiredTagRequestDto request,
             UriComponentsBuilder uriBuilder
     );
 
     @Operation(
-            summary = "Detach required tag from template section",
-            description = "Removes a required tag from the template section."
+            summary = "Detach required tag",
+            description = "Detach a required tag from a template section"
     )
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Required tag detached successfully"),
-            @ApiResponse(responseCode = "404", description = "Required tag not found")
+            @ApiResponse(responseCode = "404", description = "RequiredTag not found")
     })
     @DeleteMapping("/{requiredTagId}")
-    ResponseEntity<Void> removeRequiredTag(
-            @PathVariable Long templateId,
-            @PathVariable Long templateSectionId,
-            @PathVariable Long requiredTagId
-    );
+    ResponseEntity<Void> detachRequiredTag(@PathVariable Long requiredTagId);
 }
