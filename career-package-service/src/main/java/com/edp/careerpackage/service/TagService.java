@@ -1,7 +1,7 @@
 package com.edp.careerpackage.service;
 
-import com.edp.careerpackage.model.TagRequestDto;
-import com.edp.careerpackage.model.TagResponseDto;
+import com.edp.careerpackage.model.tag.TagRequestDto;
+import com.edp.careerpackage.model.tag.TagResponseDto;
 
 import java.util.List;
 

@@ -3,8 +3,8 @@ package com.edp.careerpackage.service;
 import com.edp.careerpackage.data.entity.Section;
 import com.edp.careerpackage.data.repository.SectionRepository;
 import com.edp.careerpackage.mapper.SectionMapper;
-import com.edp.careerpackage.model.SectionRequestDto;
-import com.edp.careerpackage.model.SectionResponseDto;
+import com.edp.careerpackage.model.section.SectionRequestDto;
+import com.edp.careerpackage.model.section.SectionResponseDto;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;

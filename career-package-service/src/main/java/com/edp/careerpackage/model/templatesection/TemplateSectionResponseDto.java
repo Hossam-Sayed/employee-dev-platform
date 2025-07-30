@@ -1,5 +1,6 @@
-package com.edp.careerpackage.model;
+package com.edp.careerpackage.model.templatesection;
 
+import com.edp.careerpackage.model.requiredtag.TemplateSectionRequiredTagResponseDto;
 import lombok.*;
 
 import java.util.List;

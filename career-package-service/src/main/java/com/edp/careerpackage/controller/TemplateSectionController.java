@@ -1,7 +1,7 @@
 package com.edp.careerpackage.controller;
 
-import com.edp.careerpackage.model.TemplateSectionRequestDto;
-import com.edp.careerpackage.model.TemplateSectionResponseDto;
+import com.edp.careerpackage.model.templatesection.TemplateSectionRequestDto;
+import com.edp.careerpackage.model.templatesection.TemplateSectionResponseDto;
 import com.edp.careerpackage.service.TemplateSectionService;
 
 import lombok.RequiredArgsConstructor;

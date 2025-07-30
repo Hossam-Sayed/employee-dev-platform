@@ -1,4 +1,4 @@
-package com.edp.careerpackage.model;
+package com.edp.careerpackage.model.template;
 
 import lombok.*;
 

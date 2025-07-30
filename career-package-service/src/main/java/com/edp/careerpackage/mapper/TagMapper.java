@@ -1,8 +1,8 @@
 package com.edp.careerpackage.mapper;
 
 import com.edp.careerpackage.data.entity.Tag;
-import com.edp.careerpackage.model.TagRequestDto;
-import com.edp.careerpackage.model.TagResponseDto;
+import com.edp.careerpackage.model.tag.TagRequestDto;
+import com.edp.careerpackage.model.tag.TagResponseDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;

@@ -1,4 +1,4 @@
-package com.edp.careerpackage.model;
+package com.edp.careerpackage.model.templatesection;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.*;

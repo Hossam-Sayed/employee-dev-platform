@@ -1,5 +1,6 @@
-package com.edp.careerpackage.model;
+package com.edp.careerpackage.model.template;
 
+import com.edp.careerpackage.model.templatesection.TemplateSectionResponseDto;
 import lombok.*;
 
 import java.time.LocalDateTime;

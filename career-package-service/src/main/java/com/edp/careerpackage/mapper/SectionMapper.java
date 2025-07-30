@@ -1,8 +1,8 @@
 package com.edp.careerpackage.mapper;
 
 import com.edp.careerpackage.data.entity.Section;
-import com.edp.careerpackage.model.SectionRequestDto;
-import com.edp.careerpackage.model.SectionResponseDto;
+import com.edp.careerpackage.model.section.SectionRequestDto;
+import com.edp.careerpackage.model.section.SectionResponseDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;

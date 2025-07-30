@@ -1,12 +1,10 @@
 package com.edp.careerpackage.service;
 
-import com.edp.careerpackage.model.TemplateRequestDto;
-import com.edp.careerpackage.model.TemplateUpdateRequestDto;
-import com.edp.careerpackage.model.TemplateResponseDto;
-import com.edp.careerpackage.model.TemplateDetailResponseDto;
+import com.edp.careerpackage.model.template.TemplateRequestDto;
+import com.edp.careerpackage.model.template.TemplateUpdateRequestDto;
+import com.edp.careerpackage.model.template.TemplateResponseDto;
+import com.edp.careerpackage.model.template.TemplateDetailResponseDto;
 import org.springframework.data.domain.Page;
-
-import java.util.List;
 
 public interface TemplateService {
 

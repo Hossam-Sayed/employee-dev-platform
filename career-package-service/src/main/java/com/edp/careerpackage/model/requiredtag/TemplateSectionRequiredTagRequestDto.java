@@ -1,4 +1,4 @@
-package com.edp.careerpackage.model;
+package com.edp.careerpackage.model.requiredtag;
 
 import com.edp.careerpackage.data.enums.CriteriaType;
 import jakarta.validation.constraints.NotNull;

@@ -1,4 +1,4 @@
-package com.edp.careerpackage.model;
+package com.edp.careerpackage.model.template;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
@@ -8,7 +8,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TemplateRequestDto {
+public class TemplateUpdateRequestDto {
 
     @NotBlank(message = "Department is required")
     private String department;

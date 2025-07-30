@@ -3,8 +3,8 @@ package com.edp.careerpackage.service;
 import com.edp.careerpackage.data.entity.Tag;
 import com.edp.careerpackage.data.repository.TagRepository;
 import com.edp.careerpackage.mapper.TagMapper;
-import com.edp.careerpackage.model.TagRequestDto;
-import com.edp.careerpackage.model.TagResponseDto;
+import com.edp.careerpackage.model.tag.TagRequestDto;
+import com.edp.careerpackage.model.tag.TagResponseDto;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;

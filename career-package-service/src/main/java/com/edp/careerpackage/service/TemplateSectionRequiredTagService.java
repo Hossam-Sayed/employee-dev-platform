@@ -1,7 +1,7 @@
 package com.edp.careerpackage.service;
 
-import com.edp.careerpackage.model.TemplateSectionRequiredTagRequestDto;
-import com.edp.careerpackage.model.TemplateSectionRequiredTagResponseDto;
+import com.edp.careerpackage.model.requiredtag.TemplateSectionRequiredTagRequestDto;
+import com.edp.careerpackage.model.requiredtag.TemplateSectionRequiredTagResponseDto;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package com.edp.careerpackage.model;
+package com.edp.careerpackage.model.tag;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
@@ -8,10 +8,8 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SectionRequestDto {
+public class TagRequestDto {
 
-    @NotBlank(message = "Section name is required")
+    @NotBlank(message = "Tag name is required")
     private String name;
-
-    private String description;
 }

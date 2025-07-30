@@ -4,12 +4,12 @@ import com.edp.careerpackage.data.entity.PackageTemplate;
 import com.edp.careerpackage.data.entity.PackageTemplateSection;
 import com.edp.careerpackage.data.entity.TemplateSectionRequiredTag;
 
-import com.edp.careerpackage.model.TemplateRequestDto;
-import com.edp.careerpackage.model.TemplateUpdateRequestDto;
-import com.edp.careerpackage.model.TemplateResponseDto;
-import com.edp.careerpackage.model.TemplateDetailResponseDto;
-import com.edp.careerpackage.model.TemplateSectionResponseDto;
-import com.edp.careerpackage.model.TemplateSectionRequiredTagResponseDto;
+import com.edp.careerpackage.model.template.TemplateRequestDto;
+import com.edp.careerpackage.model.template.TemplateUpdateRequestDto;
+import com.edp.careerpackage.model.template.TemplateResponseDto;
+import com.edp.careerpackage.model.template.TemplateDetailResponseDto;
+import com.edp.careerpackage.model.templatesection.TemplateSectionResponseDto;
+import com.edp.careerpackage.model.requiredtag.TemplateSectionRequiredTagResponseDto;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

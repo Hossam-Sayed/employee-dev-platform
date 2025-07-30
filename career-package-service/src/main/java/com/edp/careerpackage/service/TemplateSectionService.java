@@ -1,7 +1,7 @@
 package com.edp.careerpackage.service;
 
-import com.edp.careerpackage.model.TemplateSectionRequestDto;
-import com.edp.careerpackage.model.TemplateSectionResponseDto;
+import com.edp.careerpackage.model.templatesection.TemplateSectionRequestDto;
+import com.edp.careerpackage.model.templatesection.TemplateSectionResponseDto;
 
 import java.util.List;
 

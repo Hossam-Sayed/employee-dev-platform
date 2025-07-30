@@ -7,8 +7,8 @@ import com.edp.careerpackage.data.repository.PackageTemplateSectionRepository;
 import com.edp.careerpackage.data.repository.TagRepository;
 import com.edp.careerpackage.data.repository.TemplateSectionRequiredTagRepository;
 import com.edp.careerpackage.mapper.TemplateMapper;
-import com.edp.careerpackage.model.TemplateSectionRequiredTagRequestDto;
-import com.edp.careerpackage.model.TemplateSectionRequiredTagResponseDto;
+import com.edp.careerpackage.model.requiredtag.TemplateSectionRequiredTagRequestDto;
+import com.edp.careerpackage.model.requiredtag.TemplateSectionRequiredTagResponseDto;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;

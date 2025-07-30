@@ -1,7 +1,7 @@
 package com.edp.careerpackage.controller;
 
-import com.edp.careerpackage.model.TagRequestDto;
-import com.edp.careerpackage.model.TagResponseDto;
+import com.edp.careerpackage.model.tag.TagRequestDto;
+import com.edp.careerpackage.model.tag.TagResponseDto;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
