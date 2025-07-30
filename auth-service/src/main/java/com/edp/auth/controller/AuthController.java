@@ -41,6 +41,7 @@ public class AuthController implements AuthControllerApi {
 
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", createdUser.getId());
+        claims.put("isAdmin", createdUser.isAdmin());
         String accessToken = jwtService.generateToken(claims, userDetails);
         RefreshToken refreshToken = refreshTokenService.createRefreshToken((AppUser) userDetails);
 
@@ -68,6 +69,7 @@ public class AuthController implements AuthControllerApi {
 
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", appUser.getId());
+        claims.put("isAdmin", appUser.isAdmin());
 
         String accessToken = jwtService.generateToken(claims, appUser);
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(appUser);
@@ -86,6 +88,7 @@ public class AuthController implements AuthControllerApi {
 
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", newRefreshToken.getUser().getId());
+        claims.put("isAdmin", newRefreshToken.getUser().isAdmin());
 
         String newAccessToken = jwtService.generateToken(claims, newRefreshToken.getUser());
 
