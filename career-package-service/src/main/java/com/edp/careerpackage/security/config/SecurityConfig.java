@@ -30,6 +30,13 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/swagger-ui.html"
                         ).permitAll()
+                        .requestMatchers(
+                                "/api/templates/**",
+                                "/api/template-sections/**",
+                                "/api/section-required-tags/**",
+                                "/api/sections/**",
+                                "/api/tags/**"
+                        ).hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
