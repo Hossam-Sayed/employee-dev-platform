@@ -26,4 +26,8 @@ public class CareerPackageTagProgress {
 
     @Column(name = "completed_value", nullable = false)
     private Double completedValue;
+
+    @Column(name = "proof_url", length = 1000)
+    private String proofUrl;
+
 }

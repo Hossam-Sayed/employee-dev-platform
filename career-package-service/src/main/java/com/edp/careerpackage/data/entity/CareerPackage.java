@@ -36,12 +36,16 @@ public class CareerPackage {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-//    @OneToMany(mappedBy = "careerPackage", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<CareerPackageSectionProgress> sectionProgressList;
+    @OneToMany(mappedBy = "careerPackage", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CareerPackageSectionProgress> sectionProgressList;
 
     @OneToOne(mappedBy = "careerPackage", cascade = CascadeType.ALL, orphanRemoval = true)
     private CareerPackageProgress progress;
 
-//    @OneToMany(mappedBy = "careerPackage", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<Submission> submissions;
+    @OneToMany(mappedBy = "careerPackage", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Submission> submissions;
+
+    @Column(name = "active", nullable = false)
+    private boolean active;
+
 }
