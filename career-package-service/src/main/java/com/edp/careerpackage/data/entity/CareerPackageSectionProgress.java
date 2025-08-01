@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 
 @Entity
@@ -29,7 +30,8 @@ public class CareerPackageSectionProgress {
     private PackageTemplateSection packageTemplateSection;
 
     @OneToMany(mappedBy = "careerPackageSectionProgress", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<CareerPackageTagProgress> tagProgressList;
+    @OrderBy("id ASC")
+    private Set<CareerPackageTagProgress> tagProgressList;
 
     @Column(name = "total_progress_percent")
     private Double totalProgressPercent;

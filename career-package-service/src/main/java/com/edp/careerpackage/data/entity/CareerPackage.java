@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "career_packages")
@@ -37,7 +38,8 @@ public class CareerPackage {
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "careerPackage", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<CareerPackageSectionProgress> sectionProgressList;
+    @OrderBy("id ASC")
+    private Set<CareerPackageSectionProgress> sectionProgressList;
 
     @OneToOne(mappedBy = "careerPackage", cascade = CascadeType.ALL, orphanRemoval = true)
     private CareerPackageProgress progress;

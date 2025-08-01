@@ -12,6 +12,8 @@ import java.util.Optional;
 @Repository
 public interface PackageTemplateRepository extends JpaRepository<PackageTemplate, Long> {
 
+    Optional<PackageTemplate> findByDepartmentAndPosition(String department, String position);
+
     Page<PackageTemplate> findByDepartmentContainingIgnoreCaseAndPositionContainingIgnoreCase(
             String department, String position, Pageable pageable
     );
