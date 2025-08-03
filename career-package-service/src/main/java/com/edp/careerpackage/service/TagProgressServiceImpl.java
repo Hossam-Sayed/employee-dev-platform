@@ -10,6 +10,7 @@ import com.edp.careerpackage.security.jwt.JwtUserContext;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +37,11 @@ public class TagProgressServiceImpl implements TagProgressService {
         if (!careerPackage.getUserId().equals(currentUserId)) {
             throw new AuthenticationException("User not authorized to update this tag progress") {
             };
+        }
+
+        CareerPackageStatus status = careerPackage.getStatus();
+        if (status == CareerPackageStatus.SUBMITTED || status == CareerPackageStatus.APPROVED) {
+            throw new DataIntegrityViolationException("Cannot update tag progress for a submitted or approved package");
         }
 
         //the min value required for completing a tag is the max value to be submitted as progress for this tag
