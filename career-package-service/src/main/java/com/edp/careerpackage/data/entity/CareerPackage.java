@@ -45,7 +45,8 @@ public class CareerPackage {
     private CareerPackageProgress progress;
 
     @OneToMany(mappedBy = "careerPackage", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Submission> submissions;
+    @OrderBy("id ASC")
+    private Set<Submission> submissions;
 
     @Column(name = "active", nullable = false)
     private boolean active;

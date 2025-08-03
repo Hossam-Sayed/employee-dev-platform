@@ -63,5 +63,5 @@ public interface CareerPackageMapper {
 
     List<SectionProgressResponseDto> toCareerPackageSectionProgressList(Collection<CareerPackageSectionProgress> list);
     List<TagPogressResponseDto> toCareerPackageTagProgressList(Collection<CareerPackageTagProgress> list);
-    List<SubmissionResponseDto> toSubmissionResponseDtoList(List<Submission> submissions);
+    List<SubmissionResponseDto> toSubmissionResponseDtoList(Collection<Submission> submissions);
 }
