@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -20,4 +21,7 @@ public interface CareerPackageRepository extends JpaRepository<CareerPackage, Lo
     Optional<CareerPackage> findByUserIdAndActiveTrue(Long userId);
 
     boolean existsByUserIdAndActiveTrue(Long userId);
+
+    List<CareerPackage> findByUserIdInAndActiveTrue(List<Long> userIds);
+
 }

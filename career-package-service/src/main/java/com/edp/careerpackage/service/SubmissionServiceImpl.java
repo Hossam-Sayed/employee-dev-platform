@@ -8,6 +8,7 @@ import com.edp.careerpackage.data.repository.SubmissionRepository;
 import com.edp.careerpackage.data.repository.SubmissionTagSnapshotRepository;
 import com.edp.careerpackage.mapper.CareerPackageMapper;
 import com.edp.careerpackage.mapper.SubmissionTagSnapshotMapper;
+import com.edp.careerpackage.model.submission.CommentRequestDto;
 import com.edp.careerpackage.model.submission.SubmissionResponseDto;
 import com.edp.careerpackage.model.submissionsnapshot.SubmissionTagSnapshotResponseDto;
 import com.edp.careerpackage.security.jwt.JwtUserContext;
@@ -20,7 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -80,19 +80,87 @@ public class SubmissionServiceImpl implements SubmissionService {
     @Override
     @Transactional(readOnly = true)
     public List<SubmissionTagSnapshotResponseDto> getSnapshotsBySubmissionId(Long submissionId) {
-        Long userId = JwtUserContext.getUserId();
 
         Submission submission = submissionRepository.findById(submissionId)
                 .orElseThrow(() -> new EntityNotFoundException("Submission not found"));
-
         CareerPackage careerPackage = submission.getCareerPackage();
-        if (!careerPackage.getUserId().equals(userId)) {
+
+        Long userId = JwtUserContext.getUserId();
+        boolean isOwner = careerPackage.getUserId().equals(userId);
+        boolean isAdmin = JwtUserContext.isAdmin();
+
+        if (!isOwner && !isAdmin) {
             throw new AuthenticationException("You are not authorized to view this submission") {};
         }
 
         List<SubmissionTagSnapshot> snapshots = snapshotRepository.findBySubmission(submission);
         return snapshotMapper.toSnapshotResponseDtoList(snapshots);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<SubmissionResponseDto> getSubmissionsByUserIds(List<Long> userIds) {
+        if (!JwtUserContext.isAdmin()) { //TODO: Add manager role and add it to token
+            throw new AuthenticationException("Only managers can view submissions of others") {};
+        }
+
+        List<CareerPackage> packages = careerPackageRepository.findByUserIdInAndActiveTrue(userIds);
+
+        List<Submission> submissions = packages.stream()
+                .flatMap(pkg -> pkg.getSubmissions().stream())
+                .toList();
+
+        return mapper.toSubmissionResponseDtoList(submissions);
+    }
+
+    @Override
+    @Transactional
+    public SubmissionResponseDto approveSubmission(Long submissionId, CommentRequestDto request) {
+
+        if (!JwtUserContext.isAdmin()) { //TODO: Add manager role and add it to token
+            throw new AuthenticationException("Only managers can approve submissions of others") {};
+        }
+
+        Submission submission = submissionRepository.findById(submissionId)
+                .orElseThrow(() -> new EntityNotFoundException("Submission not found"));
+
+        if (submission.getStatus() != SubmissionStatus.PENDING) {
+            throw new DataIntegrityViolationException("Only pending submissions can be reviewed.");
+        }
+
+        submission.setStatus(SubmissionStatus.APPROVED);
+        submission.setComment(request.getComment());
+        submission.setReviewedAt(LocalDateTime.now());
+        submission.getCareerPackage().setStatus(CareerPackageStatus.APPROVED);
+
+        submissionRepository.save(submission);
+        return mapper.toSubmissionResponseDto(submission);
+    }
+
+    @Override
+    @Transactional
+    public SubmissionResponseDto rejectSubmission(Long submissionId, CommentRequestDto request) {
+
+        if (!JwtUserContext.isAdmin()) { //TODO: Add manager role and add it to token
+            throw new AuthenticationException("Only managers can reject submissions of others") {};
+        }
+
+        Submission submission = submissionRepository.findById(submissionId)
+                .orElseThrow(() -> new EntityNotFoundException("Submission not found"));
+
+        if (submission.getStatus() != SubmissionStatus.PENDING) {
+            throw new DataIntegrityViolationException("Only pending submissions can be reviewed.");
+        }
+
+        submission.setStatus(SubmissionStatus.REJECTED);
+        submission.setComment(request.getComment());
+        submission.setReviewedAt(LocalDateTime.now());
+        submission.getCareerPackage().setStatus(CareerPackageStatus.REJECTED);
+
+        submissionRepository.save(submission);
+        return mapper.toSubmissionResponseDto(submission);
+    }
+
 
 
     private List<SubmissionTagSnapshot> buildSnapshots(CareerPackage careerPackage, Submission submission) {

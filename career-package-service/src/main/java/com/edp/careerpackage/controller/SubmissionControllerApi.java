@@ -1,5 +1,6 @@
 package com.edp.careerpackage.controller;
 
+import com.edp.careerpackage.model.submission.CommentRequestDto;
 import com.edp.careerpackage.model.submission.SubmissionResponseDto;
 import com.edp.careerpackage.model.submissionsnapshot.SubmissionTagSnapshotResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -53,5 +54,48 @@ public interface SubmissionControllerApi {
     })
     @GetMapping("/{submissionId}/snapshots")
     ResponseEntity<List<SubmissionTagSnapshotResponseDto>> getSubmissionSnapshots(@PathVariable Long submissionId);
+
+    @Operation(
+            summary = "Search submissions by user IDs (MANAGER only)",
+            description = "Returns a list of submissions belonging to the given user IDs."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Submissions fetched successfully"),
+            @ApiResponse(responseCode = "403", description = "Only managers can access this endpoint")
+    })
+    @GetMapping("/search")
+    ResponseEntity<List<SubmissionResponseDto>> searchSubmissions(@RequestParam List<Long> userIds);
+
+
+    @Operation(
+            summary = "Approve a submission (MANAGER only)",
+            description = "Approve a submission and mark it as APPROVED."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Submission approved"),
+            @ApiResponse(responseCode = "403", description = "Only managers can approve submissions"),
+            @ApiResponse(responseCode = "404", description = "Submission not found")
+    })
+    @PutMapping("/{submissionId}/approve")
+    ResponseEntity<SubmissionResponseDto> approveSubmission(
+            @PathVariable Long submissionId,
+            @RequestBody CommentRequestDto commentRequest
+    );
+
+
+    @Operation(
+            summary = "Reject a submission (MANAGER only)",
+            description = "Reject a submission and mark it as REJECTED."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Submission rejected"),
+            @ApiResponse(responseCode = "403", description = "Only managers can reject submissions"),
+            @ApiResponse(responseCode = "404", description = "Submission not found")
+    })
+    @PutMapping("/{submissionId}/reject")
+    ResponseEntity<SubmissionResponseDto> rejectSubmission(
+            @PathVariable Long submissionId,
+            @RequestBody CommentRequestDto commentRequest
+    );
 
 }
