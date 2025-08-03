@@ -1,8 +1,8 @@
 package com.edp.careerpackage.service;
 
-import com.edp.careerpackage.model.careerpackage.CareerPackageProgressDto;
+import com.edp.careerpackage.model.packageprogress.PackageProgressResponseDto;
 
 public interface CareerPackageProgressService {
 
-    CareerPackageProgressDto getCurrentUserProgress();
+    PackageProgressResponseDto getCurrentUserProgress();
 }

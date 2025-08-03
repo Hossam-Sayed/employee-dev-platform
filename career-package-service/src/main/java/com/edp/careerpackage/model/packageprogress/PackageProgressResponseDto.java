@@ -1,4 +1,4 @@
-package com.edp.careerpackage.model.careerpackage;
+package com.edp.careerpackage.model.packageprogress;
 
 import lombok.*;
 
@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CareerPackageProgressDto {
+public class PackageProgressResponseDto {
     private Double totalProgressPercent;
     private LocalDateTime updatedAt;
 }

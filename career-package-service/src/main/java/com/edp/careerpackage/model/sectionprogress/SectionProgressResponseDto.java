@@ -1,5 +1,6 @@
-package com.edp.careerpackage.model.careerpackage;
+package com.edp.careerpackage.model.sectionprogress;
 
+import com.edp.careerpackage.model.tagprogress.TagPogressResponseDto;
 import lombok.*;
 
 import java.util.List;
@@ -9,11 +10,11 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CareerPackageSectionProgressDto {
+public class SectionProgressResponseDto {
 
     private Long sectionProgressId;
     private String sectionName;
     private String sectionDescription;
     private Double sectionProgressPercent;
-    private List<CareerPackageTagProgressDto> tags;
+    private List<TagPogressResponseDto> tags;
 }

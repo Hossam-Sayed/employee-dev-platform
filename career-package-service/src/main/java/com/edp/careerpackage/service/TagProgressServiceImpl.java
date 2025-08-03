@@ -3,9 +3,9 @@ package com.edp.careerpackage.service;
 import com.edp.careerpackage.data.entity.*;
 import com.edp.careerpackage.data.enums.CareerPackageStatus;
 import com.edp.careerpackage.data.repository.CareerPackageTagProgressRepository;
-import com.edp.careerpackage.mapper.TagProgressMapper;
+import com.edp.careerpackage.mapper.CareerPackageMapper;
+import com.edp.careerpackage.model.tagprogress.TagPogressResponseDto;
 import com.edp.careerpackage.model.tagprogress.TagProgressRequestDto;
-import com.edp.careerpackage.model.tagprogress.TagProgressResponseDto;
 import com.edp.careerpackage.security.jwt.JwtUserContext;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -21,11 +21,11 @@ import java.time.LocalDateTime;
 public class TagProgressServiceImpl implements TagProgressService {
 
     private final CareerPackageTagProgressRepository tagProgressRepository;
-    private final TagProgressMapper mapper;
+    private final CareerPackageMapper mapper;
 
     @Override
     @Transactional
-    public TagProgressResponseDto updateTagProgress(Long tagProgressId, TagProgressRequestDto request) {
+    public TagPogressResponseDto updateTagProgress(Long tagProgressId, TagProgressRequestDto request) {
         Long currentUserId = JwtUserContext.getUserId();
 
         CareerPackageTagProgress tagProgress = tagProgressRepository.findById(tagProgressId)
@@ -50,7 +50,7 @@ public class TagProgressServiceImpl implements TagProgressService {
 
         recalculatePackageProgress(careerPackage);
 
-        return mapper.toTagProgressResponse(tagProgress);
+        return mapper.toCareerPackageTagProgress(tagProgress);
     }
 
     private void recalculateSectionProgress(CareerPackageSectionProgress sectionProgress) {

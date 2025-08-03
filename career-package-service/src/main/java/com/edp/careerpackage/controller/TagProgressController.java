@@ -1,7 +1,7 @@
 package com.edp.careerpackage.controller;
 
+import com.edp.careerpackage.model.tagprogress.TagPogressResponseDto;
 import com.edp.careerpackage.model.tagprogress.TagProgressRequestDto;
-import com.edp.careerpackage.model.tagprogress.TagProgressResponseDto;
 import com.edp.careerpackage.service.TagProgressService;
 
 import lombok.RequiredArgsConstructor;
@@ -15,11 +15,11 @@ public class TagProgressController implements TagProgressControllerApi {
     private final TagProgressService tagProgressService;
 
     @Override
-    public ResponseEntity<TagProgressResponseDto> updateTagProgress(
+    public ResponseEntity<TagPogressResponseDto> updateTagProgress(
             Long tagProgressId,
             TagProgressRequestDto request
     ) {
-        TagProgressResponseDto updated = tagProgressService.updateTagProgress(tagProgressId, request);
+        TagPogressResponseDto updated = tagProgressService.updateTagProgress(tagProgressId, request);
         return ResponseEntity.ok(updated);
     }
 }

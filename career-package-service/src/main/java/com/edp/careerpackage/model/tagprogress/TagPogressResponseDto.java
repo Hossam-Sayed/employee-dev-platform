@@ -1,4 +1,4 @@
-package com.edp.careerpackage.model.careerpackage;
+package com.edp.careerpackage.model.tagprogress;
 
 import lombok.*;
 
@@ -7,10 +7,11 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CareerPackageTagProgressDto {
+public class TagPogressResponseDto {
     private Long tagProgressId;
     private String tagName;
     private String criteriaType;
     private Double requiredValue;
     private Double completedValue;
+    private String proofUrl;
 }

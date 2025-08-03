@@ -1,5 +1,7 @@
 package com.edp.careerpackage.model.careerpackage;
 
+import com.edp.careerpackage.model.packageprogress.PackageProgressResponseDto;
+import com.edp.careerpackage.model.sectionprogress.SectionProgressResponseDto;
 import com.edp.careerpackage.model.submission.SubmissionResponseDto;
 import lombok.*;
 
@@ -19,7 +21,7 @@ public class CareerPackageResponseDto {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    private List<CareerPackageSectionProgressDto> sections;
-    private CareerPackageProgressDto progress;
+    private List<SectionProgressResponseDto> sections;
+    private PackageProgressResponseDto progress;
     private List<SubmissionResponseDto> submissions;
 }

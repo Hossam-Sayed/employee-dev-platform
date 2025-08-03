@@ -2,7 +2,10 @@ package com.edp.careerpackage.mapper;
 
 import com.edp.careerpackage.data.entity.*;
 import com.edp.careerpackage.model.careerpackage.*;
+import com.edp.careerpackage.model.packageprogress.PackageProgressResponseDto;
+import com.edp.careerpackage.model.sectionprogress.SectionProgressResponseDto;
 import com.edp.careerpackage.model.submission.SubmissionResponseDto;
+import com.edp.careerpackage.model.tagprogress.TagPogressResponseDto;
 import org.mapstruct.*;
 
 import java.util.Collection;
@@ -27,7 +30,7 @@ public interface CareerPackageMapper {
             @Mapping(source = "totalProgressPercent", target = "totalProgressPercent"),
             @Mapping(source = "updatedAt", target = "updatedAt")
     })
-    CareerPackageProgressDto toCareerPackageProgressDto(CareerPackageProgress progress);
+    PackageProgressResponseDto toCareerPackageProgressDto(CareerPackageProgress progress);
 
     @Mappings({
             @Mapping(source = "id", target = "sectionProgressId"),
@@ -36,16 +39,17 @@ public interface CareerPackageMapper {
             @Mapping(source = "totalProgressPercent", target = "sectionProgressPercent"),
             @Mapping(source = "tagProgressList", target = "tags")
     })
-    CareerPackageSectionProgressDto toCareerPackageSectionProgress(CareerPackageSectionProgress sectionProgress);
+    SectionProgressResponseDto toCareerPackageSectionProgress(CareerPackageSectionProgress sectionProgress);
 
     @Mappings({
             @Mapping(source = "id", target = "tagProgressId"),
             @Mapping(source = "templateSectionRequiredTag.tag.name", target = "tagName"),
             @Mapping(source = "templateSectionRequiredTag.criteriaType", target = "criteriaType"),
             @Mapping(source = "templateSectionRequiredTag.criteriaMinValue", target = "requiredValue"),
-            @Mapping(source = "completedValue", target = "completedValue")
+            @Mapping(source = "completedValue", target = "completedValue"),
+            @Mapping(source = "proofUrl", target = "proofUrl")
     })
-    CareerPackageTagProgressDto toCareerPackageTagProgress(CareerPackageTagProgress tagProgress);
+    TagPogressResponseDto toCareerPackageTagProgress(CareerPackageTagProgress tagProgress);
 
     @Mappings({
             @Mapping(source = "id", target = "id"),
@@ -56,7 +60,7 @@ public interface CareerPackageMapper {
     })
     SubmissionResponseDto toSubmissionResponseDto(Submission submission);
 
-    List<CareerPackageSectionProgressDto> toCareerPackageSectionProgressList(Collection<CareerPackageSectionProgress> list);
-    List<CareerPackageTagProgressDto> toCareerPackageTagProgressList(Collection<CareerPackageTagProgress> list);
+    List<SectionProgressResponseDto> toCareerPackageSectionProgressList(Collection<CareerPackageSectionProgress> list);
+    List<TagPogressResponseDto> toCareerPackageTagProgressList(Collection<CareerPackageTagProgress> list);
     List<SubmissionResponseDto> toSubmissionResponseDtoList(List<Submission> submissions);
 }

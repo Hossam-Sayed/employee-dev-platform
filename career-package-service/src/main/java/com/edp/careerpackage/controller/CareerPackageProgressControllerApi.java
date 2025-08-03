@@ -1,6 +1,6 @@
 package com.edp.careerpackage.controller;
 
-import com.edp.careerpackage.model.careerpackage.CareerPackageProgressDto;
+import com.edp.careerpackage.model.packageprogress.PackageProgressResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -18,5 +18,5 @@ public interface CareerPackageProgressControllerApi {
             @ApiResponse(responseCode = "404", description = "Career package not found")
     })
     @GetMapping
-    ResponseEntity<CareerPackageProgressDto> getPackageProgress();
+    ResponseEntity<PackageProgressResponseDto> getPackageProgress();
 }

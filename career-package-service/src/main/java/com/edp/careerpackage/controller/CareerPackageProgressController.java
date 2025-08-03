@@ -1,6 +1,6 @@
 package com.edp.careerpackage.controller;
 
-import com.edp.careerpackage.model.careerpackage.CareerPackageProgressDto;
+import com.edp.careerpackage.model.packageprogress.PackageProgressResponseDto;
 import com.edp.careerpackage.service.CareerPackageProgressService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -13,8 +13,8 @@ public class CareerPackageProgressController implements CareerPackageProgressCon
     private final CareerPackageProgressService progressService;
 
     @Override
-    public ResponseEntity<CareerPackageProgressDto> getPackageProgress() {
-        CareerPackageProgressDto dto = progressService.getCurrentUserProgress();
+    public ResponseEntity<PackageProgressResponseDto> getPackageProgress() {
+        PackageProgressResponseDto dto = progressService.getCurrentUserProgress();
         return ResponseEntity.ok(dto);
     }
 }

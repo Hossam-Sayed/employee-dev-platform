@@ -4,7 +4,7 @@ import com.edp.careerpackage.data.entity.CareerPackage;
 import com.edp.careerpackage.data.entity.CareerPackageProgress;
 import com.edp.careerpackage.data.repository.CareerPackageRepository;
 import com.edp.careerpackage.mapper.CareerPackageMapper;
-import com.edp.careerpackage.model.careerpackage.CareerPackageProgressDto;
+import com.edp.careerpackage.model.packageprogress.PackageProgressResponseDto;
 import com.edp.careerpackage.security.jwt.JwtUserContext;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -21,7 +21,7 @@ public class CareerPackageProgressServiceImpl implements CareerPackageProgressSe
 
     @Override
     @Transactional(readOnly = true)
-    public CareerPackageProgressDto getCurrentUserProgress() {
+    public PackageProgressResponseDto getCurrentUserProgress() {
         Long userId = JwtUserContext.getUserId();
 
         CareerPackage careerPackage = packageRepository.findByUserIdAndActiveTrue(userId)

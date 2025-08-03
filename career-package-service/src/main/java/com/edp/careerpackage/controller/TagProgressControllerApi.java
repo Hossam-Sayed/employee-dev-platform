@@ -1,6 +1,6 @@
 package com.edp.careerpackage.controller;
 
-import com.edp.careerpackage.model.tagprogress.TagProgressResponseDto;
+import com.edp.careerpackage.model.tagprogress.TagPogressResponseDto;
 import com.edp.careerpackage.model.tagprogress.TagProgressRequestDto;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,7 +34,7 @@ public interface TagProgressControllerApi {
             @ApiResponse(responseCode = "404", description = "Tag progress not found")
     })
     @PutMapping("/{tagProgressId}")
-    ResponseEntity<TagProgressResponseDto> updateTagProgress(
+    ResponseEntity<TagPogressResponseDto> updateTagProgress(
             @Parameter(description = "ID of the tag progress to update", required = true)
             @PathVariable Long tagProgressId,
 
