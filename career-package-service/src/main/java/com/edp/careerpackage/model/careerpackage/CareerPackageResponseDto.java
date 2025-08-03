@@ -1,5 +1,6 @@
 package com.edp.careerpackage.model.careerpackage;
 
+import com.edp.careerpackage.data.enums.CareerPackageStatus;
 import com.edp.careerpackage.model.packageprogress.PackageProgressResponseDto;
 import com.edp.careerpackage.model.sectionprogress.SectionProgressResponseDto;
 import com.edp.careerpackage.model.submission.SubmissionResponseDto;
@@ -20,6 +21,7 @@ public class CareerPackageResponseDto {
     private String position;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private CareerPackageStatus status;
 
     private List<SectionProgressResponseDto> sections;
     private PackageProgressResponseDto progress;

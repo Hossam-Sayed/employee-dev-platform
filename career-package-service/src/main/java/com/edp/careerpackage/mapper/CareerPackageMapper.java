@@ -22,7 +22,8 @@ public interface CareerPackageMapper {
             @Mapping(source = "updatedAt", target = "updatedAt"),
             @Mapping(source = "sectionProgressList", target = "sections"),
             @Mapping(source = "progress", target = "progress"),
-            @Mapping(source = "submissions", target = "submissions")
+            @Mapping(source = "submissions", target = "submissions"),
+            @Mapping(source = "status", target = "status")
     })
     CareerPackageResponseDto toCareerPackageResponse(CareerPackage careerPackage);
 
