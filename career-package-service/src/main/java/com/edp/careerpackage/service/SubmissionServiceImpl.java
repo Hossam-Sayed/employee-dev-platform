@@ -7,12 +7,15 @@ import com.edp.careerpackage.data.repository.CareerPackageRepository;
 import com.edp.careerpackage.data.repository.SubmissionRepository;
 import com.edp.careerpackage.data.repository.SubmissionTagSnapshotRepository;
 import com.edp.careerpackage.mapper.CareerPackageMapper;
+import com.edp.careerpackage.mapper.SubmissionTagSnapshotMapper;
 import com.edp.careerpackage.model.submission.SubmissionResponseDto;
+import com.edp.careerpackage.model.submissionsnapshot.SubmissionTagSnapshotResponseDto;
 import com.edp.careerpackage.security.jwt.JwtUserContext;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +31,7 @@ public class SubmissionServiceImpl implements SubmissionService {
     private final SubmissionRepository submissionRepository;
     private final SubmissionTagSnapshotRepository snapshotRepository;
     private final CareerPackageMapper mapper;
+    private final SubmissionTagSnapshotMapper snapshotMapper;
 
     @Override
     @Transactional
@@ -72,6 +76,24 @@ public class SubmissionServiceImpl implements SubmissionService {
 
         return mapper.toSubmissionResponseDtoList(careerPackage.getSubmissions());
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<SubmissionTagSnapshotResponseDto> getSnapshotsBySubmissionId(Long submissionId) {
+        Long userId = JwtUserContext.getUserId();
+
+        Submission submission = submissionRepository.findById(submissionId)
+                .orElseThrow(() -> new EntityNotFoundException("Submission not found"));
+
+        CareerPackage careerPackage = submission.getCareerPackage();
+        if (!careerPackage.getUserId().equals(userId)) {
+            throw new AuthenticationException("You are not authorized to view this submission") {};
+        }
+
+        List<SubmissionTagSnapshot> snapshots = snapshotRepository.findBySubmission(submission);
+        return snapshotMapper.toSnapshotResponseDtoList(snapshots);
+    }
+
 
     private List<SubmissionTagSnapshot> buildSnapshots(CareerPackage careerPackage, Submission submission) {
         return careerPackage.getSectionProgressList().stream()

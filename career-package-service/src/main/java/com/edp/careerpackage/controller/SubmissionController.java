@@ -1,6 +1,7 @@
 package com.edp.careerpackage.controller;
 
 import com.edp.careerpackage.model.submission.SubmissionResponseDto;
+import com.edp.careerpackage.model.submissionsnapshot.SubmissionTagSnapshotResponseDto;
 import com.edp.careerpackage.service.SubmissionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,5 +25,10 @@ public class SubmissionController implements SubmissionControllerApi {
     public ResponseEntity<List<SubmissionResponseDto>> getSubmissionHistory() {
         List<SubmissionResponseDto> history = submissionService.getSubmissionHistory();
         return ResponseEntity.ok(history);
+    }
+
+    @Override
+    public ResponseEntity<List<SubmissionTagSnapshotResponseDto>> getSubmissionSnapshots(Long submissionId) {
+        return ResponseEntity.ok(submissionService.getSnapshotsBySubmissionId(submissionId));
     }
 }
