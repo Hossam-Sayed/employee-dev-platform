@@ -1,0 +1,100 @@
+package com.edp.careerpackage.service;
+
+import com.edp.careerpackage.data.entity.*;
+import com.edp.careerpackage.data.enums.CareerPackageStatus;
+import com.edp.careerpackage.data.repository.CareerPackageTagProgressRepository;
+import com.edp.careerpackage.mapper.TagProgressMapper;
+import com.edp.careerpackage.model.tagprogress.TagProgressRequestDto;
+import com.edp.careerpackage.model.tagprogress.TagProgressResponseDto;
+import com.edp.careerpackage.security.jwt.JwtUserContext;
+
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+
+@Service
+@RequiredArgsConstructor
+public class TagProgressServiceImpl implements TagProgressService {
+
+    private final CareerPackageTagProgressRepository tagProgressRepository;
+    private final TagProgressMapper mapper;
+
+    @Override
+    @Transactional
+    public TagProgressResponseDto updateTagProgress(Long tagProgressId, TagProgressRequestDto request) {
+        Long currentUserId = JwtUserContext.getUserId();
+
+        CareerPackageTagProgress tagProgress = tagProgressRepository.findById(tagProgressId)
+                .orElseThrow(() -> new EntityNotFoundException("Tag progress not found"));
+
+        CareerPackage careerPackage = tagProgress.getCareerPackageSectionProgress().getCareerPackage();
+
+        if (!careerPackage.getUserId().equals(currentUserId)) {
+            throw new AuthenticationException("User not authorized to update this tag progress") {
+            };
+        }
+
+        //the min value required for completing a tag is the max value to be submitted as progress for this tag
+        double maxValue = tagProgress.getTemplateSectionRequiredTag().getCriteriaMinValue();
+        double boundValue = Math.min(request.getCompletedValue(), maxValue);
+
+        tagProgress.setCompletedValue(boundValue);
+        tagProgress.setProofUrl(request.getProofUrl());
+
+        CareerPackageSectionProgress sectionProgress = tagProgress.getCareerPackageSectionProgress();
+        recalculateSectionProgress(sectionProgress);
+
+        recalculatePackageProgress(careerPackage);
+
+        return mapper.toTagProgressResponse(tagProgress);
+    }
+
+    private void recalculateSectionProgress(CareerPackageSectionProgress sectionProgress) {
+        int totalTags = sectionProgress.getTagProgressList().size();
+        if (totalTags == 0) {
+            sectionProgress.setTotalProgressPercent(0.0);
+            sectionProgress.setUpdatedAt(LocalDateTime.now());
+            return;
+        }
+
+        double perTagWeight = 100.0 / totalTags;
+        double totalPercent = sectionProgress.getTagProgressList().stream()
+                .mapToDouble(tag -> {
+                    double completed = tag.getCompletedValue();
+                    double required = tag.getTemplateSectionRequiredTag().getCriteriaMinValue();
+                    return Math.min(completed / required, 1.0) * perTagWeight;
+                }).sum();
+
+        sectionProgress.setTotalProgressPercent(Math.min(totalPercent, 100.0));
+        sectionProgress.setUpdatedAt(LocalDateTime.now());
+    }
+
+    private void recalculatePackageProgress(CareerPackage careerPackage) {
+        int totalSections = careerPackage.getSectionProgressList().size();
+        if (totalSections == 0) {
+            careerPackage.getProgress().setTotalProgressPercent(0.0);
+            return;
+        }
+
+        double perSectionWeight = 100.0 / totalSections;
+        double totalPercent = careerPackage.getSectionProgressList().stream()
+                .mapToDouble(section -> section.getTotalProgressPercent() * perSectionWeight / 100.0)
+                .sum();
+
+        careerPackage.getProgress().setTotalProgressPercent(Math.min(totalPercent, 100.0));
+        careerPackage.getProgress().setUpdatedAt(LocalDateTime.now());
+        careerPackage.setUpdatedAt(LocalDateTime.now());
+
+        if (totalPercent == 0.0) {
+            careerPackage.setStatus(CareerPackageStatus.NOT_STARTED);
+        } else if (totalPercent >= 100.0) {
+            careerPackage.setStatus(CareerPackageStatus.COMPLETED);
+        } else {
+            careerPackage.setStatus(CareerPackageStatus.IN_PROGRESS);
+        }
+    }
+}
