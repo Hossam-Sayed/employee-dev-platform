@@ -14,7 +14,7 @@ public interface SubmissionService {
 
     List<SubmissionTagSnapshotResponseDto> getSnapshotsBySubmissionId(Long submissionId);
 
-    List<SubmissionResponseDto> getSubmissionsByUserIds(List<Long> userIds);
+    List<SubmissionResponseDto> getSubmissionsByUserIds();
 
     SubmissionResponseDto approveSubmission(Long submissionId, CommentRequestDto request);
 

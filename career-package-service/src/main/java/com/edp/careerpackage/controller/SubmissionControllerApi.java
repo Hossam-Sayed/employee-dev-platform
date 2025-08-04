@@ -64,7 +64,7 @@ public interface SubmissionControllerApi {
             @ApiResponse(responseCode = "403", description = "Only managers can access this endpoint")
     })
     @GetMapping("/search")
-    ResponseEntity<List<SubmissionResponseDto>> searchSubmissions(@RequestParam List<Long> userIds);
+    ResponseEntity<List<SubmissionResponseDto>> searchSubmissions();
 
 
     @Operation(

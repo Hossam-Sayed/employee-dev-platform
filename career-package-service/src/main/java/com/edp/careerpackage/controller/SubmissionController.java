@@ -36,8 +36,8 @@ public class SubmissionController implements SubmissionControllerApi {
     }
 
     @Override
-    public ResponseEntity<List<SubmissionResponseDto>> searchSubmissions(@RequestParam List<Long> userIds) {
-        return ResponseEntity.ok(submissionService.getSubmissionsByUserIds(userIds));
+    public ResponseEntity<List<SubmissionResponseDto>> searchSubmissions() {
+        return ResponseEntity.ok(submissionService.getSubmissionsByUserIds());
     }
 
     @Override

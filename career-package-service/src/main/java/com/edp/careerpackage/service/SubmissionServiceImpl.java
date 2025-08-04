@@ -1,5 +1,7 @@
 package com.edp.careerpackage.service;
 
+import com.edp.careerpackage.client.AuthServiceClient;
+import com.edp.careerpackage.client.model.UserProfileDto;
 import com.edp.careerpackage.data.entity.*;
 import com.edp.careerpackage.data.enums.CareerPackageStatus;
 import com.edp.careerpackage.data.enums.SubmissionStatus;
@@ -13,6 +15,7 @@ import com.edp.careerpackage.model.submission.SubmissionResponseDto;
 import com.edp.careerpackage.model.submissionsnapshot.SubmissionTagSnapshotResponseDto;
 import com.edp.careerpackage.security.jwt.JwtUserContext;
 
+import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -32,6 +35,7 @@ public class SubmissionServiceImpl implements SubmissionService {
     private final SubmissionTagSnapshotRepository snapshotRepository;
     private final CareerPackageMapper mapper;
     private final SubmissionTagSnapshotMapper snapshotMapper;
+    private final AuthServiceClient authServiceClient;
 
     @Override
     @Transactional
@@ -87,10 +91,10 @@ public class SubmissionServiceImpl implements SubmissionService {
 
         Long userId = JwtUserContext.getUserId();
         boolean isOwner = careerPackage.getUserId().equals(userId);
-        boolean isAdmin = JwtUserContext.isAdmin();
-
-        if (!isOwner && !isAdmin) {
-            throw new AuthenticationException("You are not authorized to view this submission") {};
+        boolean isManager = validateSubmissionBelongsToManagedUser(submission);
+        if (!isOwner && !isManager) {
+            throw new AuthenticationException("You are not authorized to view this submission") {
+            };
         }
 
         List<SubmissionTagSnapshot> snapshots = snapshotRepository.findBySubmission(submission);
@@ -99,11 +103,20 @@ public class SubmissionServiceImpl implements SubmissionService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<SubmissionResponseDto> getSubmissionsByUserIds(List<Long> userIds) {
-        if (!JwtUserContext.isAdmin()) { //TODO: Add manager role and add it to token
-            throw new AuthenticationException("Only managers can view submissions of others") {};
+    public List<SubmissionResponseDto> getSubmissionsByUserIds() {
+        Long managerId = JwtUserContext.getUserId();
+        String token = JwtUserContext.getToken();
+
+        List<UserProfileDto> managedUsers;
+        try {
+            managedUsers = authServiceClient.getManagedUsers(managerId, token);
+        } catch (FeignException ex) {
+            throw new IllegalStateException("Failed to contact AuthService: " + ex.getMessage());
         }
 
+        List<Long> userIds = managedUsers.stream()
+                .map(UserProfileDto::getId)
+                .toList();
         List<CareerPackage> packages = careerPackageRepository.findByUserIdInAndActiveTrue(userIds);
 
         List<Submission> submissions = packages.stream()
@@ -113,16 +126,18 @@ public class SubmissionServiceImpl implements SubmissionService {
         return mapper.toSubmissionResponseDtoList(submissions);
     }
 
+
     @Override
     @Transactional
     public SubmissionResponseDto approveSubmission(Long submissionId, CommentRequestDto request) {
 
-        if (!JwtUserContext.isAdmin()) { //TODO: Add manager role and add it to token
-            throw new AuthenticationException("Only managers can approve submissions of others") {};
-        }
-
         Submission submission = submissionRepository.findById(submissionId)
                 .orElseThrow(() -> new EntityNotFoundException("Submission not found"));
+
+        if (!validateSubmissionBelongsToManagedUser(submission)) {
+            throw new AuthenticationException("You are not authorized to review this submission") {
+            };
+        }
 
         if (submission.getStatus() != SubmissionStatus.PENDING) {
             throw new DataIntegrityViolationException("Only pending submissions can be reviewed.");
@@ -140,13 +155,13 @@ public class SubmissionServiceImpl implements SubmissionService {
     @Override
     @Transactional
     public SubmissionResponseDto rejectSubmission(Long submissionId, CommentRequestDto request) {
-
-        if (!JwtUserContext.isAdmin()) { //TODO: Add manager role and add it to token
-            throw new AuthenticationException("Only managers can reject submissions of others") {};
-        }
-
         Submission submission = submissionRepository.findById(submissionId)
                 .orElseThrow(() -> new EntityNotFoundException("Submission not found"));
+
+        if (!validateSubmissionBelongsToManagedUser(submission)) {
+            throw new AuthenticationException("You are not authorized to review this submission") {
+            };
+        }
 
         if (submission.getStatus() != SubmissionStatus.PENDING) {
             throw new DataIntegrityViolationException("Only pending submissions can be reviewed.");
@@ -160,7 +175,6 @@ public class SubmissionServiceImpl implements SubmissionService {
         submissionRepository.save(submission);
         return mapper.toSubmissionResponseDto(submission);
     }
-
 
 
     private List<SubmissionTagSnapshot> buildSnapshots(CareerPackage careerPackage, Submission submission) {
@@ -178,4 +192,24 @@ public class SubmissionServiceImpl implements SubmissionService {
                 ))
                 .toList();
     }
+
+    private boolean validateSubmissionBelongsToManagedUser(Submission submission) {
+        Long managerId = JwtUserContext.getUserId();
+        String token = JwtUserContext.getToken();
+
+        List<UserProfileDto> managedUsers;
+        try {
+            managedUsers = authServiceClient.getManagedUsers(managerId, token);
+        } catch (FeignException ex) {
+            throw new IllegalStateException("Failed to contact AuthService: " + ex.getMessage());
+        }
+
+        List<Long> userIds = managedUsers.stream()
+                .map(UserProfileDto::getId)
+                .toList();
+
+        Long submissionOwnerId = submission.getCareerPackage().getUserId();
+        return userIds.contains(submissionOwnerId);
+    }
+
 }

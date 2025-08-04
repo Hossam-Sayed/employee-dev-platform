@@ -55,11 +55,7 @@ public class CareerPackageServiceImpl implements CareerPackageService {
             throw new DataIntegrityViolationException("Career package already exists for user");
         }
 
-
         String token = JwtUserContext.getToken();
-        if (token == null) {
-            throw new AuthenticationException("Missing authentication token") {};
-        }
 
         UserProfileDto userProfile;
         try {
