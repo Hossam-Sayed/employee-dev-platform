@@ -152,4 +152,18 @@ public interface UserControllerApi {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<Void> deleteUser(@Parameter(description = "ID of the user to delete", required = true) @PathVariable("id") Long id);
+
+    @Operation(
+            summary = "Get managed users",
+            description = "Returns a list of users who report directly to the given manager."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "users retrieved successfully"),
+            @ApiResponse(responseCode = "403", description = "Forbidden"),
+            @ApiResponse(responseCode = "404", description = "Manager not found")
+    })
+    @GetMapping("/{managerId}/managed")
+    @PreAuthorize("hasRole('ADMIN') or #managerId == T(com.edp.auth.data.entity.AppUser).cast(authentication.principal).id")
+    ResponseEntity<List<UserResponseDto>> getManagedUsers(@PathVariable Long managerId);
+
 }

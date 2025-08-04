@@ -9,6 +9,8 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.Mappings;
 
+import java.util.List;
+
 @Mapper(componentModel = "spring")
 public interface UserMapper {
 
@@ -58,4 +60,7 @@ public interface UserMapper {
             @Mapping(target = "reportsTo", ignore = true),
     })
     void updateAppUserFromRequest(UserUpdateRequestDto request, @MappingTarget AppUser entity);
+
+    List<UserResponseDto> toUserResponseDtoList(List<AppUser> users);
+
 }

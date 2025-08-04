@@ -17,4 +17,7 @@ public interface UserService {
     void updateUser(Long id, UserUpdateRequestDto request);
 
     void deleteUser(Long id);
+
+    List<UserResponseDto> getManagedUsers(Long managerId);
+
 }

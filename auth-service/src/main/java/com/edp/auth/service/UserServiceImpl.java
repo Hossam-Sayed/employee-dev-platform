@@ -10,6 +10,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -72,4 +73,12 @@ public class UserServiceImpl implements UserService {
         }
         userRepo.deleteById(id);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserResponseDto> getManagedUsers(Long managerId) {
+        List<AppUser> reports = userRepo.findByReportsTo_Id(managerId);
+        return userMapper.toUserResponseDtoList(reports);
+    }
+
 }

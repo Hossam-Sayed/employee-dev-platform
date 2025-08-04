@@ -46,4 +46,10 @@ public class UserController implements UserControllerApi {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
+
+    @Override
+    public ResponseEntity<List<UserResponseDto>> getManagedUsers(Long managerId) {
+        List<UserResponseDto> users = userService.getManagedUsers(managerId);
+        return ResponseEntity.ok(users);
+    }
 }
