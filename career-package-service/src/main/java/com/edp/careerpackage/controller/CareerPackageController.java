@@ -22,11 +22,8 @@ public class CareerPackageController implements CareerPackageControllerApi {
     }
 
     @Override
-    public ResponseEntity<CareerPackageResponseDto> createCareerPackage(
-            CareerPackageCreationRequestDto request,
-            UriComponentsBuilder uriBuilder
-    ) {
-        CareerPackageResponseDto created = careerPackageService.createCareerPackage(request);
+    public ResponseEntity<CareerPackageResponseDto> createCareerPackage(UriComponentsBuilder uriBuilder) {
+        CareerPackageResponseDto created = careerPackageService.createCareerPackage();
         return ResponseEntity.created(uriBuilder
                 .path("/api/career-packages/{id}")
                 .buildAndExpand(created.getId())

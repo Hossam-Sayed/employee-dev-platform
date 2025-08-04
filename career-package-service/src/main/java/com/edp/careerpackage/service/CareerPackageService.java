@@ -7,5 +7,5 @@ public interface CareerPackageService {
 
     CareerPackageResponseDto getCareerPackage();
 
-    CareerPackageResponseDto createCareerPackage(CareerPackageCreationRequestDto request);
+    CareerPackageResponseDto createCareerPackage();
 }

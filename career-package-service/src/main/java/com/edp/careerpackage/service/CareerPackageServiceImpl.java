@@ -1,5 +1,6 @@
 package com.edp.careerpackage.service;
 
+import com.edp.careerpackage.client.AuthServiceClient;
 import com.edp.careerpackage.data.entity.*;
 import com.edp.careerpackage.data.enums.CareerPackageStatus;
 import com.edp.careerpackage.data.repository.CareerPackageRepository;
@@ -8,10 +9,13 @@ import com.edp.careerpackage.mapper.CareerPackageMapper;
 import com.edp.careerpackage.model.careerpackage.CareerPackageCreationRequestDto;
 import com.edp.careerpackage.model.careerpackage.CareerPackageResponseDto;
 import com.edp.careerpackage.security.jwt.JwtUserContext;
+import com.edp.careerpackage.client.model.UserProfileDto;
 
+import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +31,7 @@ public class CareerPackageServiceImpl implements CareerPackageService {
     private final CareerPackageRepository careerPackageRepository;
     private final PackageTemplateRepository templateRepository;
     private final CareerPackageMapper careerPackageMapper;
+    private final AuthServiceClient authServiceClient;
 
     @Override
     @Transactional(readOnly = true)
@@ -42,7 +47,7 @@ public class CareerPackageServiceImpl implements CareerPackageService {
 
     @Override
     @Transactional
-    public CareerPackageResponseDto createCareerPackage(CareerPackageCreationRequestDto request) {
+    public CareerPackageResponseDto createCareerPackage() {
         Long userId = JwtUserContext.getUserId();
 
         boolean exists = careerPackageRepository.existsByUserIdAndActiveTrue(userId);
@@ -50,8 +55,23 @@ public class CareerPackageServiceImpl implements CareerPackageService {
             throw new DataIntegrityViolationException("Career package already exists for user");
         }
 
+
+        String token = JwtUserContext.getToken();
+        if (token == null) {
+            throw new AuthenticationException("Missing authentication token") {};
+        }
+
+        UserProfileDto userProfile;
+        try {
+            userProfile = authServiceClient.getUserById(userId, token);
+        } catch (FeignException ex) {
+            throw new IllegalStateException("Failed to contact AuthService: " + ex.getMessage());
+        }
+        String department = userProfile.getDepartment();
+        String position = userProfile.getPosition();
+
         PackageTemplate template = templateRepository
-                .findByDepartmentAndPosition(request.getDepartment(), request.getPosition())
+                .findByDepartmentAndPosition(department, position)
                 .orElseThrow(() -> new EntityNotFoundException("No template found for department and position"));
 
         CareerPackage careerPackage = CareerPackage.builder()

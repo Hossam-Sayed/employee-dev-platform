@@ -43,7 +43,5 @@ public interface CareerPackageControllerApi {
             @ApiResponse(responseCode = "409", description = "Career package already exists")
     })
     @PostMapping
-    ResponseEntity<CareerPackageResponseDto> createCareerPackage(
-            @Valid @RequestBody CareerPackageCreationRequestDto request, UriComponentsBuilder uriBuilder
-    );
+    ResponseEntity<CareerPackageResponseDto> createCareerPackage(UriComponentsBuilder uriBuilder);
 }
