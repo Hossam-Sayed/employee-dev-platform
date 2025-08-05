@@ -9,6 +9,7 @@ import { MyMaterialsComponent } from './library/my-materials/my-materials.compon
 import { AddMaterialComponent } from './library/add-material/add-material.component';
 import { MaterialDetailsComponent } from './library/material-details/material-details.component';
 import { MaterialHistoryComponent } from './library/material-history/material-history.component';
+import { MyTagRequestsComponent } from './library/my-tag-requests/my-tag-requests.component';
 
 export const routes: Routes = [
   {
@@ -89,6 +90,11 @@ export const routes: Routes = [
   {
     path: 'library/history/:type/:materialId',
     component: MaterialHistoryComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'library/my-tag-requests',
+    component: MyTagRequestsComponent,
     canActivate: [authGuard],
   },
 ];
