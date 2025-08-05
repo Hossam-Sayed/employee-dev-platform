@@ -10,6 +10,9 @@ import { WikiResponse } from '../models/wiki-response.model';
 import { BlogCreateRequest } from '../models/blog-create-request.model';
 import { LearningCreateRequest } from '../models/learning-create-request.model';
 import { WikiCreateRequest } from '../models/wiki-create-request.model';
+import { BlogSubmissionResponse } from '../models/blog-submission-response.model';
+import { LearningSubmissionResponse } from '../models/learning-submission-response.model';
+import { WikiSubmissionResponse } from '../models/wiki-submission-response.model';
 
 @Injectable({
   providedIn: 'root',
@@ -187,6 +190,48 @@ export class LibraryService {
       `${this.baseUrl}wikis/${wikiId}/resubmit`,
       request,
       { headers }
+    );
+  }
+
+  private buildParams(request: PaginationRequest): HttpParams {
+    let params = new HttpParams();
+    params = params.append('page', request.page);
+    params = params.append('size', request.size);
+    params = params.append('sortBy', request.sortBy);
+    params = params.append('sortDirection', request.sortDirection);
+    return params;
+  }
+
+  getLearningSubmissionHistory(
+    learningId: number,
+    pagination: PaginationRequest
+  ): Observable<PaginationResponse<LearningSubmissionResponse>> {
+    const params = this.buildParams(pagination);
+    return this.http.get<PaginationResponse<LearningSubmissionResponse>>(
+      `${this.baseUrl}learnings/${learningId}/history`,
+      { params }
+    );
+  }
+
+  getBlogSubmissionHistory(
+    blogId: number,
+    pagination: PaginationRequest
+  ): Observable<PaginationResponse<BlogSubmissionResponse>> {
+    const params = this.buildParams(pagination);
+    return this.http.get<PaginationResponse<BlogSubmissionResponse>>(
+      `${this.baseUrl}blogs/${blogId}/history`,
+      { params }
+    );
+  }
+
+  getWikiSubmissionHistory(
+    wikiId: number,
+    pagination: PaginationRequest
+  ): Observable<PaginationResponse<WikiSubmissionResponse>> {
+    const params = this.buildParams(pagination);
+    return this.http.get<PaginationResponse<WikiSubmissionResponse>>(
+      `${this.baseUrl}wikis/${wikiId}/history`,
+      { params }
     );
   }
 }
