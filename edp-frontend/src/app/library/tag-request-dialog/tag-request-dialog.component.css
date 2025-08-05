@@ -1,0 +1,34 @@
+.tag-request-form {
+  padding: 20px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.toolbar-spacer {
+  flex: 1 1 auto;
+}
+
+.error-message {
+  color: #f44336;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+mat-dialog-content p {
+  margin-bottom: 20px;
+  color: #666;
+}
+
+mat-dialog-actions {
+  border-top: 1px solid #eee;
+  padding-top: 10px;
+}
+
+mat-spinner {
+  margin-right: 8px;
+}

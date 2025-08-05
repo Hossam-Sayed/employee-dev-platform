@@ -1,0 +1,65 @@
+<mat-toolbar color="primary">
+  <span>Request New Tag</span>
+  <span class="toolbar-spacer"></span>
+  <button mat-icon-button (click)="onCancel()">
+    <mat-icon>close</mat-icon>
+  </button>
+</mat-toolbar>
+
+<form
+  [formGroup]="tagRequestForm"
+  (ngSubmit)="onSubmit()"
+  class="tag-request-form"
+>
+  <mat-dialog-content>
+    <p>
+      Enter the name for the new tag you would like to request. It will be
+      reviewed by an admin.
+    </p>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Tag Name</mat-label>
+      <input
+        matInput
+        formControlName="requestedName"
+        required
+        cdkFocusInitial
+      />
+      @if (tagRequestForm.get('requestedName')?.hasError('required')) {
+      <mat-error>Tag name is required</mat-error>
+      } @if (tagRequestForm.get('requestedName')?.hasError('minlength')) {
+      <mat-error>Tag name must be at least 2 characters</mat-error>
+      } @if (tagRequestForm.get('requestedName')?.hasError('maxlength')) {
+      <mat-error>Tag name cannot exceed 50 characters</mat-error>
+      }
+    </mat-form-field>
+
+    @if (errorMessage()) {
+    <div class="error-message">
+      <mat-icon color="warn">error</mat-icon>
+      <span>{{ errorMessage() }}</span>
+    </div>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button
+      mat-button
+      type="button"
+      (click)="onCancel()"
+      [disabled]="isLoading()"
+    >
+      Cancel
+    </button>
+    <button
+      mat-flat-button
+      color="primary"
+      type="submit"
+      [disabled]="tagRequestForm.invalid || isLoading()"
+    >
+      @if (isLoading()) {
+      <mat-spinner diameter="20"></mat-spinner>
+      } @else { Submit Request }
+    </button>
+  </mat-dialog-actions>
+</form>
