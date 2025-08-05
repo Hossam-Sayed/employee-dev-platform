@@ -7,6 +7,9 @@ import { LearningResponse } from '../models/learning-response.model';
 import { PaginationRequest } from '../models/pagination-request.model';
 import { PaginationResponse } from '../models/pagination-response.model';
 import { WikiResponse } from '../models/wiki-response.model';
+import { BlogCreateRequest } from '../models/blog-create-request.model';
+import { LearningCreateRequest } from '../models/learning-create-request.model';
+import { WikiCreateRequest } from '../models/wiki-create-request.model';
 
 @Injectable({
   providedIn: 'root',
@@ -81,6 +84,109 @@ export class LibraryService {
     return this.http.get<PaginationResponse<WikiResponse>>(
       `${this.baseUrl}wikis/my-wikis`,
       { params, headers }
+    );
+  }
+
+  createLearning(
+    request: LearningCreateRequest,
+    reviewerId: number
+  ): Observable<LearningResponse> {
+    const headers = {
+      'X-Submitter-Id': this.userId.toString(),
+      'X-Reviewer-Id': reviewerId.toString(),
+    };
+    return this.http.post<LearningResponse>(
+      `${this.baseUrl}learnings`,
+      request,
+      { headers }
+    );
+  }
+
+  createBlog(
+    request: BlogCreateRequest,
+    reviewerId: number
+  ): Observable<BlogResponse> {
+    const headers = {
+      'X-Author-Id': this.userId.toString(),
+      'X-Reviewer-Id': reviewerId.toString(),
+    };
+    return this.http.post<BlogResponse>(`${this.baseUrl}blogs`, request, {
+      headers,
+    });
+  }
+
+  createWiki(
+    request: WikiCreateRequest,
+    reviewerId: number
+  ): Observable<WikiResponse> {
+    const headers = {
+      'X-Author-Id': this.userId.toString(),
+      'X-Reviewer-Id': reviewerId.toString(),
+    };
+    return this.http.post<WikiResponse>(`${this.baseUrl}wikis`, request, {
+      headers,
+    });
+  }
+
+  getLearningDetails(learningId: number): Observable<LearningResponse> {
+    return this.http.get<LearningResponse>(
+      `${this.baseUrl}learnings/${learningId}`
+    );
+  }
+
+  getBlogDetails(blogId: number): Observable<BlogResponse> {
+    return this.http.get<BlogResponse>(`${this.baseUrl}blogs/${blogId}`);
+  }
+
+  getWikiDetails(wikiId: number): Observable<WikiResponse> {
+    return this.http.get<WikiResponse>(`${this.baseUrl}wikis/${wikiId}`);
+  }
+
+  resubmitLearning(
+    learningId: number,
+    request: LearningCreateRequest,
+    reviewerId: number
+  ): Observable<LearningResponse> {
+    const headers = {
+      'X-Submitter-Id': this.userId.toString(),
+      'X-Reviewer-Id': reviewerId.toString(),
+    };
+    return this.http.put<LearningResponse>(
+      `${this.baseUrl}learnings/${learningId}/resubmit`,
+      request,
+      { headers }
+    );
+  }
+
+  resubmitBlog(
+    blogId: number,
+    request: BlogCreateRequest,
+    reviewerId: number
+  ): Observable<BlogResponse> {
+    const headers = {
+      'X-Author-Id': this.userId.toString(),
+      'X-Reviewer-Id': reviewerId.toString(),
+    };
+    return this.http.put<BlogResponse>(
+      `${this.baseUrl}blogs/${blogId}/resubmit`,
+      request,
+      { headers }
+    );
+  }
+
+  resubmitWiki(
+    wikiId: number,
+    request: WikiCreateRequest,
+    reviewerId: number
+  ): Observable<WikiResponse> {
+    const headers = {
+      'X-Author-Id': this.userId.toString(),
+      'X-Reviewer-Id': reviewerId.toString(),
+    };
+    return this.http.put<WikiResponse>(
+      `${this.baseUrl}wikis/${wikiId}/resubmit`,
+      request,
+      { headers }
     );
   }
 }
