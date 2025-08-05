@@ -30,9 +30,8 @@ import { LibraryService } from '../services/library.service';
 import { TagService } from '../services/tag.service';
 import { TagFilterDialogComponent } from '../tag-filter-dialog/tag-filter-dialog.component';
 import { CustomTagComponent } from '../custom-tag/custom-tag.component';
-
-type MaterialType = 'learning' | 'blog' | 'wiki';
-type MaterialData = LearningResponse | BlogResponse | WikiResponse;
+import { MaterialResponse } from '../models/material-response.type';
+import { MaterialType } from '../models/material.type';
 
 @Component({
   selector: 'app-my-materials',
@@ -249,7 +248,7 @@ export class MyMaterialsComponent implements OnInit {
     return this.allTags().find((t) => t.id === id);
   }
 
-  get tableData(): PaginationResponse<MaterialData> | null {
+  get tableData(): PaginationResponse<MaterialResponse> | null {
     switch (this.currentTab()) {
       case 'learning':
         return this.learningsData();
@@ -282,7 +281,7 @@ export class MyMaterialsComponent implements OnInit {
     return Math.max(0, tags.length - 1);
   }
 
-  onRowClick(material: MaterialData): void {
+  onRowClick(material: MaterialResponse): void {
     const materialType = this.currentTab();
     const materialId = material.id;
     this.router.navigate([`/library/${materialType}/${materialId}`]);

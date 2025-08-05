@@ -1,0 +1,119 @@
+<div class="add-material-container">
+  <mat-toolbar class="header-toolbar">
+    <h1 class="page-title">
+      {{ isEditMode() ? "Edit" : "Add" }} {{ materialType() | titlecase }}
+    </h1>
+  </mat-toolbar>
+
+  @if (isLoading()) {
+  <div class="loading-spinner">
+    <mat-spinner></mat-spinner>
+  </div>
+  } @else {
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="add-material-form">
+    <mat-form-field appearance="outline" class="full-width-input">
+      <mat-label>Title</mat-label>
+      <input matInput formControlName="title" />
+      @if (form.get('title')?.invalid && form.get('title')?.touched) {
+      <mat-error>Title is required and must be under 255 characters.</mat-error>
+      }
+    </mat-form-field>
+
+    @if (materialType() === 'learning') {
+    <mat-form-field appearance="outline" class="full-width-input">
+      <mat-label>Proof URL</mat-label>
+      <input matInput formControlName="proofUrl" />
+      @if (form.get('proofUrl')?.invalid && form.get('proofUrl')?.touched) {
+      <mat-error>Proof URL is required.</mat-error>
+      }
+    </mat-form-field>
+    } @else {
+    <mat-form-field appearance="outline" class="full-width-input">
+      <mat-label>Document URL</mat-label>
+      <input matInput formControlName="documentUrl" />
+      @if (form.get('documentUrl')?.invalid && form.get('documentUrl')?.touched)
+      {
+      <mat-error>Document URL is required.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width-input">
+      <mat-label>Description</mat-label>
+      <textarea matInput formControlName="description"></textarea>
+      @if (form.get('description')?.invalid && form.get('description')?.touched)
+      {
+      <mat-error>Description is required.</mat-error>
+      }
+    </mat-form-field>
+    }
+
+    <div class="tags-section">
+      <h3>Tags</h3>
+      @if (tagsArray.invalid && tagsArray.touched) {
+      <p class="validation-error">At least one tag is required.</p>
+      }
+      <div formArrayName="tags" class="selected-tags">
+        @for (tagGroup of tagsArray.controls; track $index) {
+        <div [formGroupName]="$index" class="tag-group">
+          <span class="tag-name">{{ tagGroup.get("tagName")?.value }}</span>
+          @if (materialType() === 'learning') {
+          <mat-form-field appearance="outline" class="duration-input">
+            <mat-label>Duration (min)</mat-label>
+            <input
+              matInput
+              type="number"
+              formControlName="durationMinutes"
+              min="1"
+              (keydown.space)="$event.preventDefault()"
+            />
+            @if (tagGroup.get('duration')?.invalid &&
+            tagGroup.get('duration')?.touched) {
+            <mat-error
+              >Duration is required and must be a positive number.</mat-error
+            >
+            }
+          </mat-form-field>
+          }
+          <button
+            mat-icon-button
+            (click)="removeTag($index)"
+            class="remove-tag-button"
+            type="button"
+          >
+            <mat-icon>cancel</mat-icon>
+          </button>
+        </div>
+        }
+      </div>
+
+      <mat-form-field appearance="outline" class="tag-select full-width-input">
+        <mat-label>Add Tags</mat-label>
+        <mat-select>
+          @for (tag of getFilteredTags(); track tag.id) {
+          <mat-option [value]="tag.id" (click)="addTag(tag)">{{
+            tag.name
+          }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="form-actions">
+      <button
+        mat-flat-button
+        color="primary"
+        type="submit"
+        [disabled]="form.invalid || isSubmitting()"
+      >
+        <span *ngIf="!isSubmitting()">{{
+          isEditMode() ? "Resubmit" : "Submit"
+        }}</span>
+        <mat-spinner *ngIf="isSubmitting()" [diameter]="20"></mat-spinner>
+      </button>
+      <button mat-button type="button" [routerLink]="['/library/my-materials']">
+        Cancel
+      </button>
+    </div>
+  </form>
+  }
+</div>
