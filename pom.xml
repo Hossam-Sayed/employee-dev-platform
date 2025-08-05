@@ -15,6 +15,7 @@
         <module>auth-service</module>
         <module>shared</module>
         <module>career-package-service</module>
+        <module>file-management-service</module>
     </modules>
 
     <dependencyManagement>
