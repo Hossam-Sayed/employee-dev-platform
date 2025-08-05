@@ -19,6 +19,7 @@
 
     <modules>
         <module>error-lib</module>
+        <module>client-lib</module>
     </modules>
     <name>Shared Libraries</name>
 </project>

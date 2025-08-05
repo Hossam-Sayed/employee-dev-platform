@@ -1,7 +1,7 @@
 package com.edp.filemanagement.service;
 
-import com.edp.filemanagement.client.AuthServiceClient;
-import com.edp.filemanagement.client.model.UserProfileDto;
+import com.edp.shared.client.auth.AuthServiceClient;
+import com.edp.shared.client.auth.model.UserProfileDto;
 import com.edp.filemanagement.data.document.FileDocument;
 import com.edp.filemanagement.data.repository.FileDocumentRepository;
 import com.edp.filemanagement.mapper.FileMapper;

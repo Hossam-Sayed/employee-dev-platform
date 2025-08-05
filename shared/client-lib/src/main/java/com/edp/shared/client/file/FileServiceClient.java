@@ -1,6 +1,6 @@
-package com.edp.careerpackage.client;
+package com.edp.shared.client.file;
 
-import com.edp.careerpackage.client.model.FileResponseDto;
+import com.edp.shared.client.file.model.FileResponseDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

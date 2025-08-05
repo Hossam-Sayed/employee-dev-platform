@@ -1,7 +1,7 @@
 package com.edp.careerpackage.service;
 
-import com.edp.careerpackage.client.AuthServiceClient;
-import com.edp.careerpackage.client.model.UserProfileDto;
+import com.edp.shared.client.auth.AuthServiceClient;
+import com.edp.shared.client.auth.model.UserProfileDto;
 import com.edp.careerpackage.data.entity.*;
 import com.edp.careerpackage.data.enums.CareerPackageStatus;
 import com.edp.careerpackage.data.enums.SubmissionStatus;

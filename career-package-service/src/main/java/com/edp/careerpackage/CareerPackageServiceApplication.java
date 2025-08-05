@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
-@EnableFeignClients(basePackages = "com.edp.careerpackage.client")
+@EnableFeignClients(basePackages = "com.edp.shared.client")
 public class CareerPackageServiceApplication {
 
 	public static void main(String[] args) {

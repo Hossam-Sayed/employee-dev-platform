@@ -1,4 +1,4 @@
-package com.edp.careerpackage.client.model;
+package com.edp.shared.client.auth.model;
 
 import lombok.Data;
 

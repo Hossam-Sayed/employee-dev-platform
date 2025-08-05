@@ -1,21 +1,19 @@
 package com.edp.careerpackage.service;
 
-import com.edp.careerpackage.client.AuthServiceClient;
+import com.edp.shared.client.auth.AuthServiceClient;
 import com.edp.careerpackage.data.entity.*;
 import com.edp.careerpackage.data.enums.CareerPackageStatus;
 import com.edp.careerpackage.data.repository.CareerPackageRepository;
 import com.edp.careerpackage.data.repository.PackageTemplateRepository;
 import com.edp.careerpackage.mapper.CareerPackageMapper;
-import com.edp.careerpackage.model.careerpackage.CareerPackageCreationRequestDto;
 import com.edp.careerpackage.model.careerpackage.CareerPackageResponseDto;
 import com.edp.careerpackage.security.jwt.JwtUserContext;
-import com.edp.careerpackage.client.model.UserProfileDto;
+import com.edp.shared.client.auth.model.UserProfileDto;
 
 import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

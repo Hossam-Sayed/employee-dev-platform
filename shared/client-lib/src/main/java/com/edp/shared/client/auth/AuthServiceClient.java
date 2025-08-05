@@ -1,6 +1,6 @@
-package com.edp.filemanagement.client;
+package com.edp.shared.client.auth;
 
-import com.edp.filemanagement.client.model.UserProfileDto;
+import com.edp.shared.client.auth.model.UserProfileDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,7 +13,7 @@ import java.util.List;
 public interface AuthServiceClient {
 
     @GetMapping("/api/users/{id}")
-    UserProfileDto getUserById(@PathVariable("id") Long id, @RequestHeader("Authorization") String bearerToken);
+    UserProfileDto getUserById(@PathVariable("id") Long id, @RequestHeader("Authorization") String token);
 
     @GetMapping("/api/users/{managerId}/managed")
     List<UserProfileDto> getManagedUsers(@PathVariable("managerId") Long managerId, @RequestHeader("Authorization") String token);

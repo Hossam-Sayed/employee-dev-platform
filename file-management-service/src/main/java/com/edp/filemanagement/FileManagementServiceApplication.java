@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
-@EnableFeignClients(basePackages = "com.edp.filemanagement.client")
+@EnableFeignClients(basePackages = "com.edp.shared.client.auth")
 public class FileManagementServiceApplication {
 
 	public static void main(String[] args) {

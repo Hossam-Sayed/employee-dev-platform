@@ -1,13 +1,12 @@
 package com.edp.careerpackage.service;
 
-import com.edp.careerpackage.client.FileServiceClient;
-import com.edp.careerpackage.client.model.FileResponseDto;
+import com.edp.shared.client.file.FileServiceClient;
+import com.edp.shared.client.file.model.FileResponseDto;
 import com.edp.careerpackage.data.entity.*;
 import com.edp.careerpackage.data.enums.CareerPackageStatus;
 import com.edp.careerpackage.data.repository.CareerPackageTagProgressRepository;
 import com.edp.careerpackage.mapper.CareerPackageMapper;
 import com.edp.careerpackage.model.tagprogress.TagPogressResponseDto;
-import com.edp.careerpackage.model.tagprogress.TagProgressRequestDto;
 import com.edp.careerpackage.security.jwt.JwtUserContext;
 
 import feign.FeignException;
