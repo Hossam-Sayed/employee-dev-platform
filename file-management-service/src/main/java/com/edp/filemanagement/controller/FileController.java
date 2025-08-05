@@ -1,9 +1,6 @@
 package com.edp.filemanagement.controller;
 
-import com.edp.filemanagement.controller.FileControllerApi;
-import com.edp.filemanagement.data.document.FileDocument;
 import com.edp.filemanagement.model.FileResponseDto;
-import com.edp.filemanagement.security.jwt.JwtUserContext;
 import com.edp.filemanagement.service.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;

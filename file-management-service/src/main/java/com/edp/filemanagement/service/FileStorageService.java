@@ -7,9 +7,12 @@ import com.edp.filemanagement.data.repository.FileDocumentRepository;
 import com.edp.filemanagement.mapper.FileMapper;
 import com.edp.filemanagement.model.FileResponseDto;
 import com.edp.filemanagement.security.jwt.JwtUserContext;
+import com.mongodb.client.gridfs.model.GridFSFile;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsResource;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.data.mongodb.gridfs.GridFsOperations;
@@ -68,13 +71,9 @@ public class FileStorageService {
             throw new SecurityException("You are not authorized to access this file.");
         }
 
-        GridFsResource fileResource = gridFsOperations.getResource(metadata.getGridFsFileId());
+        GridFSFile gridFSFile = gridFsTemplate.findOne(Query.query(Criteria.where("_id").is(new ObjectId(metadata.getGridFsFileId()))));
 
-        if (!fileResource.exists()) {
-            throw new FileNotFoundException("File content not found in GridFS: " + metadata.getGridFsFileId());
-        }
-
-        return fileResource;
+        return gridFsOperations.getResource(gridFSFile);
     }
 
     private boolean validateFileBelongsToManagedUser(FileDocument metadata) {

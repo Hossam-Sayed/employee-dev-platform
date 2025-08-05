@@ -1,10 +1,7 @@
 package com.edp.filemanagement.controller;
 
-import com.edp.filemanagement.data.document.FileDocument;
 import com.edp.filemanagement.model.FileResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,7 +22,7 @@ public interface FileControllerApi {
             @ApiResponse(responseCode = "200", description = "File uploaded successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid file")
     })
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     ResponseEntity<FileResponseDto> uploadFile(@RequestPart("file") MultipartFile file) throws IOException;
 
     @Operation(summary = "Download a file by ID")
