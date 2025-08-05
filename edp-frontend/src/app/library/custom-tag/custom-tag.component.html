@@ -1,0 +1,19 @@
+<span class="custom-tag" [ngClass]="statusClass()">
+  @if (iconName()) {
+  <mat-icon class="status-icon">{{ iconName() }}</mat-icon>
+  } @if (status()) {
+  <span class="status-chip">{{ tagName() }}</span>
+  } @else {
+  <span class="default-chip">{{ tagName() }}</span>
+  @if (durationMinutes()) {
+  <span class="duration-text">({{ durationMinutes() }} min)</span>
+  } } @if (closable()) {
+  <button
+    class="remove-button"
+    (click)="onRemoveClick($event)"
+    aria-label="Remove tag"
+  >
+    <mat-icon>cancel</mat-icon>
+  </button>
+  }
+</span>

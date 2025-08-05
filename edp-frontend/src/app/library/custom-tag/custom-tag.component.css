@@ -1,0 +1,78 @@
+/* Applies to all .custom-tag variants */
+.custom-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: bold;
+  border-radius: 16px;
+  line-height: 1.5;
+  margin: 2px;
+  white-space: nowrap;
+  transition: background-color 0.3s, color 0.3s;
+  gap: 4px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Tag background opacity controller */
+.custom-tag::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0.1;
+  z-index: 0;
+  border-radius: inherit;
+}
+
+/* Layer content above background */
+.custom-tag > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Default Blue */
+.custom-tag.status-default {
+  color: #1976d2;
+}
+
+/* Status Variants */
+.custom-tag.status-approved {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.custom-tag.status-pending {
+  color: #f9a825;
+}
+
+.custom-tag.status-rejected {
+  color: #d32f2f;
+}
+
+/* Icon Styling */
+.status-icon {
+  font-size: 16px;
+  height: 16px;
+  width: 16px;
+  line-height: 1;
+  display: inline-block;
+}
+
+.remove-button {
+  all: unset;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding-left: 4px;
+  margin-left: 4px;
+  z-index: 1;
+  color: inherit;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.remove-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
