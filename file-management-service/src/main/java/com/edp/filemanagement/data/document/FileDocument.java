@@ -4,6 +4,7 @@ import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Document(collection = "fileDocuments")
 @Getter
@@ -22,9 +23,9 @@ public class FileDocument {
 
     private long size;
 
-    private String uploadedBy;
+    private Long uploadedBy;
 
-    private Instant uploadedAt;
+    private LocalDateTime uploadedAt;
 
     private String gridFsFileId;
 }
