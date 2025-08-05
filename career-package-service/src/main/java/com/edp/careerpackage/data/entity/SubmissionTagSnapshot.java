@@ -37,4 +37,8 @@ public class SubmissionTagSnapshot {
 
     @Column(name = "proof_link", length = 1000)
     private String proofLink;
+
+    @Column(name = "file_id")
+    private String fileId;
+
 }

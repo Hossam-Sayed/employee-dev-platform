@@ -30,4 +30,7 @@ public class CareerPackageTagProgress {
     @Column(name = "proof_url", length = 1000)
     private String proofUrl;
 
+    @Column(name = "file_id")
+    private String fileId;
+
 }

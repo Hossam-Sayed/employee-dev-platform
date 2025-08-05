@@ -14,4 +14,5 @@ public class TagPogressResponseDto {
     private Double requiredValue;
     private Double completedValue;
     private String proofUrl;
+    private String fileId;
 }

@@ -15,5 +15,6 @@ public class SubmissionTagSnapshotResponseDto {
     private Double requiredValue;
     private Double submittedValue;
     private String proofLink;
+    private String fileId;
 
 }

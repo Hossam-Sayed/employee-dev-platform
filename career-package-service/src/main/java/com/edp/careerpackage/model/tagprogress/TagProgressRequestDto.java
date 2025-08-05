@@ -4,6 +4,7 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 @Setter
@@ -19,4 +20,7 @@ public class TagProgressRequestDto {
     @NotNull(message = "Proof URL is required")
     @Size(max = 1000, message = "Proof URL must be at most 1000 characters")
     private String proofUrl;
+
+    private MultipartFile file;
+
 }
