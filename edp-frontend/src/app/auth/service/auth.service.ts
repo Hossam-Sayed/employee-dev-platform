@@ -53,6 +53,14 @@ export class AuthService {
     return this.fetchAndSetUser(payload.userId);
   }
 
+  isAdmin(): boolean | undefined {
+    return this.tokenService.getPayload()?.isAdmin;
+  }
+
+  getUserId(): number | undefined {
+    return this.tokenService.getPayload()?.userId;
+  }
+
   login(dto: AuthRequestDto): Observable<AuthResponseDto> {
     return this.httpClient
       .post<AuthResponseDto>(`${this.API_URL}/login`, dto)
