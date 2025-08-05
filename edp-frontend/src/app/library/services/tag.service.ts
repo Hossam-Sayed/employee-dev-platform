@@ -4,6 +4,8 @@ import { Observable } from 'rxjs';
 import { Tag } from '../models/tag.model';
 import { TagCreateRequest } from '../models/tag-create-request.model';
 import { TagRequestResponse } from '../models/tag-request-response.model';
+import { PaginationResponse } from '../models/pagination-response.model';
+import { PaginationRequest } from '../models/pagination-request.model';
 
 @Injectable({
   providedIn: 'root',
@@ -30,6 +32,29 @@ export class TagService {
       request,
       {
         headers,
+      }
+    );
+  }
+
+  getMyTagRequests(
+    requesterId: number,
+    pagination: PaginationRequest
+  ): Observable<PaginationResponse<TagRequestResponse>> {
+    const headers = { 'X-Requester-Id': requesterId.toString() };
+    const params = new HttpParams()
+      .set('page', pagination.page.toString())
+      .set('size', pagination.size.toString())
+      .set('sortBy', pagination.sortBy);
+
+    if (pagination.sortDirection) {
+      params.set('sortDirection', pagination.sortDirection ?? 'DESC');
+    }
+
+    return this.http.get<PaginationResponse<TagRequestResponse>>(
+      `${this.baseUrl}my-requests`,
+      {
+        headers,
+        params,
       }
     );
   }
