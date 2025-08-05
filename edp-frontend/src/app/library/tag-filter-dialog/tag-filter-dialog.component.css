@@ -1,0 +1,51 @@
+.dialog-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 2rem 0 1rem 2rem; /* top, right, bottom, left */
+}
+
+.dialog-content {
+  min-width: 320px;
+  max-height: 420px;
+  overflow-y: auto;
+  padding-top: 0.5rem;
+}
+
+.search-field {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 160px;
+}
+
+.empty-message {
+  text-align: center;
+  color: #888;
+  font-size: 0.95rem;
+  padding: 1rem 0;
+}
+
+.tag-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tag-name {
+  font-size: 0.95rem;
+}
+
+.dialog-actions {
+  padding-top: 0.5rem;
+}
+
+mat-chip {
+  font-size: 0.75rem;
+  height: 22px;
+  line-height: 22px;
+}

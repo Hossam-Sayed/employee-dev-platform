@@ -1,0 +1,34 @@
+<h2 mat-dialog-title class="dialog-title">Filter by Tags</h2>
+
+<mat-dialog-content class="dialog-content">
+  <mat-form-field appearance="outline" class="search-field">
+    <mat-label>Search Tags</mat-label>
+    <input
+      matInput
+      [(ngModel)]="searchQuery"
+      (input)="filterTags()"
+      placeholder="e.g., Angular, Java"
+    />
+  </mat-form-field>
+
+  @if (isLoading()) {
+  <div class="loading-container">
+    <mat-spinner diameter="36"></mat-spinner>
+  </div>
+  } @else if (filteredTags().length > 0) {
+  <mat-radio-group [(ngModel)]="selectedTagId">
+    @for (tag of filteredTags(); track tag.id) {
+    <mat-radio-button [value]="tag.id" class="tag-radio-item">
+      {{ tag.name }}
+    </mat-radio-button>
+    }
+  </mat-radio-group>
+  } @else {
+  <p class="empty-message">No tags found.</p>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="dialog-actions">
+  <button mat-button (click)="onClear()">Clear</button>
+  <button mat-flat-button color="primary" (click)="onApply()">Apply</button>
+</mat-dialog-actions>
