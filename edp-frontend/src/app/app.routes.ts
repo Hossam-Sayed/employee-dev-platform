@@ -70,4 +70,19 @@ export const routes: Routes = [
     component: MaterialDetailsComponent,
     canActivate: [authGuard],
   },
+  {
+    path: 'library/edit-learning/:materialId',
+    component: AddMaterialComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'library/edit-blog/:materialId',
+    component: AddMaterialComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'library/edit-wiki/:materialId',
+    component: AddMaterialComponent,
+    canActivate: [authGuard],
+  },
 ];
