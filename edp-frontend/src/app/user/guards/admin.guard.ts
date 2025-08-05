@@ -1,14 +1,13 @@
 import { inject } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
+import { CanActivateFn } from '@angular/router';
 import { NotificationService } from '../services/notification.service';
-import { UserService } from '../services/user.service';
+import { AuthService } from '../../auth/service/auth.service';
 
-export const adminGuard: CanActivateFn = (route, state) => {
-  const userService = inject(UserService);
-  const router = inject(Router);
+export const adminGuard: CanActivateFn = () => {
+  const authService = inject(AuthService);
   const notificationService = inject(NotificationService);
 
-  if (userService.currentUser()?.admin) {
+  if (authService.isAdmin()) {
     return true;
   } else {
     notificationService.showWarning(
