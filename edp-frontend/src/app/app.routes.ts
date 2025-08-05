@@ -7,6 +7,7 @@ import { UserCreateComponent } from './user/user-create/user-create.component';
 import { adminGuard } from './user/guards/admin.guard';
 import { MyMaterialsComponent } from './library/my-materials/my-materials.component';
 import { AddMaterialComponent } from './library/add-material/add-material.component';
+import { MaterialDetailsComponent } from './library/material-details/material-details.component';
 
 export const routes: Routes = [
   {
@@ -52,6 +53,21 @@ export const routes: Routes = [
   {
     path: 'library/add-wiki',
     component: AddMaterialComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'library/learning/:materialId',
+    component: MaterialDetailsComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'library/blog/:materialId',
+    component: MaterialDetailsComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'library/wiki/:materialId',
+    component: MaterialDetailsComponent,
     canActivate: [authGuard],
   },
 ];

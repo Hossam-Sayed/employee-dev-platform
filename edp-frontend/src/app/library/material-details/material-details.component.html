@@ -1,0 +1,95 @@
+<div class="details-container">
+  @if (isLoading()) {
+  <div class="loading-spinner">
+    <mat-spinner></mat-spinner>
+  </div>
+  } @else if (error()) {
+  <div class="error-message">
+    <mat-card>{{ error() }}</mat-card>
+  </div>
+  } @else if (material()) {
+  <mat-toolbar class="header-toolbar">
+    <h1 class="page-title">{{ material()?.title }}</h1>
+    @if (isOwner() && isRejected()) {
+    <button
+      mat-flat-button
+      class="edit-button"
+      [routerLink]="[`/library/edit-${materialType()}`, material()?.id]"
+    >
+      <mat-icon>edit</mat-icon>
+      Edit
+    </button>
+    }
+    <button
+      mat-button
+      color="accent"
+      [routerLink]="['/library/history', materialType(), material()?.id]"
+    >
+      <mat-icon>history</mat-icon>
+      History
+    </button>
+  </mat-toolbar>
+
+  <mat-card class="material-card">
+    <mat-card-header>
+      <div class="header-content">
+        <mat-card-title>Details</mat-card-title>
+        <div class="status-container">
+          <span class="status-label">Status:</span>
+          <app-custom-tag
+            [tagName]="material()?.status!"
+            [status]="material()?.status!"
+          />
+        </div>
+      </div>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="detail-rows-container">
+        <div class="detail-row">
+          <span class="label">ID</span>
+          <span>{{ material()?.id }}</span>
+        </div>
+
+        @if (learningMaterial) {
+        <div class="detail-row">
+          <span class="label">Proof URL</span>
+          <a [href]="learningMaterial.proofUrl" target="_blank">
+            {{ learningMaterial.proofUrl }}
+          </a>
+        </div>
+        } @else if (blogOrWikiMaterial) {
+        <div class="detail-row">
+          <span class="label">Document URL</span>
+          <a [href]="blogOrWikiMaterial.documentUrl" target="_blank">
+            {{ blogOrWikiMaterial.documentUrl }}
+          </a>
+        </div>
+
+        <div class="detail-row">
+          <span class="label">Description</span>
+          <p class="description-text">{{ blogOrWikiMaterial.description }}</p>
+        </div>
+        }
+      </div>
+
+      <mat-divider></mat-divider>
+
+      <div class="tags-section">
+        <h3>Tags</h3>
+        <div class="tags-list">
+          @if (isLearning(material())) { @for (tag of learningTags; track
+          tag.id) {
+          <app-custom-tag
+            [tagName]="tag.tagName"
+            [durationMinutes]="tag.durationMinutes"
+          />
+          } } @else { @for (tag of material()?.tags ?? []; track tag.id) {
+          <app-custom-tag [tagName]="tag.tagName" />
+          } }
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+  }
+</div>
