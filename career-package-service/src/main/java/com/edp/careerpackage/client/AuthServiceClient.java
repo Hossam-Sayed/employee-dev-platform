@@ -13,7 +13,7 @@ import java.util.List;
 public interface AuthServiceClient {
 
     @GetMapping("/api/users/{id}")
-    UserProfileDto getUserById(@PathVariable("id") Long id, @RequestHeader("Authorization") String bearerToken);
+    UserProfileDto getUserById(@PathVariable("id") Long id, @RequestHeader("Authorization") String token);
 
     @GetMapping("/api/users/{managerId}/managed")
     List<UserProfileDto> getManagedUsers(@PathVariable("managerId") Long managerId, @RequestHeader("Authorization") String token);
