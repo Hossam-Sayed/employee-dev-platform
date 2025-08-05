@@ -5,7 +5,7 @@ import com.edp.careerpackage.data.entity.CareerPackageProgress;
 import com.edp.careerpackage.data.repository.CareerPackageRepository;
 import com.edp.careerpackage.mapper.CareerPackageMapper;
 import com.edp.careerpackage.model.packageprogress.PackageProgressResponseDto;
-import com.edp.careerpackage.security.jwt.JwtUserContext;
+import com.edp.shared.security.jwt.JwtUserContext;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;

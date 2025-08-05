@@ -1,4 +1,4 @@
-package com.edp.careerpackage.security.jwt;
+package com.edp.shared.security.jwt;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.experimental.UtilityClass;

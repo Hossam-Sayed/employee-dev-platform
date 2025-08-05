@@ -1,4 +1,4 @@
-package com.edp.careerpackage.exception;
+package com.edp.shared.security.jwt;
 
 public class JwtValidationException extends RuntimeException {
     public JwtValidationException(String message) {

@@ -7,7 +7,7 @@ import com.edp.careerpackage.data.repository.CareerPackageRepository;
 import com.edp.careerpackage.data.repository.PackageTemplateRepository;
 import com.edp.careerpackage.mapper.CareerPackageMapper;
 import com.edp.careerpackage.model.careerpackage.CareerPackageResponseDto;
-import com.edp.careerpackage.security.jwt.JwtUserContext;
+import com.edp.shared.security.jwt.JwtUserContext;
 import com.edp.shared.client.auth.model.UserProfileDto;
 
 import feign.FeignException;

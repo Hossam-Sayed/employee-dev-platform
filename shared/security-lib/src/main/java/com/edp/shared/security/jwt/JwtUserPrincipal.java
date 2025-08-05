@@ -1,4 +1,4 @@
-package com.edp.careerpackage.security.jwt;
+package com.edp.shared.security.jwt;
 
 import java.util.Collection;
 import java.util.List;

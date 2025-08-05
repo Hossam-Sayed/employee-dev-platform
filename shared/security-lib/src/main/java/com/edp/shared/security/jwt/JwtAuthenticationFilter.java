@@ -1,6 +1,5 @@
-package com.edp.filemanagement.security.jwt;
+package com.edp.shared.security.jwt;
 
-import com.edp.filemanagement.exception.JwtValidationException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

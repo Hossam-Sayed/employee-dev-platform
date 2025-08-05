@@ -13,7 +13,7 @@ import com.edp.careerpackage.mapper.SubmissionTagSnapshotMapper;
 import com.edp.careerpackage.model.submission.CommentRequestDto;
 import com.edp.careerpackage.model.submission.SubmissionResponseDto;
 import com.edp.careerpackage.model.submissionsnapshot.SubmissionTagSnapshotResponseDto;
-import com.edp.careerpackage.security.jwt.JwtUserContext;
+import com.edp.shared.security.jwt.JwtUserContext;
 
 import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;

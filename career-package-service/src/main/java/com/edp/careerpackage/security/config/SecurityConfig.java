@@ -1,6 +1,6 @@
 package com.edp.careerpackage.security.config;
 
-import com.edp.careerpackage.security.jwt.JwtAuthenticationFilter;
+import com.edp.shared.security.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

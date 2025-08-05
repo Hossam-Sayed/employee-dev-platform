@@ -6,7 +6,7 @@ import com.edp.filemanagement.data.document.FileDocument;
 import com.edp.filemanagement.data.repository.FileDocumentRepository;
 import com.edp.filemanagement.mapper.FileMapper;
 import com.edp.filemanagement.model.FileResponseDto;
-import com.edp.filemanagement.security.jwt.JwtUserContext;
+import com.edp.shared.security.jwt.JwtUserContext;
 import com.mongodb.client.gridfs.model.GridFSFile;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;

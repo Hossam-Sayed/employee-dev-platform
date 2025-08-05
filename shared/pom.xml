@@ -20,6 +20,7 @@
     <modules>
         <module>error-lib</module>
         <module>client-lib</module>
+        <module>security-lib</module>
     </modules>
     <name>Shared Libraries</name>
 </project>

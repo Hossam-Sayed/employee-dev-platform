@@ -7,7 +7,7 @@ import com.edp.careerpackage.data.enums.CareerPackageStatus;
 import com.edp.careerpackage.data.repository.CareerPackageTagProgressRepository;
 import com.edp.careerpackage.mapper.CareerPackageMapper;
 import com.edp.careerpackage.model.tagprogress.TagPogressResponseDto;
-import com.edp.careerpackage.security.jwt.JwtUserContext;
+import com.edp.shared.security.jwt.JwtUserContext;
 
 import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;

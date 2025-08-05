@@ -1,4 +1,4 @@
-package com.edp.filemanagement.security.jwt;
+package com.edp.shared.security.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -10,7 +10,6 @@ import java.security.Key;
 import java.util.Date;
 import java.util.function.Function;
 
-import com.edp.filemanagement.exception.JwtValidationException;
 
 @Service
 public class JwtService {
