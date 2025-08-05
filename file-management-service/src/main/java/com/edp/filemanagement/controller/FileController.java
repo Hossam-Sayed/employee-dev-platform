@@ -34,4 +34,11 @@ public class FileController implements FileControllerApi {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileResource.getFilename() + "\"")
                 .body(fileResource);
     }
+
+    @Override
+    public ResponseEntity<Void> deleteFile(String id) throws IOException {
+        fileStorageService.deleteFile(id);
+        return ResponseEntity.ok().build();
+    }
+
 }

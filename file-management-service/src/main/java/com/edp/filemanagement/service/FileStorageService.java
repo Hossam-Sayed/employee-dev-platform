@@ -19,6 +19,7 @@ import org.springframework.data.mongodb.gridfs.GridFsOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.security.sasl.AuthenticationException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -68,12 +69,28 @@ public class FileStorageService {
         boolean isOwner = metadata.getUploadedBy().equals(currentUserId);
         boolean isManager = validateFileBelongsToManagedUser(metadata);
         if (!isOwner && !isManager) {
-            throw new SecurityException("You are not authorized to access this file.");
+            throw new AuthenticationException("You are not authorized to access this file.");
         }
 
         GridFSFile gridFSFile = gridFsTemplate.findOne(Query.query(Criteria.where("_id").is(new ObjectId(metadata.getGridFsFileId()))));
 
         return gridFsOperations.getResource(gridFSFile);
+    }
+
+    public void deleteFile(String fileId) throws IOException {
+        Long currentUserId = JwtUserContext.getUserId();
+
+        FileDocument metadata = fileDocumentRepository.findById(fileId)
+                .orElseThrow(() -> new FileNotFoundException("File metadata not found with ID: " + fileId));
+
+        boolean isOwner = metadata.getUploadedBy().equals(currentUserId);
+        boolean isManager = validateFileBelongsToManagedUser(metadata);
+        if (!isOwner && !isManager) {
+            throw new AuthenticationException("You are not authorized to delete this file.");
+        }
+
+        gridFsTemplate.delete(Query.query(Criteria.where("_id").is(new ObjectId(metadata.getGridFsFileId()))));
+        fileDocumentRepository.deleteById(fileId);
     }
 
     private boolean validateFileBelongsToManagedUser(FileDocument metadata) {
@@ -94,6 +111,4 @@ public class FileStorageService {
         Long fileOwnerId = metadata.getUploadedBy();
         return userIds.contains(fileOwnerId);
     }
-
-
 }

@@ -32,4 +32,15 @@ public interface FileControllerApi {
     })
     @GetMapping("/{id}")
     ResponseEntity<Resource> getFile(@PathVariable String id) throws IOException;
+
+
+    @Operation(summary = "Delete a file by ID")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "File deleted successfully"),
+            @ApiResponse(responseCode = "404", description = "File not found")
+    })
+    @DeleteMapping("/{id}")
+    ResponseEntity<Void> deleteFile(@PathVariable String id) throws IOException;
+
 }
+
