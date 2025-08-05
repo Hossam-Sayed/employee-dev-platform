@@ -1,0 +1,48 @@
+<mat-toolbar color="primary">
+  <span>Tag Request Details</span>
+  <span class="toolbar-spacer"></span>
+  <button mat-icon-button (click)="onClose()">
+    <mat-icon>close</mat-icon>
+  </button>
+</mat-toolbar>
+
+<mat-dialog-content class="mat-typography">
+  <div class="details-container">
+    <div class="detail-row">
+      <span class="label">Tag Name:</span>
+      <span class="value">{{ data.requestedName }}</span>
+    </div>
+    <mat-divider></mat-divider>
+    <div class="detail-row">
+      <span class="label">Status:</span>
+      <app-custom-tag [tagName]="data.status" [status]="data.status" />
+    </div>
+    <mat-divider></mat-divider>
+    <div class="detail-row">
+      <span class="label">Requested At:</span>
+      <span class="value">{{ data.createdAt | date : "short" }}</span>
+    </div>
+    <mat-divider></mat-divider>
+    @if (data.status !== 'PENDING') {
+    <div class="detail-row">
+      <span class="label">Reviewed At:</span>
+      <span class="value">{{ data.reviewedAt | date : "short" }}</span>
+    </div>
+    <mat-divider></mat-divider>
+    <div class="detail-row">
+      <span class="label">Reviewer ID:</span>
+      <span class="value">{{ data.reviewerId }}</span>
+    </div>
+    <mat-divider></mat-divider>
+    } @if (data.reviewerComment) {
+    <div class="detail-row">
+      <span class="label">Reviewer Comment:</span>
+      <p class="value comment">{{ data.reviewerComment }}</p>
+    </div>
+    }
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-flat-button color="primary" (click)="onClose()">Close</button>
+</mat-dialog-actions>

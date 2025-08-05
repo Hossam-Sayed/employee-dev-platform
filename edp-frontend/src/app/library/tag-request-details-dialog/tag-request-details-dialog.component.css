@@ -1,0 +1,35 @@
+.toolbar-spacer {
+  flex: 1 1 auto;
+}
+
+.mat-dialog-content {
+  padding: 24px;
+}
+
+.details-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.detail-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.label {
+  font-weight: 500;
+  color: #555;
+  min-width: 150px;
+}
+
+.value {
+  color: #333;
+}
+
+.comment {
+  margin: 0;
+  white-space: pre-wrap; /* Preserve whitespace and line breaks */
+}
