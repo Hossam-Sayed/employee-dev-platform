@@ -17,7 +17,9 @@ public interface SubmissionTagSnapshotMapper {
             @Mapping(source = "criteriaType", target = "criteriaType"),
             @Mapping(source = "requiredValue", target = "requiredValue"),
             @Mapping(source = "submittedValue", target = "submittedValue"),
-            @Mapping(source = "proofLink", target = "proofLink")
+            @Mapping(source = "proofLink", target = "proofLink"),
+            @Mapping(source = "fileId", target = "fileId")
+
     })
     SubmissionTagSnapshotResponseDto toSnapshotResponseDto(SubmissionTagSnapshot snapshot);
 

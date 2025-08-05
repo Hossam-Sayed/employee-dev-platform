@@ -48,7 +48,8 @@ public interface CareerPackageMapper {
             @Mapping(source = "templateSectionRequiredTag.criteriaType", target = "criteriaType"),
             @Mapping(source = "templateSectionRequiredTag.criteriaMinValue", target = "requiredValue"),
             @Mapping(source = "completedValue", target = "completedValue"),
-            @Mapping(source = "proofUrl", target = "proofUrl")
+            @Mapping(source = "proofUrl", target = "proofUrl"),
+            @Mapping(source = "fileId", target = "fileId")
     })
     TagPogressResponseDto toCareerPackageTagProgress(CareerPackageTagProgress tagProgress);
 
