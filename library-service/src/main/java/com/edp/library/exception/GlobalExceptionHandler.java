@@ -17,8 +17,24 @@ import java.time.LocalDateTime;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleEntityNotFound(EntityNotFoundException ex, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> handleJpaEntityNotFound(EntityNotFoundException ex, HttpServletRequest request) {
         return buildErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND, request.getRequestURI());
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleResourceNotFound(ResourceNotFoundException ex, HttpServletRequest request) {
+        return buildErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND, request.getRequestURI());
+    }
+
+    @ExceptionHandler(ResourceAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> handleResourceAlreadyExists(ResourceAlreadyExistsException ex, HttpServletRequest request) {
+        return buildErrorResponse(ex.getMessage(), HttpStatus.CONFLICT, request.getRequestURI());
+    }
+
+    @ExceptionHandler(InvalidOperationException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidOperation(InvalidOperationException ex, HttpServletRequest request) {
+        // Business logic violations, bad requests that don't fit @Valid
+        return buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST, request.getRequestURI());
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
@@ -45,7 +61,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneralException(Exception ex, HttpServletRequest request) {
-        return buildErrorResponse(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR, request.getRequestURI());
+        return buildErrorResponse("An unexpected error occurred: " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR, request.getRequestURI());
     }
 
     private ResponseEntity<ErrorResponse> buildErrorResponse(String message, HttpStatus status, String path) {
