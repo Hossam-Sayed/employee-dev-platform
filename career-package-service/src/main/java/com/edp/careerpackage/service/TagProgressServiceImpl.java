@@ -1,5 +1,7 @@
 package com.edp.careerpackage.service;
 
+import com.edp.careerpackage.client.FileServiceClient;
+import com.edp.careerpackage.client.model.FileResponseDto;
 import com.edp.careerpackage.data.entity.*;
 import com.edp.careerpackage.data.enums.CareerPackageStatus;
 import com.edp.careerpackage.data.repository.CareerPackageTagProgressRepository;
@@ -8,12 +10,14 @@ import com.edp.careerpackage.model.tagprogress.TagPogressResponseDto;
 import com.edp.careerpackage.model.tagprogress.TagProgressRequestDto;
 import com.edp.careerpackage.security.jwt.JwtUserContext;
 
+import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 
@@ -23,10 +27,12 @@ public class TagProgressServiceImpl implements TagProgressService {
 
     private final CareerPackageTagProgressRepository tagProgressRepository;
     private final CareerPackageMapper mapper;
+    private final FileServiceClient fileServiceClient;
+
 
     @Override
     @Transactional
-    public TagPogressResponseDto updateTagProgress(Long tagProgressId, TagProgressRequestDto request) {
+    public TagPogressResponseDto updateTagProgress(Long tagProgressId, Double completedValue, String proofUrl, MultipartFile file) {
         Long currentUserId = JwtUserContext.getUserId();
 
         CareerPackageTagProgress tagProgress = tagProgressRepository.findById(tagProgressId)
@@ -46,14 +52,23 @@ public class TagProgressServiceImpl implements TagProgressService {
 
         //the min value required for completing a tag is the max value to be submitted as progress for this tag
         double maxValue = tagProgress.getTemplateSectionRequiredTag().getCriteriaMinValue();
-        double boundValue = Math.min(request.getCompletedValue(), maxValue);
+        double boundValue = Math.min(completedValue, maxValue);
 
         tagProgress.setCompletedValue(boundValue);
-        tagProgress.setProofUrl(request.getProofUrl());
+        tagProgress.setProofUrl(proofUrl);
+
+        if (file != null && !file.isEmpty()) {
+            String token = JwtUserContext.getToken();
+            try {
+                FileResponseDto response = fileServiceClient.uploadFile(file, token).getBody();
+                tagProgress.setFileId(response.getId());
+            } catch (FeignException ex) {
+                throw new IllegalStateException("Failed to contact FileService: " + ex.getMessage());
+            }
+        }
 
         CareerPackageSectionProgress sectionProgress = tagProgress.getCareerPackageSectionProgress();
         recalculateSectionProgress(sectionProgress);
-
         recalculatePackageProgress(careerPackage);
 
         return mapper.toCareerPackageTagProgress(tagProgress);

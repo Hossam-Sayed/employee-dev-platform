@@ -5,8 +5,10 @@ import com.edp.careerpackage.model.tagprogress.TagProgressRequestDto;
 import com.edp.careerpackage.service.TagProgressService;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -17,9 +19,11 @@ public class TagProgressController implements TagProgressControllerApi {
     @Override
     public ResponseEntity<TagPogressResponseDto> updateTagProgress(
             Long tagProgressId,
-            TagProgressRequestDto request
+            Double completedValue,
+            String proofUrl,
+            MultipartFile file
     ) {
-        TagPogressResponseDto updated = tagProgressService.updateTagProgress(tagProgressId, request);
+        TagPogressResponseDto updated = tagProgressService.updateTagProgress(tagProgressId, completedValue, proofUrl, file);
         return ResponseEntity.ok(updated);
     }
 }

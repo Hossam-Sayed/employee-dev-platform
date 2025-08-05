@@ -11,9 +11,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import jakarta.validation.Valid;
 
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @Tag(
         name = "Tag Progress",
@@ -33,11 +35,12 @@ public interface TagProgressControllerApi {
             @ApiResponse(responseCode = "403", description = "User not authorized to update this tag progress"),
             @ApiResponse(responseCode = "404", description = "Tag progress not found")
     })
-    @PutMapping("/{tagProgressId}")
+    @PutMapping(value = "/{tagProgressId}",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     ResponseEntity<TagPogressResponseDto> updateTagProgress(
             @Parameter(description = "ID of the tag progress to update", required = true)
             @PathVariable Long tagProgressId,
-
-            @Valid @RequestBody TagProgressRequestDto request
+            @RequestParam("completedValue") Double completedValue,
+            @RequestParam("proofUrl") String proofUrl,
+            @RequestPart(value = "file", required = false) MultipartFile file
     );
 }
