@@ -1,0 +1,92 @@
+.my-materials-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  font-family: "Roboto", sans-serif;
+}
+
+.header-toolbar {
+  background: var(--mat-toolbar-container-background-color);
+  color: var(--mat-toolbar-container-text-color);
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  padding: 0 1rem;
+}
+
+.toolbar-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.add-button {
+  margin-right: 0.5rem;
+}
+
+mat-tab-group {
+  margin-top: 1rem;
+}
+
+.filters-and-table-container {
+  padding: 1rem;
+}
+
+.filters {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.left-filters {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.table-container {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.loading-spinner,
+.no-materials-message {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 256px;
+  color: #666;
+  font-size: 1.1rem;
+}
+
+table {
+  width: 100%;
+}
+
+.material-row {
+  cursor: pointer;
+}
+
+.material-row:hover {
+  background-color: #f8f8f8;
+}
+
+.mat-column-title {
+  min-width: 200px;
+}
+
+.mat-column-status {
+  min-width: 120px;
+}
+
+.mat-column-tags {
+  min-width: 180px;
+}

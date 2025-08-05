@@ -1,0 +1,356 @@
+<div class="my-materials-container">
+  <mat-toolbar class="header-toolbar">
+    <div class="toolbar-content">
+      <h1 class="page-title">{{ tabLabels[currentTab()] }}</h1>
+      <div class="actions">
+        <button
+          mat-flat-button
+          color="primary"
+          [routerLink]="addMaterialLink"
+          class="add-button"
+        >
+          <mat-icon>add</mat-icon>
+          {{ addMaterialLabels[currentTab()] }}
+        </button>
+        <button mat-button color="accent" [routerLink]="'/my-tag-requests'">
+          <mat-icon>label</mat-icon>
+          My Tag Requests
+        </button>
+      </div>
+    </div>
+  </mat-toolbar>
+
+  <mat-tab-group (selectedTabChange)="onTabChange($event.index)">
+    <mat-tab label="My Learnings">
+      <ng-template matTabContent>
+        <div class="filters-and-table-container">
+          <div class="filters">
+            <div class="left-filters">
+              <button mat-button [matMenuTriggerFor]="statusMenu">
+                <mat-icon>filter_list</mat-icon>
+                Status: {{ statusFilter() || "All" }}
+              </button>
+              <mat-menu #statusMenu="matMenu">
+                <button mat-menu-item (click)="applyStatusFilter(null)">
+                  All
+                </button>
+                @for (status of submissionStatuses; track status) {
+                <button mat-menu-item (click)="applyStatusFilter(status)">
+                  {{ status }}
+                </button>
+                }
+              </mat-menu>
+
+              <button mat-button (click)="openTagFilterDialog()">
+                <mat-icon>local_offer</mat-icon>
+                Tags
+              </button>
+              @if (tagIdFilter()) {
+              <div class="tag-filter-chip-container">
+                @if (selectedTag) {
+                <app-custom-tag
+                  [tagName]="selectedTag.name"
+                  [closable]="true"
+                  (remove)="removeTagFilter()"
+                />
+                }
+              </div>
+              }
+            </div>
+            <button mat-button (click)="resetFilters()">
+              <mat-icon>refresh</mat-icon>
+              Reset Filters
+            </button>
+          </div>
+
+          <div class="mat-elevation-z8 table-container">
+            @if (isLoading()) {
+            <div class="loading-spinner">
+              <mat-spinner></mat-spinner>
+            </div>
+            } @else if (tableData && tableData.content!.length > 0) {
+            <table
+              mat-table
+              [dataSource]="tableData.content! || []"
+              matSort
+              (matSortChange)="onSortChange($event)"
+              [matSortActive]="paginationRequest().sortBy"
+              [matSortDirection]="sortDirection"
+            >
+              <ng-container matColumnDef="title">
+                <th
+                  mat-header-cell
+                  *matHeaderCellDef
+                  mat-sort-header
+                  sortActionDescription="Sort by title"
+                >
+                  Title
+                </th>
+                <td mat-cell *matCellDef="let element">{{ element.title }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="status">
+                <th
+                  mat-header-cell
+                  *matHeaderCellDef
+                  mat-sort-header
+                  sortActionDescription="Sort by status"
+                >
+                  Status
+                </th>
+                <td mat-cell *matCellDef="let element">
+                  <app-custom-tag
+                    [tagName]="element.status"
+                    [status]="element.status"
+                  />
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="tags">
+                <th mat-header-cell *matHeaderCellDef>Tags</th>
+                <td mat-cell *matCellDef="let element">
+                  <div class="tags-list">
+                    @if(element.tags.length > 0) {
+                    <app-custom-tag
+                      tagName="{{ getTagNames(element.tags)[0] }}"
+                    />
+                    } @if (getHiddenTagsCount(element.tags) > 0) {
+                    <app-custom-tag
+                      [tagName]="
+                        '+' + getHiddenTagsCount(element.tags) + ' more'
+                      "
+                    />
+                    }
+                  </div>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="createdAt">
+                <th
+                  mat-header-cell
+                  *matHeaderCellDef
+                  mat-sort-header
+                  sortActionDescription="Sort by creation date"
+                >
+                  Created At
+                </th>
+                <td mat-cell *matCellDef="let element">
+                  {{ element.createdAt | date : "short" }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="updatedAt">
+                <th
+                  mat-header-cell
+                  *matHeaderCellDef
+                  mat-sort-header
+                  sortActionDescription="Sort by update date"
+                >
+                  Updated At
+                </th>
+                <td mat-cell *matCellDef="let element">
+                  {{ element.updatedAt | date : "short" }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let element">
+                  <button mat-icon-button (click)="onRowClick(element)">
+                    <mat-icon>visibility</mat-icon>
+                  </button>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr
+                mat-row
+                *matRowDef="let row; columns: displayedColumns"
+                class="material-row"
+                (click)="onRowClick(row)"
+              ></tr>
+            </table>
+            <mat-paginator
+              [length]="totalElements"
+              [pageSize]="paginationRequest().size"
+              [pageIndex]="paginationRequest().page"
+              [pageSizeOptions]="[5, 10, 20]"
+              (page)="onPageChange($event)"
+            ></mat-paginator>
+            } @else {
+            <div class="no-materials-message">
+              <p>No materials found.</p>
+            </div>
+            }
+          </div>
+        </div>
+      </ng-template>
+    </mat-tab>
+    <mat-tab label="My Blogs">
+      <ng-template matTabContent>
+        <ng-container *ngTemplateOutlet="materialTabContent"></ng-container>
+      </ng-template>
+    </mat-tab>
+    <mat-tab label="My Wikis">
+      <ng-template matTabContent>
+        <ng-container *ngTemplateOutlet="materialTabContent"></ng-container>
+      </ng-template>
+    </mat-tab>
+  </mat-tab-group>
+
+  <ng-template #materialTabContent>
+    <div class="filters-and-table-container">
+      <div class="filters">
+        <div class="left-filters">
+          <button mat-button [matMenuTriggerFor]="statusMenu">
+            <mat-icon>filter_list</mat-icon>
+            Status: {{ statusFilter() || "All" }}
+          </button>
+          <mat-menu #statusMenu="matMenu">
+            <button mat-menu-item (click)="applyStatusFilter(null)">All</button>
+            @for (status of submissionStatuses; track status) {
+            <button mat-menu-item (click)="applyStatusFilter(status)">
+              {{ status }}
+            </button>
+            }
+          </mat-menu>
+
+          <button mat-button (click)="openTagFilterDialog()">
+            <mat-icon>local_offer</mat-icon>
+            Tags
+          </button>
+          @if (tagIdFilter()) {
+          <div class="tag-filter-chip-container">
+            @if (selectedTag) {
+            <app-custom-tag
+              [tagName]="selectedTag.name"
+              [closable]="true"
+              (remove)="removeTagFilter()"
+            />
+            }
+          </div>
+          }
+        </div>
+        <button mat-button (click)="resetFilters()">
+          <mat-icon>refresh</mat-icon>
+          Reset Filters
+        </button>
+      </div>
+
+      <div class="mat-elevation-z8 table-container">
+        @if (isLoading()) {
+        <div class="loading-spinner">
+          <mat-spinner></mat-spinner>
+        </div>
+        } @else if (tableData && tableData.content!.length > 0) {
+        <table
+          mat-table
+          [dataSource]="tableData.content! || []"
+          matSort
+          (matSortChange)="onSortChange($event)"
+        >
+          <ng-container matColumnDef="title">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              sortActionDescription="Sort by title"
+            >
+              Title
+            </th>
+            <td mat-cell *matCellDef="let element">{{ element.title }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="status">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              sortActionDescription="Sort by status"
+            >
+              Status
+            </th>
+            <td mat-cell *matCellDef="let element">
+              <app-custom-tag
+                [tagName]="element.status"
+                [status]="element.status"
+              />
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="tags">
+            <th mat-header-cell *matHeaderCellDef>Tags</th>
+            <td mat-cell *matCellDef="let element">
+              <div class="tags-list">
+                @if(element.tags.length > 0) {
+                <app-custom-tag tagName="{{ getTagNames(element.tags)[0] }}" />
+                } @if (getHiddenTagsCount(element.tags) > 0) {
+                <app-custom-tag
+                  [tagName]="'+' + getHiddenTagsCount(element.tags) + ' more'"
+                />
+                }
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="createdAt">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              sortActionDescription="Sort by creation date"
+            >
+              Created At
+            </th>
+            <td mat-cell *matCellDef="let element">
+              {{ element.createdAt | date : "short" }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="updatedAt">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              sortActionDescription="Sort by update date"
+            >
+              Updated At
+            </th>
+            <td mat-cell *matCellDef="let element">
+              {{ element.updatedAt | date : "short" }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let element">
+              <button mat-icon-button (click)="onRowClick(element)">
+                <mat-icon>visibility</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr
+            mat-row
+            *matRowDef="let row; columns: displayedColumns"
+            class="material-row"
+            (click)="onRowClick(row)"
+          ></tr>
+        </table>
+        <mat-paginator
+          [length]="totalElements"
+          [pageSize]="paginationRequest().size"
+          [pageIndex]="paginationRequest().page"
+          [pageSizeOptions]="[5, 10, 20]"
+          (page)="onPageChange($event)"
+        ></mat-paginator>
+        } @else {
+        <div class="no-materials-message">
+          <p>No materials found.</p>
+        </div>
+        }
+      </div>
+    </div>
+  </ng-template>
+</div>
