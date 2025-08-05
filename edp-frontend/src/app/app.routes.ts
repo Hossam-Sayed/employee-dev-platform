@@ -8,6 +8,7 @@ import { adminGuard } from './user/guards/admin.guard';
 import { MyMaterialsComponent } from './library/my-materials/my-materials.component';
 import { AddMaterialComponent } from './library/add-material/add-material.component';
 import { MaterialDetailsComponent } from './library/material-details/material-details.component';
+import { MaterialHistoryComponent } from './library/material-history/material-history.component';
 
 export const routes: Routes = [
   {
@@ -83,6 +84,11 @@ export const routes: Routes = [
   {
     path: 'library/edit-wiki/:materialId',
     component: AddMaterialComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'library/history/:type/:materialId',
+    component: MaterialHistoryComponent,
     canActivate: [authGuard],
   },
 ];

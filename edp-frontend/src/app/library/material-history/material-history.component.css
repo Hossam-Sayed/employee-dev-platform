@@ -1,0 +1,220 @@
+/* Responsive container with subtle background */
+.history-container {
+  padding: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+  font-family: "Roboto", sans-serif;
+  background-color: #f5f5f5; /* Light grey background for a professional feel */
+  min-height: 100vh;
+}
+
+/* Toolbar styling */
+.history-toolbar {
+  margin-bottom: 24px;
+  border-radius: 8px;
+}
+
+.history-title {
+  font-weight: 500;
+  font-size: 1.5rem;
+}
+
+.toolbar-spacer {
+  flex: 1 1 auto;
+}
+
+/* Submission panel styling */
+.submission-panel {
+  margin-bottom: 16px;
+  border-radius: 8px;
+  background-color: white;
+  transition: box-shadow 0.3s ease;
+}
+
+/* Removed hover effect to keep a cleaner, static look */
+.submission-panel:hover {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Header for each submission panel */
+.submission-header {
+  padding: 0 16px;
+}
+
+.submission-header-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-grow: 1;
+}
+
+.submission-id {
+  font-weight: 500;
+  font-size: 1.1rem;
+}
+
+.submission-header-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #757575; /* A softer, more professional grey for subtitle text */
+  font-size: 0.9rem;
+}
+
+.submission-header-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: #757575; /* Icon color matches the subtitle text */
+}
+
+/* Expanded details styling */
+.expanded-details {
+  padding: 0 16px 16px;
+}
+
+.info-header {
+  display: flex;
+  align-items: center;
+  gap: 12px; /* Increased gap for better visual separation */
+  margin-bottom: 8px;
+}
+
+.info-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #333; /* Darker text for better contrast */
+}
+
+.expanded-details mat-list {
+  padding-top: 0;
+}
+
+.expanded-details mat-list-item {
+  height: auto;
+  min-height: 48px;
+  padding: 8px 0;
+}
+
+.expanded-details mat-list-item [matListItemTitle] {
+  min-width: 140px; /* Aligns titles for a cleaner look */
+  font-weight: 500;
+  color: #555; /* Slightly lighter than the main text */
+}
+
+.expanded-details mat-list-item [matListItemLine] {
+  color: #757575;
+  word-break: break-all;
+  line-height: 1.4; /* Improved readability */
+}
+
+.expanded-details mat-list-item a {
+  text-decoration: none;
+  color: var(--mat-primary-text-color);
+  word-break: break-all;
+}
+
+.expanded-details mat-list-item mat-icon {
+  margin-right: 16px;
+  color: #757575; /* Consistent icon color for details */
+}
+
+mat-divider {
+  margin: 16px 0;
+  border-color: #e0e0e0;
+}
+
+.tags-list {
+  padding-top: 8px;
+}
+
+mat-chip-listbox {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Paginator styling */
+.history-paginator {
+  border-radius: 8px;
+  background-color: white;
+}
+
+/* Empty state styling */
+.no-history-card {
+  margin-top: 50px;
+  text-align: center;
+  padding: 40px;
+  border-radius: 8px;
+}
+
+.no-history-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.no-history-icon {
+  font-size: 64px;
+  height: 64px;
+  width: 64px;
+  margin-bottom: 16px;
+}
+
+.no-history-message h2 {
+  font-size: 1.8rem;
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+.no-history-message p {
+  font-size: 1.1rem;
+  margin-bottom: 24px;
+  color: #757575;
+}
+
+.no-history-message button {
+  padding: 0 24px;
+}
+
+/* Loading and error states */
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
+.error-card {
+  padding: 24px;
+  text-align: center;
+  margin-top: 24px;
+  background-color: #fff3e0;
+  color: #ff9800;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .history-container {
+    padding: 16px;
+  }
+
+  .history-title {
+    font-size: 1.25rem;
+  }
+
+  .submission-header-title {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .submission-header-subtitle {
+    display: none;
+  }
+
+  .no-history-card {
+    padding: 24px;
+  }
+}
