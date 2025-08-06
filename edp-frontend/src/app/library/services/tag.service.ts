@@ -44,11 +44,8 @@ export class TagService {
     const params = new HttpParams()
       .set('page', pagination.page.toString())
       .set('size', pagination.size.toString())
-      .set('sortBy', pagination.sortBy);
-
-    if (pagination.sortDirection) {
-      params.set('sortDirection', pagination.sortDirection ?? 'DESC');
-    }
+      .set('sortBy', pagination.sortBy)
+      .set('sortDirection', pagination.sortDirection);
 
     return this.http.get<PaginationResponse<TagRequestResponse>>(
       `${this.baseUrl}my-requests`,
