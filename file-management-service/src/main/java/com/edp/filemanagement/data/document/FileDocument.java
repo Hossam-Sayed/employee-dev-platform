@@ -28,4 +28,6 @@ public class FileDocument {
     private LocalDateTime uploadedAt;
 
     private String gridFsFileId;
+
+    private boolean publiclyAvailable;
 }

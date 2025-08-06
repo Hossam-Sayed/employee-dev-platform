@@ -23,7 +23,7 @@ public interface FileControllerApi {
             @ApiResponse(responseCode = "400", description = "Invalid file")
     })
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    ResponseEntity<FileResponseDto> uploadFile(@RequestPart("file") MultipartFile file) throws IOException;
+    ResponseEntity<FileResponseDto> uploadFile(@RequestPart("file") MultipartFile file, @RequestParam(name = "publiclyAvailable", required = false) boolean publiclyAvailable) throws IOException;
 
     @Operation(summary = "Download a file by ID")
     @ApiResponses({

@@ -35,7 +35,7 @@ public class FileStorageService {
     private final FileMapper fileMapper;
     private final AuthServiceClient authServiceClient;
 
-    public FileResponseDto storeFile(MultipartFile file) throws IOException {
+    public FileResponseDto storeFile(MultipartFile file, boolean publiclyAvailable) throws IOException {
         if (file.isEmpty()) {
             throw new IllegalArgumentException("Uploaded file is empty");
         }
@@ -56,20 +56,27 @@ public class FileStorageService {
                 .gridFsFileId(gridFsFileId.toHexString())
                 .build();
 
+        if (publiclyAvailable) {
+            metadata.setPubliclyAvailable(true);
+        }
+
         FileDocument saved = fileDocumentRepository.save(metadata);
         return fileMapper.toFileResponse(saved);
     }
 
     public GridFsResource retrieveFile(String fileId) throws IOException {
-        Long currentUserId = JwtUserContext.getUserId();
+
 
         FileDocument metadata = fileDocumentRepository.findById(fileId)
                 .orElseThrow(() -> new FileNotFoundException("File metadata not found with ID: " + fileId));
 
-        boolean isOwner = metadata.getUploadedBy().equals(currentUserId);
-        boolean isManager = validateFileBelongsToManagedUser(metadata);
-        if (!isOwner && !isManager) {
-            throw new AuthenticationException("You are not authorized to access this file.");
+        if (!metadata.isPubliclyAvailable()) {
+            Long currentUserId = JwtUserContext.getUserId();
+            boolean isOwner = metadata.getUploadedBy().equals(currentUserId);
+            boolean isManager = validateFileBelongsToManagedUser(metadata);
+            if (!isOwner && !isManager) {
+                throw new AuthenticationException("You are not authorized to access this file.");
+            }
         }
 
         GridFSFile gridFSFile = gridFsTemplate.findOne(Query.query(Criteria.where("_id").is(new ObjectId(metadata.getGridFsFileId()))));

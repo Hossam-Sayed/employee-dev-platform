@@ -9,6 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
 
 @RestController
@@ -18,10 +19,10 @@ public class FileController implements FileControllerApi {
     private final FileStorageService fileStorageService;
 
     @Override
-    public ResponseEntity<FileResponseDto> uploadFile(MultipartFile file) throws IOException {
+    public ResponseEntity<FileResponseDto> uploadFile(MultipartFile file, boolean publiclyAvailable) throws IOException {
 
-            FileResponseDto savedFile = fileStorageService.storeFile(file);
-            return ResponseEntity.ok(savedFile);
+        FileResponseDto savedFile = fileStorageService.storeFile(file, publiclyAvailable);
+        return ResponseEntity.ok(savedFile);
 
     }
 
