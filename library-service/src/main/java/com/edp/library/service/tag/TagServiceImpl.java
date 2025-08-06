@@ -25,6 +25,7 @@ import org.springframework.util.StringUtils;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
@@ -90,7 +91,7 @@ public class TagServiceImpl implements TagService {
         Pageable pageable = PageRequest.of(
                 paginationRequestDTO.getPage(),
                 paginationRequestDTO.getSize(),
-                Sort.by(paginationRequestDTO.getSortDirection(), paginationRequestDTO.getSortBy())
+                Sort.by(Objects.requireNonNullElse(paginationRequestDTO.getSortDirection(), Sort.Direction.DESC), paginationRequestDTO.getSortBy())
         );
         Page<TagRequest> tagRequests = tagRequestRepository.findByRequesterId(requesterId, pageable);
         return mapToPaginationResponseDTO(tagRequests, tagMapper.toTagRequestResponseDTOs(tagRequests.getContent()));
@@ -102,7 +103,7 @@ public class TagServiceImpl implements TagService {
         Pageable pageable = PageRequest.of(
                 paginationRequestDTO.getPage(),
                 paginationRequestDTO.getSize(),
-                Sort.by(paginationRequestDTO.getSortDirection(), paginationRequestDTO.getSortBy())
+                Sort.by(Objects.requireNonNullElse(paginationRequestDTO.getSortDirection(), Sort.Direction.DESC), paginationRequestDTO.getSortBy())
         );
         Page<TagRequest> pendingRequests = tagRequestRepository.findByStatus(TagRequestStatus.PENDING, pageable);
         return mapToPaginationResponseDTO(pendingRequests, tagMapper.toTagRequestResponseDTOs(pendingRequests.getContent()));
@@ -160,7 +161,7 @@ public class TagServiceImpl implements TagService {
         Pageable pageable = PageRequest.of(
                 paginationRequestDTO.getPage(),
                 paginationRequestDTO.getSize(),
-                Sort.by(paginationRequestDTO.getSortDirection(), paginationRequestDTO.getSortBy())
+                Sort.by(Objects.requireNonNullElse(paginationRequestDTO.getSortDirection(), Sort.Direction.DESC), paginationRequestDTO.getSortBy())
         );
 
         Page<Tag> tags;
