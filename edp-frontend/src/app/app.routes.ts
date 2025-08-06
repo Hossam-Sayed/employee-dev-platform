@@ -10,6 +10,7 @@ import { AddMaterialComponent } from './library/add-material/add-material.compon
 import { MaterialDetailsComponent } from './library/material-details/material-details.component';
 import { MaterialHistoryComponent } from './library/material-history/material-history.component';
 import { MyTagRequestsComponent } from './library/my-tag-requests/my-tag-requests.component';
+import { PendingReviewsComponent } from './pending-reviews/pending-reviews.component';
 
 export const routes: Routes = [
   {
@@ -95,6 +96,11 @@ export const routes: Routes = [
   {
     path: 'library/my-tag-requests',
     component: MyTagRequestsComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'library/review-pending',
+    component: PendingReviewsComponent,
     canActivate: [authGuard],
   },
 ];
