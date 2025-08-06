@@ -234,4 +234,43 @@ export class LibraryService {
       { params }
     );
   }
+
+  getPendingLearningSubmissions(
+    managerId: number,
+    pagination: PaginationRequest
+  ): Observable<PaginationResponse<LearningSubmissionResponse>> {
+    const headers = { 'X-Reviewer-Id': managerId.toString() };
+    const params = this.createHttpParams(pagination);
+
+    return this.http.get<PaginationResponse<LearningSubmissionResponse>>(
+      `${this.baseUrl}learnings/submissions/pending-review`,
+      { headers, params }
+    );
+  }
+
+  getPendingBlogSubmissions(
+    managerId: number,
+    pagination: PaginationRequest
+  ): Observable<PaginationResponse<BlogSubmissionResponse>> {
+    const headers = { 'X-Reviewer-Id': managerId.toString() };
+    const params = this.createHttpParams(pagination);
+
+    return this.http.get<PaginationResponse<BlogSubmissionResponse>>(
+      `${this.baseUrl}blogs/submissions/pending-review`,
+      { headers, params }
+    );
+  }
+
+  getPendingWikiSubmissions(
+    managerId: number,
+    pagination: PaginationRequest
+  ): Observable<PaginationResponse<WikiSubmissionResponse>> {
+    const headers = { 'X-Reviewer-Id': managerId.toString() };
+    const params = this.createHttpParams(pagination);
+
+    return this.http.get<PaginationResponse<WikiSubmissionResponse>>(
+      `${this.baseUrl}wikis/submissions/pending-review`,
+      { headers, params }
+    );
+  }
 }
