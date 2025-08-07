@@ -35,8 +35,8 @@ public interface WikiMapper {
     @Mapping(target = "reviewedAt", ignore = true)
     @Mapping(target = "tags", ignore = true)
     @Mapping(target = "submitterId", source = "submitterId")
-    @Mapping(target = "reviewerId", source = "reviewerId")
-    WikiSubmission toWikiSubmission(WikiCreateRequestDTO dto, Wiki wiki, Long submitterId, Long reviewerId);
+    @Mapping(target = "reviewerId", ignore = true)
+    WikiSubmission toWikiSubmission(WikiCreateRequestDTO dto, Wiki wiki, Long submitterId);
 
     @Mapping(target = "currentSubmissionId", source = "currentSubmission.id")
     @Mapping(target = "title", source = "currentSubmission.title")

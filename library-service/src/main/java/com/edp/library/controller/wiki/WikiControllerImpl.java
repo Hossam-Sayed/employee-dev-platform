@@ -10,7 +10,6 @@ import com.edp.library.service.wiki.WikiService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -21,41 +20,30 @@ public class WikiControllerImpl implements WikiController {
 
     private final WikiService wikiService;
 
-    // TODO: Determine reviewerId internally by business logic, not client provided
-
-    // TODO: For reviewers Endpoints
-    //  Authentication system would ideally ensure the current user is a reviewer/manager
-    //  and map their ID to 'reviewerId' or validate that 'X-Reviewer-Id' matches their ID.
-
     @Override
     public ResponseEntity<WikiResponseDTO> createWiki(
-            WikiCreateRequestDTO request,
-            Long authorId,
-            Long reviewerId
+            WikiCreateRequestDTO request
     ) {
-        WikiResponseDTO response = wikiService.createWiki(request, authorId, reviewerId);
+        WikiResponseDTO response = wikiService.createWiki(request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @Override
     public ResponseEntity<WikiResponseDTO> editRejectedWikiSubmission(
             Long wikiId,
-            WikiCreateRequestDTO request,
-            Long authorId,
-            Long reviewerId
+            WikiCreateRequestDTO request
     ) {
-        WikiResponseDTO response = wikiService.editRejectedWikiSubmission(wikiId, request, authorId, reviewerId);
+        WikiResponseDTO response = wikiService.editRejectedWikiSubmission(wikiId, request);
         return ResponseEntity.ok(response);
     }
 
     @Override
     public ResponseEntity<PaginationResponseDTO<WikiResponseDTO>> getMyWikis(
-            Long authorId,
             String statusFilter,
             Long tagIdFilter,
             PaginationRequestDTO paginationRequestDTO
     ) {
-        PaginationResponseDTO<WikiResponseDTO> response = wikiService.getMyWikis(authorId, statusFilter, tagIdFilter, paginationRequestDTO);
+        PaginationResponseDTO<WikiResponseDTO> response = wikiService.getMyWikis(statusFilter, tagIdFilter, paginationRequestDTO);
         return ResponseEntity.ok(response);
     }
 
@@ -76,20 +64,18 @@ public class WikiControllerImpl implements WikiController {
 
     @Override
     public ResponseEntity<PaginationResponseDTO<WikiSubmissionResponseDTO>> getPendingWikiSubmissionsForReview(
-            Long reviewerId,
             PaginationRequestDTO paginationRequestDTO
     ) {
-        PaginationResponseDTO<WikiSubmissionResponseDTO> response = wikiService.getPendingWikiSubmissionsForReview(reviewerId, paginationRequestDTO);
+        PaginationResponseDTO<WikiSubmissionResponseDTO> response = wikiService.getPendingWikiSubmissionsForReview(paginationRequestDTO);
         return ResponseEntity.ok(response);
     }
 
     @Override
     public ResponseEntity<WikiSubmissionResponseDTO> reviewWikiSubmission(
             Long submissionId,
-            SubmissionReviewRequestDTO reviewDTO,
-            Long reviewerId
+            SubmissionReviewRequestDTO reviewDTO
     ) {
-        WikiSubmissionResponseDTO response = wikiService.reviewWikiSubmission(submissionId, reviewDTO, reviewerId);
+        WikiSubmissionResponseDTO response = wikiService.reviewWikiSubmission(submissionId, reviewDTO);
         return ResponseEntity.ok(response);
     }
 

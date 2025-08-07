@@ -19,6 +19,9 @@ import com.edp.library.model.enums.SubmissionStatusDTO;
 import com.edp.library.model.wiki.WikiCreateRequestDTO;
 import com.edp.library.model.wiki.WikiResponseDTO;
 import com.edp.library.model.wiki.WikiSubmissionResponseDTO;
+import com.edp.shared.client.auth.AuthServiceClient;
+import com.edp.shared.client.auth.model.UserProfileDto;
+import com.edp.shared.security.jwt.JwtUserContext;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
@@ -32,7 +35,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -46,10 +48,11 @@ public class WikiServiceImpl implements WikiService {
     private final WikiSubmissionTagRepository wikiSubmissionTagRepository;
     private final TagRepository tagRepository;
     private final WikiMapper wikiMapper;
+    private final AuthServiceClient authServiceClient;
 
     @Override
     @Transactional
-    public WikiResponseDTO createWiki(WikiCreateRequestDTO request, Long authorId, Long reviewerId) {
+    public WikiResponseDTO createWiki(WikiCreateRequestDTO request) {
         // TODO: AUTHENTICATION: Ensure the authorId corresponds to a valid authenticated user.
         // TODO: AUTHORIZATION: Verify the authenticated user has permission to create a wiki.
 
@@ -75,11 +78,12 @@ public class WikiServiceImpl implements WikiService {
         }
 
         // 2. Create a new Wiki entity
+        Long authorId = JwtUserContext.getUserId();
         Wiki wiki = wikiMapper.toWiki(authorId);
         wiki = wikiRepository.save(wiki);
 
         // 3. Create and save the new WikiSubmission for this new Wiki
-        WikiSubmission submission = wikiMapper.toWikiSubmission(request, wiki, authorId, reviewerId);
+        WikiSubmission submission = wikiMapper.toWikiSubmission(request, wiki, authorId);
         submission = wikiSubmissionRepository.save(submission);
 
         // 4. Save WikiSubmissionTag entries
@@ -107,11 +111,13 @@ public class WikiServiceImpl implements WikiService {
 
     @Override
     @Transactional
-    public WikiResponseDTO editRejectedWikiSubmission(Long wikiId, WikiCreateRequestDTO request, Long authorId, Long reviewerId) {
+    public WikiResponseDTO editRejectedWikiSubmission(Long wikiId, WikiCreateRequestDTO request) {
         // TODO: AUTHENTICATION: Ensure the authorId corresponds to a valid authenticated user.
         // TODO: AUTHORIZATION: Verify the authenticated user has permission to edit this wiki (i.e., is the author).
         Wiki wiki = wikiRepository.findById(wikiId)
                 .orElseThrow(() -> new ResourceNotFoundException("Wiki not found with ID: " + wikiId));
+
+        Long authorId = JwtUserContext.getUserId();
 
         if (!wiki.getAuthorId().equals(authorId)) {
             throw new InvalidOperationException("User is not authorized to edit this wiki material.");
@@ -142,7 +148,7 @@ public class WikiServiceImpl implements WikiService {
         }
 
         // Create and save the new WikiSubmission for the existing Wiki
-        WikiSubmission newSubmission = wikiMapper.toWikiSubmission(request, wiki, authorId, reviewerId);
+        WikiSubmission newSubmission = wikiMapper.toWikiSubmission(request, wiki, authorId);
         newSubmission = wikiSubmissionRepository.save(newSubmission);
 
         // Save WikiSubmissionTag entries for the new submission
@@ -170,12 +176,14 @@ public class WikiServiceImpl implements WikiService {
 
     @Override
     @Transactional(readOnly = true)
-    public PaginationResponseDTO<WikiResponseDTO> getMyWikis(Long authorId, String statusFilter, Long tagIdFilter, PaginationRequestDTO paginationRequestDTO) {
+    public PaginationResponseDTO<WikiResponseDTO> getMyWikis(String statusFilter, Long tagIdFilter, PaginationRequestDTO paginationRequestDTO) {
         // TODO: AUTHORIZATION: Verify the authenticated user's ID matches the authorId in the request header.
         Pageable pageable = PageRequest.of(
                 paginationRequestDTO.getPage(),
                 paginationRequestDTO.getSize()
         );
+
+        Long authorId = JwtUserContext.getUserId();
 
         Specification<Wiki> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -253,7 +261,7 @@ public class WikiServiceImpl implements WikiService {
 
     @Override
     @Transactional(readOnly = true)
-    public PaginationResponseDTO<WikiSubmissionResponseDTO> getPendingWikiSubmissionsForReview(Long reviewerId, PaginationRequestDTO paginationRequestDTO) {
+    public PaginationResponseDTO<WikiSubmissionResponseDTO> getPendingWikiSubmissionsForReview(PaginationRequestDTO paginationRequestDTO) {
         // TODO: AUTHORIZATION: Verify the authenticated user's ID matches the reviewerId in the request header.
         // TODO: AUTHORIZATION: Verify the authenticated user has a 'REVIEWER' or 'MANAGER' role.
         Pageable pageable = PageRequest.of(
@@ -261,19 +269,37 @@ public class WikiServiceImpl implements WikiService {
                 paginationRequestDTO.getSize(),
                 Sort.by(paginationRequestDTO.getSortDirection(), getActualSortBy(paginationRequestDTO.getSortBy(), WikiSubmission.class))
         );
-        Page<WikiSubmission> pendingSubmissions = wikiSubmissionRepository.findByReviewerIdAndStatus(reviewerId, SubmissionStatus.PENDING, pageable);
+
+        Long managerId = JwtUserContext.getUserId();
+        String token = JwtUserContext.getToken();
+        List<UserProfileDto> managedUsers = authServiceClient.getManagedUsers(managerId, token);
+        List<Long> managedUserIds = managedUsers.stream()
+                .map(UserProfileDto::getId)
+                .toList();
+
+        Page<WikiSubmission> pendingSubmissions = wikiSubmissionRepository.findBySubmitterIdInAndStatus(managedUserIds, SubmissionStatus.PENDING, pageable);
         return mapToPaginationResponseDTO(pendingSubmissions, wikiMapper.toWikiSubmissionResponseDTOs(pendingSubmissions.getContent()));
     }
 
     @Override
     @Transactional
-    public WikiSubmissionResponseDTO reviewWikiSubmission(Long submissionId, SubmissionReviewRequestDTO reviewDTO, Long reviewerId) {
+    public WikiSubmissionResponseDTO reviewWikiSubmission(Long submissionId, SubmissionReviewRequestDTO reviewDTO) {
         // TODO: AUTHORIZATION: Verify the authenticated user's ID matches the reviewerId in the request header.
         // TODO: AUTHORIZATION: Verify the authenticated user has a 'REVIEWER' or 'MANAGER' role.
         WikiSubmission submission = wikiSubmissionRepository.findById(submissionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Wiki Submission not found with ID: " + submissionId));
 
-        if (!submission.getReviewerId().equals(reviewerId)) {
+        Long reviewerId = JwtUserContext.getUserId();
+        String token = JwtUserContext.getToken();
+        List<UserProfileDto> managedUsers = authServiceClient.getManagedUsers(reviewerId, token);
+
+        Set<Long> managedUserIds = managedUsers.stream()
+                .map(UserProfileDto::getId)
+                .collect(Collectors.toSet());
+
+        boolean isResponsible = managedUserIds.contains(submission.getSubmitterId());
+
+        if (!isResponsible) {
             throw new InvalidOperationException("You are not authorized to review this submission.");
         }
 
@@ -289,7 +315,7 @@ public class WikiServiceImpl implements WikiService {
         }
 
         submission.setStatus(wikiMapper.toSubmissionStatusEntity(reviewDTO.getStatus()));
-        submission.setReviewedAt(Instant.now());
+        submission.setReviewerId(reviewerId);
         submission.setReviewerComment(reviewDTO.getReviewerComment());
 
         WikiSubmission updatedSubmission = wikiSubmissionRepository.save(submission);

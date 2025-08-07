@@ -41,10 +41,7 @@ public interface WikiController {
     })
     @PostMapping
     ResponseEntity<WikiResponseDTO> createWiki(
-            @Valid @RequestBody WikiCreateRequestDTO request,
-            @Parameter(description = "ID of the author submitting the wiki material", required = true)
-            @RequestHeader("X-Author-Id") Long authorId,
-            @RequestHeader("X-Reviewer-Id") Long reviewerId
+            @Valid @RequestBody WikiCreateRequestDTO request
     );
 
     @Operation(summary = "Resubmit a rejected wiki",
@@ -64,10 +61,7 @@ public interface WikiController {
     @PutMapping("/{wikiId}/resubmit")
     ResponseEntity<WikiResponseDTO> editRejectedWikiSubmission(
             @Parameter(description = "ID of the wiki to resubmit", required = true) @PathVariable Long wikiId,
-            @Valid @RequestBody WikiCreateRequestDTO request,
-            @Parameter(description = "ID of the author resubmitting the wiki", required = true)
-            @RequestHeader("X-Author-Id") Long authorId,
-            @RequestHeader("X-Reviewer-Id") Long reviewerId
+            @Valid @RequestBody WikiCreateRequestDTO request
     );
 
     @Operation(summary = "Get my wikis",
@@ -81,8 +75,6 @@ public interface WikiController {
     })
     @GetMapping("/my-wikis")
     ResponseEntity<PaginationResponseDTO<WikiResponseDTO>> getMyWikis(
-            @Parameter(description = "ID of the author whose wikis are to be retrieved", required = true)
-            @RequestHeader("X-Author-Id") Long authorId,
             @Parameter(description = "Optional filter for current submission status (PENDING, APPROVED, REJECTED)")
             @RequestParam(required = false) String statusFilter,
             @Parameter(description = "Optional filter for a specific tag ID")
@@ -129,8 +121,6 @@ public interface WikiController {
     })
     @GetMapping("/submissions/pending-review")
     ResponseEntity<PaginationResponseDTO<WikiSubmissionResponseDTO>> getPendingWikiSubmissionsForReview(
-            @Parameter(description = "ID of the manager/reviewer", required = true)
-            @RequestHeader("X-Reviewer-Id") Long reviewerId,
             @Valid @Parameter(description = "Pagination and sorting parameters") PaginationRequestDTO paginationRequestDTO
     );
 
@@ -151,9 +141,7 @@ public interface WikiController {
     @PatchMapping("/submissions/{submissionId}/review")
     ResponseEntity<WikiSubmissionResponseDTO> reviewWikiSubmission(
             @Parameter(description = "ID of the wiki submission to review", required = true) @PathVariable Long submissionId,
-            @Valid @RequestBody SubmissionReviewRequestDTO reviewDTO,
-            @Parameter(description = "ID of the manager/reviewer performing the review", required = true)
-            @RequestHeader("X-Reviewer-Id") Long reviewerId
+            @Valid @RequestBody SubmissionReviewRequestDTO reviewDTO
     );
 
     @Operation(summary = "Get all approved and active wikis",
