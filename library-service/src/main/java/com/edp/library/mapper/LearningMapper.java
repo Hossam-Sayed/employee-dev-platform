@@ -29,8 +29,8 @@ public interface LearningMapper {
     @Mapping(target = "reviewedAt", ignore = true)
     @Mapping(target = "tags", ignore = true) // Tags will be set separately in service after mapping
     @Mapping(target = "submitterId", source = "submitterId")
-    @Mapping(target = "reviewerId", source = "reviewerId")
-    LearningSubmission toLearningSubmission(LearningCreateRequestDTO dto, Learning learning, Long submitterId, Long reviewerId);
+    @Mapping(target = "reviewerId", ignore = true)
+    LearningSubmission toLearningSubmission(LearningCreateRequestDTO dto, Learning learning, Long submitterId);
 
     // Map to LearningResponseDTO from Learning entity, fetching details from currentSubmission
     @Mapping(target = "currentSubmissionId", source = "currentSubmission.id")
@@ -67,8 +67,4 @@ public interface LearningMapper {
     @Mapping(target = "learningSubmission", expression = "java(submission)")
     LearningSubmissionTag toLearningSubmissionTag(LearningTagDTO dto, @Context LearningSubmission submission);
 
-    // TODO: Not used, remove for looping only once using the above one
-    // Map a list of LearningTagDTOs to a Set of LearningSubmissionTag entities
-    // MapStruct will use the `toLearningSubmissionTag` method for each item
-    Set<LearningSubmissionTag> toLearningSubmissionTags(List<LearningTagDTO> dtos, @Context LearningSubmission submission);
 }

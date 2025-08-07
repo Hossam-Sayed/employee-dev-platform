@@ -16,15 +16,8 @@ public interface LearningSubmissionRepository extends JpaRepository<LearningSubm
     // Find all submissions for a given learning ID
     Page<LearningSubmission> findByLearningIdOrderBySubmittedAtDesc(Long learningId, Pageable pageable);
 
-    // Find submissions for a given submitter ID and status
-    List<LearningSubmission> findBySubmitterIdAndStatus(Long submitterId, SubmissionStatus status);
-
     // Find submissions waiting for review by a specific manager (reviewerId)
-    Page<LearningSubmission> findByReviewerIdAndStatus(Long reviewerId, SubmissionStatus status, Pageable pageable);
-
-    // TODO: Remove?
-    // Find a specific submission by its ID and the associated learning ID
-    Optional<LearningSubmission> findByIdAndLearningId(Long id, Long learningId);
+    Page<LearningSubmission> findBySubmitterIdInAndStatus(List<Long> submitterIds, SubmissionStatus status, Pageable pageable);
 
     Optional<LearningSubmission> findByLearningEmployeeIdAndTitleIgnoreCaseAndProofUrlIgnoreCase(Long employeeId, String title, String proofUrl);
 }

@@ -25,8 +25,7 @@ public interface LearningController {
 
     @Operation(summary = "Create a new learning material submission",
             description = "Allows an employee to submit a new learning material for review. " +
-                    "A new Learning entity will be created along with its first PENDING submission. " +
-                    "Requires submitterId and reviewerId.")
+                    "A new Learning entity will be created along with its first PENDING submission.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Learning material submitted successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid request payload or validation errors", content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
@@ -35,9 +34,7 @@ public interface LearningController {
     })
     @PostMapping
     ResponseEntity<LearningResponseDTO> createLearning(
-            @Valid @RequestBody LearningCreateRequestDTO request,
-            @Parameter(description = "ID of the user submitting the learning material", required = true) @RequestHeader("X-Submitter-Id") Long submitterId,
-            @Parameter(description = "ID of the manager/reviewer assigned to this submission", required = true) @RequestHeader("X-Reviewer-Id") Long reviewerId
+            @Valid @RequestBody LearningCreateRequestDTO request
     );
 
     @Operation(summary = "Resubmit a rejected learning material",
@@ -52,9 +49,7 @@ public interface LearningController {
     @PutMapping("/{learningId}/resubmit")
     ResponseEntity<LearningResponseDTO> editRejectedLearningSubmission(
             @Parameter(description = "ID of the learning material to resubmit", required = true) @PathVariable Long learningId,
-            @Valid @RequestBody LearningCreateRequestDTO request,
-            @Parameter(description = "ID of the user resubmitting the learning material", required = true) @RequestHeader("X-Submitter-Id") Long submitterId,
-            @Parameter(description = "ID of the manager/reviewer assigned to this submission", required = true) @RequestHeader("X-Reviewer-Id") Long reviewerId
+            @Valid @RequestBody LearningCreateRequestDTO request
     );
 
     @Operation(summary = "Get my learning materials",
@@ -66,7 +61,6 @@ public interface LearningController {
     })
     @GetMapping("/my-learnings")
     ResponseEntity<PaginationResponseDTO<LearningResponseDTO>> getMyLearnings(
-            @Parameter(description = "ID of the employee whose learning materials are to be retrieved", required = true) @RequestHeader("X-Employee-Id") Long employeeId,
             @Parameter(description = "Optional filter for current submission status (PENDING, APPROVED, REJECTED)") @RequestParam(required = false) String statusFilter,
             @Parameter(description = "Optional filter for a specific tag ID") @RequestParam(required = false) Long tagIdFilter,
             @Valid @Parameter(description = "Pagination and sorting parameters") PaginationRequestDTO paginationRequestDTO
@@ -104,7 +98,6 @@ public interface LearningController {
     })
     @GetMapping("/submissions/pending-review")
     ResponseEntity<PaginationResponseDTO<LearningSubmissionResponseDTO>> getPendingLearningSubmissionsForReview(
-            @Parameter(description = "ID of the manager/reviewer", required = true) @RequestHeader("X-Reviewer-Id") Long managerId,
             @Valid @Parameter(description = "Pagination and sorting parameters") PaginationRequestDTO paginationRequestDTO
     );
 
@@ -121,7 +114,6 @@ public interface LearningController {
     @PatchMapping("/submissions/{submissionId}/review")
     ResponseEntity<LearningSubmissionResponseDTO> reviewLearningSubmission(
             @Parameter(description = "ID of the learning submission to review", required = true) @PathVariable Long submissionId,
-            @Valid @RequestBody SubmissionReviewRequestDTO reviewDTO,
-            @Parameter(description = "ID of the manager/reviewer performing the review", required = true) @RequestHeader("X-Reviewer-Id") Long reviewerId
+            @Valid @RequestBody SubmissionReviewRequestDTO reviewDTO
     );
 }
