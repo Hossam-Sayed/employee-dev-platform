@@ -263,8 +263,7 @@ export class AddMaterialComponent implements OnInit {
           };
           actionObservable = this.libraryService.resubmitLearning(
             this.materialId()!,
-            learningEditRequest,
-            reviewerId
+            learningEditRequest
           );
           break;
         case 'blog':
@@ -276,8 +275,7 @@ export class AddMaterialComponent implements OnInit {
           };
           actionObservable = this.libraryService.resubmitBlog(
             this.materialId()!,
-            blogEditRequest,
-            reviewerId
+            blogEditRequest
           );
           break;
         case 'wiki':
@@ -289,8 +287,7 @@ export class AddMaterialComponent implements OnInit {
           };
           actionObservable = this.libraryService.resubmitWiki(
             this.materialId()!,
-            wikiEditRequest,
-            reviewerId
+            wikiEditRequest
           );
           break;
         default:
@@ -311,8 +308,7 @@ export class AddMaterialComponent implements OnInit {
             })),
           };
           actionObservable = this.libraryService.createLearning(
-            learningCreateRequest,
-            reviewerId
+            learningCreateRequest
           );
           break;
         case 'blog':
@@ -322,10 +318,7 @@ export class AddMaterialComponent implements OnInit {
             documentUrl: formValue.documentUrl,
             tagIds: formValue.tags.map((t: any) => t.tagId),
           };
-          actionObservable = this.libraryService.createBlog(
-            blogCreateRequest,
-            reviewerId
-          );
+          actionObservable = this.libraryService.createBlog(blogCreateRequest);
           break;
         case 'wiki':
           const wikiCreateRequest: WikiCreateRequest = {
@@ -334,10 +327,7 @@ export class AddMaterialComponent implements OnInit {
             documentUrl: formValue.documentUrl,
             tagIds: formValue.tags.map((t: any) => t.tagId),
           };
-          actionObservable = this.libraryService.createWiki(
-            wikiCreateRequest,
-            reviewerId
-          );
+          actionObservable = this.libraryService.createWiki(wikiCreateRequest);
           break;
         default:
           console.error('Unknown material type');

@@ -114,22 +114,16 @@ export class PendingReviewsComponent implements OnInit {
 
     switch (this.currentTab()) {
       case 'learning':
-        fetchObservable = this.libraryService.getPendingLearningSubmissions(
-          managerId,
-          request
-        );
+        fetchObservable =
+          this.libraryService.getPendingLearningSubmissions(request);
         break;
       case 'blog':
-        fetchObservable = this.libraryService.getPendingBlogSubmissions(
-          managerId,
-          request
-        );
+        fetchObservable =
+          this.libraryService.getPendingBlogSubmissions(request);
         break;
       case 'wiki':
-        fetchObservable = this.libraryService.getPendingWikiSubmissions(
-          managerId,
-          request
-        );
+        fetchObservable =
+          this.libraryService.getPendingWikiSubmissions(request);
         break;
       default:
         this.isLoading.set(false);

@@ -1,7 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { AuthService } from '../../auth/service/auth.service';
 import { BlogResponse } from '../models/blog-response.model';
 import { LearningResponse } from '../models/learning-response.model';
 import { PaginationRequest } from '../models/pagination-request.model';
@@ -19,16 +18,7 @@ import { WikiSubmissionResponse } from '../models/wiki-submission-response.model
 })
 export class LibraryService {
   private http = inject(HttpClient);
-  private authService = inject(AuthService);
   private readonly baseUrl = 'http://localhost:8082/api/';
-
-  private get userId(): number {
-    const userId = this.authService.getUserId();
-    if (!userId) {
-      throw new Error('User is not authenticated.');
-    }
-    return userId;
-  }
 
   private createHttpParams(
     request: PaginationRequest,
@@ -57,10 +47,9 @@ export class LibraryService {
     tagIdFilter?: number | null
   ): Observable<PaginationResponse<LearningResponse>> {
     const params = this.createHttpParams(request, statusFilter, tagIdFilter);
-    const headers = { 'X-Employee-Id': this.userId.toString() };
     return this.http.get<PaginationResponse<LearningResponse>>(
       `${this.baseUrl}learnings/my-learnings`,
-      { params, headers }
+      { params }
     );
   }
 
@@ -70,10 +59,9 @@ export class LibraryService {
     tagIdFilter?: number | null
   ): Observable<PaginationResponse<BlogResponse>> {
     const params = this.createHttpParams(request, statusFilter, tagIdFilter);
-    const headers = { 'X-Author-Id': this.userId.toString() };
     return this.http.get<PaginationResponse<BlogResponse>>(
       `${this.baseUrl}blogs/my-blogs`,
-      { params, headers }
+      { params }
     );
   }
 
@@ -83,52 +71,25 @@ export class LibraryService {
     tagIdFilter?: number | null
   ): Observable<PaginationResponse<WikiResponse>> {
     const params = this.createHttpParams(request, statusFilter, tagIdFilter);
-    const headers = { 'X-Author-Id': this.userId.toString() };
     return this.http.get<PaginationResponse<WikiResponse>>(
       `${this.baseUrl}wikis/my-wikis`,
-      { params, headers }
+      { params }
     );
   }
 
-  createLearning(
-    request: LearningCreateRequest,
-    reviewerId: number
-  ): Observable<LearningResponse> {
-    const headers = {
-      'X-Submitter-Id': this.userId.toString(),
-      'X-Reviewer-Id': reviewerId.toString(),
-    };
+  createLearning(request: LearningCreateRequest): Observable<LearningResponse> {
     return this.http.post<LearningResponse>(
       `${this.baseUrl}learnings`,
-      request,
-      { headers }
+      request
     );
   }
 
-  createBlog(
-    request: BlogCreateRequest,
-    reviewerId: number
-  ): Observable<BlogResponse> {
-    const headers = {
-      'X-Author-Id': this.userId.toString(),
-      'X-Reviewer-Id': reviewerId.toString(),
-    };
-    return this.http.post<BlogResponse>(`${this.baseUrl}blogs`, request, {
-      headers,
-    });
+  createBlog(request: BlogCreateRequest): Observable<BlogResponse> {
+    return this.http.post<BlogResponse>(`${this.baseUrl}blogs`, request);
   }
 
-  createWiki(
-    request: WikiCreateRequest,
-    reviewerId: number
-  ): Observable<WikiResponse> {
-    const headers = {
-      'X-Author-Id': this.userId.toString(),
-      'X-Reviewer-Id': reviewerId.toString(),
-    };
-    return this.http.post<WikiResponse>(`${this.baseUrl}wikis`, request, {
-      headers,
-    });
+  createWiki(request: WikiCreateRequest): Observable<WikiResponse> {
+    return this.http.post<WikiResponse>(`${this.baseUrl}wikis`, request);
   }
 
   getLearningDetails(learningId: number): Observable<LearningResponse> {
@@ -147,49 +108,31 @@ export class LibraryService {
 
   resubmitLearning(
     learningId: number,
-    request: LearningCreateRequest,
-    reviewerId: number
+    request: LearningCreateRequest
   ): Observable<LearningResponse> {
-    const headers = {
-      'X-Submitter-Id': this.userId.toString(),
-      'X-Reviewer-Id': reviewerId.toString(),
-    };
     return this.http.put<LearningResponse>(
       `${this.baseUrl}learnings/${learningId}/resubmit`,
-      request,
-      { headers }
+      request
     );
   }
 
   resubmitBlog(
     blogId: number,
-    request: BlogCreateRequest,
-    reviewerId: number
+    request: BlogCreateRequest
   ): Observable<BlogResponse> {
-    const headers = {
-      'X-Author-Id': this.userId.toString(),
-      'X-Reviewer-Id': reviewerId.toString(),
-    };
     return this.http.put<BlogResponse>(
       `${this.baseUrl}blogs/${blogId}/resubmit`,
-      request,
-      { headers }
+      request
     );
   }
 
   resubmitWiki(
     wikiId: number,
-    request: WikiCreateRequest,
-    reviewerId: number
+    request: WikiCreateRequest
   ): Observable<WikiResponse> {
-    const headers = {
-      'X-Author-Id': this.userId.toString(),
-      'X-Reviewer-Id': reviewerId.toString(),
-    };
     return this.http.put<WikiResponse>(
       `${this.baseUrl}wikis/${wikiId}/resubmit`,
-      request,
-      { headers }
+      request
     );
   }
 
@@ -236,41 +179,35 @@ export class LibraryService {
   }
 
   getPendingLearningSubmissions(
-    managerId: number,
     pagination: PaginationRequest
   ): Observable<PaginationResponse<LearningSubmissionResponse>> {
-    const headers = { 'X-Reviewer-Id': managerId.toString() };
     const params = this.createHttpParams(pagination);
 
     return this.http.get<PaginationResponse<LearningSubmissionResponse>>(
       `${this.baseUrl}learnings/submissions/pending-review`,
-      { headers, params }
+      { params }
     );
   }
 
   getPendingBlogSubmissions(
-    managerId: number,
     pagination: PaginationRequest
   ): Observable<PaginationResponse<BlogSubmissionResponse>> {
-    const headers = { 'X-Reviewer-Id': managerId.toString() };
     const params = this.createHttpParams(pagination);
 
     return this.http.get<PaginationResponse<BlogSubmissionResponse>>(
       `${this.baseUrl}blogs/submissions/pending-review`,
-      { headers, params }
+      { params }
     );
   }
 
   getPendingWikiSubmissions(
-    managerId: number,
     pagination: PaginationRequest
   ): Observable<PaginationResponse<WikiSubmissionResponse>> {
-    const headers = { 'X-Reviewer-Id': managerId.toString() };
     const params = this.createHttpParams(pagination);
 
     return this.http.get<PaginationResponse<WikiSubmissionResponse>>(
       `${this.baseUrl}wikis/submissions/pending-review`,
-      { headers, params }
+      { params }
     );
   }
 }
