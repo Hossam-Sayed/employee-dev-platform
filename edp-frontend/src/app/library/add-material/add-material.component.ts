@@ -68,7 +68,7 @@ export class AddMaterialComponent implements OnInit {
     this.route.paramMap
       .pipe(
         tap((params) => {
-          const type = this.route.snapshot.url[1]?.path
+          const type = this.route.snapshot.url[0]?.path
             .replace('add-', '')
             .replace('edit-', '') as MaterialType;
           this.materialType.set(type);

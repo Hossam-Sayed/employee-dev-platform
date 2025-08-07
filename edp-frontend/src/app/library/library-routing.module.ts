@@ -6,7 +6,7 @@ import { AddMaterialComponent } from './add-material/add-material.component';
 import { MaterialDetailsComponent } from './material-details/material-details.component';
 import { MaterialHistoryComponent } from './material-history/material-history.component';
 import { MyTagRequestsComponent } from './my-tag-requests/my-tag-requests.component';
-import { PendingReviewsComponent } from '../pending-reviews/pending-reviews.component';
+import { PendingReviewsComponent } from './pending-reviews/pending-reviews.component';
 
 const routes: Routes = [
   {

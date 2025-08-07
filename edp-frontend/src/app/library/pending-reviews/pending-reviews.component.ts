@@ -17,15 +17,15 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog } from '@angular/material/dialog';
 import { MatMenuModule } from '@angular/material/menu';
 import { Observable, catchError, EMPTY, finalize } from 'rxjs';
-import { AuthService } from '../auth/service/auth.service';
-import { CustomTagComponent } from '../library/custom-tag/custom-tag.component';
-import { BlogSubmissionResponse } from '../library/models/blog-submission-response.model';
-import { LearningSubmissionResponse } from '../library/models/learning-submission-response.model';
-import { PaginationRequest } from '../library/models/pagination-request.model';
-import { PaginationResponse } from '../library/models/pagination-response.model';
-import { WikiSubmissionResponse } from '../library/models/wiki-submission-response.model';
-import { LibraryService } from '../library/services/library.service';
-import { MaterialType } from '../library/models/material.type';
+import { AuthService } from '../../auth/service/auth.service';
+import { CustomTagComponent } from '../custom-tag/custom-tag.component';
+import { BlogSubmissionResponse } from '../models/blog-submission-response.model';
+import { LearningSubmissionResponse } from '../models/learning-submission-response.model';
+import { PaginationRequest } from '../models/pagination-request.model';
+import { PaginationResponse } from '../models/pagination-response.model';
+import { WikiSubmissionResponse } from '../models/wiki-submission-response.model';
+import { LibraryService } from '../services/library.service';
+import { MaterialType } from '../models/material.type';
 
 type ReviewableSubmission =
   | LearningSubmissionResponse

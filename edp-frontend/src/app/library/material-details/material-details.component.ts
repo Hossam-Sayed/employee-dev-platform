@@ -54,7 +54,7 @@ export class MaterialDetailsComponent implements OnInit {
       .pipe(
         switchMap((params) => {
           const materialId = Number(params.get('materialId'));
-          const type = this.route.snapshot.url[1]?.path as MaterialType;
+          const type = this.route.snapshot.url[0]?.path as MaterialType;
 
           if (!materialId || !type) {
             this.error.set('Invalid URL. Missing material type or ID.');
