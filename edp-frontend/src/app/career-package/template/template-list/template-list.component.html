@@ -1,0 +1,109 @@
+<div class="row justify-content-center">
+  <div class="col-md-10 col-lg-8 col-xl-6">
+    @if (error() !== '') {
+    <div class="text-center text-muted py-4">
+      <mat-icon>info</mat-icon>
+      error: {{ error() }}
+    </div>
+    } @else{@if (isLoading()) {
+    <div class="d-flex justify-content-center my-4">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+    } @else {
+    <mat-card class="mat-elevation-z3 mb-4">
+      <mat-card-content>
+        <div class="row mb-3">
+          <div class="col">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Department</mat-label>
+              <input matInput [(ngModel)]="departmentModel" />
+            </mat-form-field>
+          </div>
+          <div class="col">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Position</mat-label>
+              <input matInput [(ngModel)]="positionModel" />
+            </mat-form-field>
+          </div>
+        </div>
+        <div class="d-flex justify-content-end">
+          <button mat-raised-button color="primary" (click)="createTemplate()">
+            Create New Template
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    @for (template of templates(); track template.id) {
+    <mat-card class="mat-elevation-z2 mb-3">
+      <mat-card-content
+        class="d-flex justify-content-between align-items-start"
+      >
+        <div>
+          <div><strong>Department:</strong> {{ template.department }}</div>
+          <div><strong>Position:</strong> {{ template.position }}</div>
+          <div>
+            <strong>Created:</strong>
+            {{ template.createdAt | date : "mediumDate" }}
+          </div>
+        </div>
+
+        <div class="d-flex flex-column align-items-end gap-2">
+          <button
+            mat-icon-button
+            (click)="goToEdit(template.id)"
+            matTooltip="Edit"
+          >
+            <mat-icon class="text-success">edit</mat-icon>
+          </button>
+
+          <button
+            mat-icon-button
+            [disabled]="isDeleting()"
+            (click)="deleteTemplate(template.id)"
+            matTooltip="Delete"
+          >
+            <mat-icon class="text-danger">delete</mat-icon>
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    } @if (isEmpty()) {
+    <div class="text-center text-muted py-4">
+      <mat-icon>info</mat-icon>
+      No templates found. Try adjusting your filters.
+    </div>
+    } @if (totalPages() > 1) {
+    <div
+      class="d-flex justify-content-center align-items-center mt-4 gap-2 flex-wrap"
+    >
+      <button
+        mat-stroked-button
+        [disabled]="page() === 0"
+        (click)="previousPage()"
+      >
+        Previous
+      </button>
+
+      @for (i of pages(); track i) {
+      <button
+        mat-flat-button
+        color="{{ page() === i ? 'primary' : undefined }}"
+        (click)="goToPage(i)"
+      >
+        {{ i + 1 }}
+      </button>
+      }
+
+      <button
+        mat-stroked-button
+        [disabled]="page() === totalPages() - 1"
+        (click)="nextPage()"
+      >
+        Next
+      </button>
+    </div>
+    } }}
+  </div>
+</div>
