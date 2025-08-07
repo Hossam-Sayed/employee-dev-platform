@@ -41,10 +41,7 @@ public interface BlogController {
     })
     @PostMapping
     ResponseEntity<BlogResponseDTO> createBlog(
-            @Valid @RequestBody BlogCreateRequestDTO request,
-            @Parameter(description = "ID of the author submitting the blog material", required = true)
-            @RequestHeader("X-Author-Id") Long authorId,
-            @RequestHeader("X-Reviewer-Id") Long reviewerId
+            @Valid @RequestBody BlogCreateRequestDTO request
     );
 
     @Operation(summary = "Resubmit a rejected blog",
@@ -64,10 +61,7 @@ public interface BlogController {
     @PutMapping("/{blogId}/resubmit")
     ResponseEntity<BlogResponseDTO> editRejectedBlogSubmission(
             @Parameter(description = "ID of the blog to resubmit", required = true) @PathVariable Long blogId,
-            @Valid @RequestBody BlogCreateRequestDTO request,
-            @Parameter(description = "ID of the author resubmitting the blog", required = true)
-            @RequestHeader("X-Author-Id") Long authorId,
-            @RequestHeader("X-Reviewer-Id") Long reviewerId
+            @Valid @RequestBody BlogCreateRequestDTO request
     );
 
     @Operation(summary = "Get my blogs",
@@ -81,8 +75,6 @@ public interface BlogController {
     })
     @GetMapping("/my-blogs")
     ResponseEntity<PaginationResponseDTO<BlogResponseDTO>> getMyBlogs(
-            @Parameter(description = "ID of the author whose blogs are to be retrieved", required = true)
-            @RequestHeader("X-Author-Id") Long authorId,
             @Parameter(description = "Optional filter for current submission status (PENDING, APPROVED, REJECTED)")
             @RequestParam(required = false) String statusFilter,
             @Parameter(description = "Optional filter for a specific tag ID")
@@ -129,8 +121,6 @@ public interface BlogController {
     })
     @GetMapping("/submissions/pending-review")
     ResponseEntity<PaginationResponseDTO<BlogSubmissionResponseDTO>> getPendingBlogSubmissionsForReview(
-            @Parameter(description = "ID of the manager/reviewer", required = true)
-            @RequestHeader("X-Reviewer-Id") Long reviewerId,
             @Valid @Parameter(description = "Pagination and sorting parameters") PaginationRequestDTO paginationRequestDTO
     );
 
@@ -151,9 +141,7 @@ public interface BlogController {
     @PatchMapping("/submissions/{submissionId}/review")
     ResponseEntity<BlogSubmissionResponseDTO> reviewBlogSubmission(
             @Parameter(description = "ID of the blog submission to review", required = true) @PathVariable Long submissionId,
-            @Valid @RequestBody SubmissionReviewRequestDTO reviewDTO,
-            @Parameter(description = "ID of the manager/reviewer performing the review", required = true)
-            @RequestHeader("X-Reviewer-Id") Long reviewerId
+            @Valid @RequestBody SubmissionReviewRequestDTO reviewDTO
     );
 
     @Operation(summary = "Get all approved and active blogs",

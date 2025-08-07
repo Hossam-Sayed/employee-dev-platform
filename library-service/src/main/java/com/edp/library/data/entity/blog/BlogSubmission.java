@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Check;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
 import java.util.HashSet;
@@ -49,9 +50,10 @@ public class BlogSubmission {
     @Column(name = "submitted_at", nullable = false, updatable = false)
     private Instant submittedAt;
 
-    @Column(name = "reviewer_id", nullable = false)
+    @Column(name = "reviewer_id")
     private Long reviewerId;
 
+    @UpdateTimestamp
     @Column(name = "reviewed_at")
     private Instant reviewedAt;
 

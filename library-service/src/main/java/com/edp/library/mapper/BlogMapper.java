@@ -35,8 +35,8 @@ public interface BlogMapper {
     @Mapping(target = "reviewedAt", ignore = true)
     @Mapping(target = "tags", ignore = true)
     @Mapping(target = "submitterId", source = "submitterId")
-    @Mapping(target = "reviewerId", source = "reviewerId")
-    BlogSubmission toBlogSubmission(BlogCreateRequestDTO dto, Blog blog, Long submitterId, Long reviewerId);
+    @Mapping(target = "reviewerId", ignore = true)
+    BlogSubmission toBlogSubmission(BlogCreateRequestDTO dto, Blog blog, Long submitterId);
 
     @Mapping(target = "currentSubmissionId", source = "currentSubmission.id")
     @Mapping(target = "title", source = "currentSubmission.title")

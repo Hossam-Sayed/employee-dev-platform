@@ -19,6 +19,9 @@ import com.edp.library.model.blog.BlogCreateRequestDTO;
 import com.edp.library.model.blog.BlogResponseDTO;
 import com.edp.library.model.blog.BlogSubmissionResponseDTO;
 import com.edp.library.model.enums.SubmissionStatusDTO;
+import com.edp.shared.client.auth.AuthServiceClient;
+import com.edp.shared.client.auth.model.UserProfileDto;
+import com.edp.shared.security.jwt.JwtUserContext;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
@@ -32,7 +35,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -46,10 +48,11 @@ public class BlogServiceImpl implements BlogService {
     private final BlogSubmissionTagRepository blogSubmissionTagRepository;
     private final TagRepository tagRepository;
     private final BlogMapper blogMapper;
+    private final AuthServiceClient authServiceClient;
 
     @Override
     @Transactional
-    public BlogResponseDTO createBlog(BlogCreateRequestDTO request, Long authorId, Long reviewerId) {
+    public BlogResponseDTO createBlog(BlogCreateRequestDTO request) {
         // 1. Validate and fetch active tags
         List<Long> tagIds = request.getTagIds();
         List<Tag> tags = tagRepository.findAllById(tagIds);
@@ -71,12 +74,14 @@ public class BlogServiceImpl implements BlogService {
             throw new InvalidOperationException("One or more selected tags are not active: " + inactiveTagIds);
         }
 
+        Long authorId = JwtUserContext.getUserId();
+
         // 3. Create a new Blog entity
         Blog blog = blogMapper.toBlog(authorId);
         blog = blogRepository.save(blog);
 
         // 4. Create and save the new BlogSubmission for this new Blog
-        BlogSubmission submission = blogMapper.toBlogSubmission(request, blog, authorId, reviewerId);
+        BlogSubmission submission = blogMapper.toBlogSubmission(request, blog, authorId);
         submission = blogSubmissionRepository.save(submission); // Save to get submission ID for tags
 
         // 5. Save BlogSubmissionTag entries
@@ -104,9 +109,11 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     @Transactional
-    public BlogResponseDTO editRejectedBlogSubmission(Long blogId, BlogCreateRequestDTO request, Long authorId, Long reviewerId) {
+    public BlogResponseDTO editRejectedBlogSubmission(Long blogId, BlogCreateRequestDTO request) {
         Blog blog = blogRepository.findById(blogId)
                 .orElseThrow(() -> new ResourceNotFoundException("Blog not found with ID: " + blogId));
+
+        Long authorId = JwtUserContext.getUserId();
 
         if (!blog.getAuthorId().equals(authorId)) {
             throw new InvalidOperationException("User is not authorized to edit this blog material.");
@@ -137,7 +144,7 @@ public class BlogServiceImpl implements BlogService {
         }
 
         // Create and save the new BlogSubmission for the existing Blog material
-        BlogSubmission newSubmission = blogMapper.toBlogSubmission(request, blog, authorId, reviewerId);
+        BlogSubmission newSubmission = blogMapper.toBlogSubmission(request, blog, authorId);
         newSubmission = blogSubmissionRepository.save(newSubmission);
 
         // Save BlogSubmissionTag entries for the new submission
@@ -166,7 +173,6 @@ public class BlogServiceImpl implements BlogService {
     @Override
     @Transactional(readOnly = true)
     public PaginationResponseDTO<BlogResponseDTO> getMyBlogs(
-            Long authorId,
             String statusFilter,
             Long tagIdFilter,
             PaginationRequestDTO paginationRequestDTO
@@ -175,6 +181,8 @@ public class BlogServiceImpl implements BlogService {
                 paginationRequestDTO.getPage(),
                 paginationRequestDTO.getSize()
         );
+
+        Long authorId = JwtUserContext.getUserId();
 
         Specification<Blog> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -246,23 +254,40 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     @Transactional(readOnly = true)
-    public PaginationResponseDTO<BlogSubmissionResponseDTO> getPendingBlogSubmissionsForReview(Long reviewerId, PaginationRequestDTO paginationRequestDTO) {
+    public PaginationResponseDTO<BlogSubmissionResponseDTO> getPendingBlogSubmissionsForReview(PaginationRequestDTO paginationRequestDTO) {
         Pageable pageable = PageRequest.of(
                 paginationRequestDTO.getPage(),
                 paginationRequestDTO.getSize(),
                 Sort.by(paginationRequestDTO.getSortDirection(), getActualSortBy(paginationRequestDTO.getSortBy(), BlogSubmission.class))
         );
-        Page<BlogSubmission> pendingSubmissions = blogSubmissionRepository.findByReviewerIdAndStatus(reviewerId, SubmissionStatus.PENDING, pageable);
+
+        Long managerId = JwtUserContext.getUserId();
+        String token = JwtUserContext.getToken();
+        List<UserProfileDto> managedUsers = authServiceClient.getManagedUsers(managerId, token);
+        List<Long> managedUserIds = managedUsers.stream()
+                .map(UserProfileDto::getId)
+                .toList();
+
+        Page<BlogSubmission> pendingSubmissions = blogSubmissionRepository.findBySubmitterIdInAndStatus(managedUserIds, SubmissionStatus.PENDING, pageable);
         return mapToPaginationResponseDTO(pendingSubmissions, blogMapper.toBlogSubmissionResponseDTOs(pendingSubmissions.getContent()));
     }
 
     @Override
     @Transactional
-    public BlogSubmissionResponseDTO reviewBlogSubmission(Long submissionId, SubmissionReviewRequestDTO reviewDTO, Long reviewerId) {
+    public BlogSubmissionResponseDTO reviewBlogSubmission(Long submissionId, SubmissionReviewRequestDTO reviewDTO) {
         BlogSubmission submission = blogSubmissionRepository.findById(submissionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Blog Submission not found with ID: " + submissionId));
 
-        if (!submission.getReviewerId().equals(reviewerId)) {
+        Long reviewerId = JwtUserContext.getUserId();
+        String token = JwtUserContext.getToken();
+        List<UserProfileDto> managedUsers = authServiceClient.getManagedUsers(reviewerId, token);
+
+        Set<Long> managedUserIds = managedUsers.stream()
+                .map(UserProfileDto::getId)
+                .collect(Collectors.toSet());
+
+        boolean isResponsible = managedUserIds.contains(submission.getSubmitterId());
+        if (!isResponsible) {
             throw new InvalidOperationException("You are not authorized to review this submission.");
         }
 
@@ -278,7 +303,7 @@ public class BlogServiceImpl implements BlogService {
         }
 
         submission.setStatus(blogMapper.toSubmissionStatusEntity(reviewDTO.getStatus()));
-        submission.setReviewedAt(Instant.now()); // Set reviewedAt manually or rely on @UpdateTimestamp if configured for it
+        submission.setReviewerId(reviewerId);
         submission.setReviewerComment(reviewDTO.getReviewerComment());
 
         BlogSubmission updatedSubmission = blogSubmissionRepository.save(submission);
