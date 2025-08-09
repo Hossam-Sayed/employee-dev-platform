@@ -6,6 +6,7 @@ import { UserUpdateComponent } from './user/user-update/user-update.component';
 import { UserCreateComponent } from './user/user-create/user-create.component';
 import { TemplateListComponent } from './career-package/template/template-list/template-list.component';
 import { adminGuard } from './user/guards/admin.guard';
+import { careerPackageRoutes } from './career-package/career-package.routes';
 
 export const routes: Routes = [
   {
@@ -40,7 +41,11 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
-    path: 'templates',
-    component: TemplateListComponent,
+    path: 'career-package',
+    loadChildren: () =>
+      import('./career-package/career-package.routes').then(
+        (m) => m.careerPackageRoutes
+      ),
+    canActivate: [authGuard],
   },
 ];

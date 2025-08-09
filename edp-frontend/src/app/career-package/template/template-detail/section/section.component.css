@@ -1,0 +1,27 @@
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.aligned-table th,
+.aligned-table td {
+  text-align: left;
+  vertical-align: middle;
+}
+
+.col-tag {
+  width: 50%;
+}
+
+.col-type {
+  width: 15%;
+}
+
+.col-rule {
+  width: 15%;
+}
+
+.col-actions {
+  width: 10%;
+  text-align: center;
+}

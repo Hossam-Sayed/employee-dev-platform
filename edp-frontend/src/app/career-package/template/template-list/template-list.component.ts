@@ -4,7 +4,6 @@ import {
   signal,
   OnInit,
   computed,
-  DestroyRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -18,8 +17,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { TemplateService } from '../services/template.service';
 import { TemplateResponseDto } from '../models/template-response.dto';
-import { FormsModule } from '@angular/forms';
-import { debounceTime, Subject, Subscription } from 'rxjs';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { debounceTime } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TemplateRequestDto } from '../models/template-request.dto';
 
@@ -36,6 +35,7 @@ import { TemplateRequestDto } from '../models/template-request.dto';
     MatIconModule,
     MatSelectModule,
     MatProgressSpinnerModule,
+    ReactiveFormsModule,
   ],
   templateUrl: './template-list.component.html',
   styleUrls: ['./template-list.component.css'],
@@ -43,11 +43,10 @@ import { TemplateRequestDto } from '../models/template-request.dto';
 export class TemplateListComponent implements OnInit {
   private templateService = inject(TemplateService);
   private router = inject(Router);
-  private destroyRef = inject(DestroyRef);
   private snackbar = inject(MatSnackBar);
 
-  department = signal('');
-  position = signal('');
+  departmentControl = new FormControl('');
+  positionControl = new FormControl('');
 
   page = signal(0);
   size = 5;
@@ -67,50 +66,33 @@ export class TemplateListComponent implements OnInit {
     () => this.templates().length === 0 && !this.isLoading()
   );
 
-  private filterdelay$ = new Subject<void>();
-  private sub?: Subscription;
-
-  get departmentModel() {
-    return this.department();
-  }
-  set departmentModel(value: string) {
-    this.department.set(value);
-    this.page.set(0);
-    this.emitFilter();
-  }
-
-  get positionModel() {
-    return this.position();
-  }
-  set positionModel(value: string) {
-    this.position.set(value);
-    this.page.set(0);
-    this.emitFilter();
-  }
-
   ngOnInit(): void {
-    this.sub = this.filterdelay$.pipe(debounceTime(700)).subscribe({
-      next: (res) => {
+    this.loadTemplates();
+    this.departmentControl.valueChanges.pipe(debounceTime(700)).subscribe({
+      next: () => {
+        this.page.set(0);
+
         this.loadTemplates();
       },
     });
-
-    this.emitFilter();
-
-    this.destroyRef.onDestroy(() => {
-      this.sub?.unsubscribe();
+    this.positionControl.valueChanges.pipe(debounceTime(700)).subscribe({
+      next: () => {
+        this.page.set(0);
+        this.loadTemplates();
+      },
     });
-  }
-
-  emitFilter() {
-    this.filterdelay$.next();
   }
 
   loadTemplates() {
     this.isLoading.set(true);
     this.error.set('');
     this.templateService
-      .getTemplates(this.department(), this.position(), this.page(), this.size)
+      .getTemplates(
+        this.departmentControl.value!,
+        this.positionControl.value!,
+        this.page(),
+        this.size
+      )
       .subscribe({
         next: (res) => {
           this.templates.set(res.content);
@@ -152,13 +134,13 @@ export class TemplateListComponent implements OnInit {
 
   createTemplate() {
     const request: TemplateRequestDto = {
-      department: this.department(),
-      position: this.position(),
+      department: this.departmentControl.value!,
+      position: this.positionControl.value!,
     };
 
     this.isLoading.set(true);
     this.templateService.createTemplate(request).subscribe({
-      next: (res) => {
+      next: () => {
         this.snackbar.open('Template created successfully!', 'Close', {
           duration: 3000,
         });
@@ -179,7 +161,7 @@ export class TemplateListComponent implements OnInit {
   }
 
   goToEdit(id: number) {
-    this.router.navigate(['/templates', id]);
+    this.router.navigate(['/career-package', 'templates', id]);
   }
 
   nextPage() {

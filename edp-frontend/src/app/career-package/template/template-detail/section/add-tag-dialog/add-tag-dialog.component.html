@@ -1,0 +1,78 @@
+<h2 mat-dialog-title>Add Tag</h2>
+
+<mat-dialog-content class="d-flex flex-column gap-3">
+  <mat-form-field>
+    <mat-label>Search tags</mat-label>
+    <input
+      matInput
+      [formControl]="searchControl"
+      placeholder="Type to search..."
+    />
+  </mat-form-field>
+
+  @if (loading()) {
+    <p>Loading...</p>
+  } @if (results().length > 0) {
+    <mat-list>
+      <p>Found {{ results().length }} tags</p>
+      @for (tag of results(); track tag.id) {
+        <mat-list-item
+          (click)="selectTag(tag)"
+          [class.bg-primary-subtle]="selectedTag?.id === tag.id"
+        >
+          {{ tag.name }}
+        </mat-list-item>
+      }
+      <button
+        mat-stroked-button
+        color="primary"
+        (click)="startCreatingNew(searchControl.value!)"
+      >
+        Create new tag "{{ searchControl.value }}"
+      </button>
+    </mat-list>
+  } @else if (searchControl.value?.trim()) {
+    <div>
+      <p>No results found.</p>
+      <button
+        mat-stroked-button
+        color="primary"
+        (click)="startCreatingNew(searchControl.value!)"
+      >
+        Create new tag "{{ searchControl.value }}"
+      </button>
+    </div>
+  }
+
+  <!-- Criteria inputs -->
+  <mat-form-field>
+    <mat-label>Criteria Type</mat-label>
+    <mat-select [ngModel]="criteriaType()" (ngModelChange)="criteriaType.set($event)">
+      @for (type of (CriteriaTypeEnum | keyvalue); track type.key) {
+        <mat-option [value]="type.value">{{ type.value }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field *ngIf="criteriaType() !== 'BOOLEAN'">
+    <mat-label>Criteria Min Value</mat-label>
+    <input
+      matInput
+      type="number"
+      [ngModel]="criteriaMinValue()"
+      (ngModelChange)="criteriaMinValue.set($event)"
+    />
+  </mat-form-field>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button
+    mat-raised-button
+    color="primary"
+    (click)="save()"
+    [disabled]="!selectedTag"
+  >
+    OK
+  </button>
+</mat-dialog-actions>

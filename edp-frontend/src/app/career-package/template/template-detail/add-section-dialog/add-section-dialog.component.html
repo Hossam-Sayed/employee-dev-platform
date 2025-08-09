@@ -1,0 +1,66 @@
+<h2 mat-dialog-title>Add Section</h2>
+<mat-dialog-content class="d-flex flex-column gap-3">
+  <mat-form-field>
+    <mat-label>Search sections</mat-label>
+    <input
+      matInput
+      [formControl]="searchControl"
+      placeholder="Type to search..."
+    />
+  </mat-form-field>
+
+  @if (loading()) {
+  <p>Loading...</p>
+  } @if (results().length > 0) {
+  <mat-list>
+    <p>Found {{ results().length }} sections</p>
+    @for (section of results(); track section.id) {
+    <mat-list-item
+      (click)="selectSection(section)"
+      [class.bg-primary-subtle]="selectedSection?.id === section.id"
+    >
+      {{ section.name }}
+    </mat-list-item>
+    }
+    <button
+      mat-stroked-button
+      color="primary"
+      (click)="startCreatingNew(searchControl.value!)"
+    >
+      Create new section "{{ searchControl.value }}"
+    </button>
+  </mat-list>
+  } @else if (searchControl.value?.trim()) {
+  <div>
+    <p>No results found.</p>
+    <button
+      mat-stroked-button
+      color="primary"
+      (click)="startCreatingNew(searchControl.value!)"
+    >
+      Create new section "{{ searchControl.value }}"
+    </button>
+  </div>
+  } @if (creatingNew()) {
+  <mat-form-field>
+    <mat-label>New section description</mat-label>
+    <textarea
+      matInput
+      [ngModel]="newSectionDescription()"
+      (ngModelChange)="newSectionDescription.set($event)"
+    ></textarea>
+  </mat-form-field>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button
+    mat-raised-button
+    color="primary"
+    (click)="save()"
+    [disabled]="!selectedSection"
+  >
+    OK
+  </button>
+</mat-dialog-actions>

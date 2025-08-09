@@ -5,6 +5,7 @@ import { Page } from '../../../shared/models/page.dto';
 import { Observable } from 'rxjs';
 import { TemplateRequestDto } from '../models/template-request.dto';
 import { TemplateDetailResponseDto } from '../models/template-detail-response.dto';
+import { TemplateUpdateRequestDto } from '../models/template-update-request.dto';
 
 @Injectable({
   providedIn: 'root',
@@ -39,8 +40,28 @@ export class TemplateService {
     return this.httpClient.delete<void>(`${this.baseUrl}/${id}`);
   }
 
-  createTemplate(request: TemplateRequestDto): Observable<TemplateDetailResponseDto> {
-  return this.httpClient.post<TemplateDetailResponseDto>(this.baseUrl, request);
-}
+  createTemplate(
+    request: TemplateRequestDto
+  ): Observable<TemplateDetailResponseDto> {
+    return this.httpClient.post<TemplateDetailResponseDto>(
+      this.baseUrl,
+      request
+    );
+  }
 
+  getTemplateById(id: number): Observable<TemplateDetailResponseDto> {
+    return this.httpClient.get<TemplateDetailResponseDto>(
+      `${this.baseUrl}/${id}`
+    );
+  }
+
+  updateTemplate(
+    id: number,
+    request: TemplateUpdateRequestDto
+  ): Observable<TemplateDetailResponseDto> {
+    return this.httpClient.put<TemplateDetailResponseDto>(
+      `${this.baseUrl}/${id}`,
+      request
+    );
+  }
 }
