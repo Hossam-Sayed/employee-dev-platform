@@ -20,9 +20,17 @@ public class CareerPackageTagProgress {
     @JoinColumn(name = "career_package_section_progress_id", nullable = false)
     private CareerPackageSectionProgress careerPackageSectionProgress;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "template_section_required_tag_id", nullable = false)
-    private TemplateSectionRequiredTag templateSectionRequiredTag;
+    @Column(name = "tag_name", nullable = false)
+    private String tagName;
+
+    @Column(name = "criteria_type", nullable = false)
+    private String criteriaType;
+
+    @Column(name = "required_value", nullable = false)
+    private Double requiredValue;
+
+    @Column(name = "source_required_tag_id")
+    private Long sourceRequiredTagId;
 
     @Column(name = "completed_value", nullable = false)
     private Double completedValue;

@@ -50,7 +50,7 @@ public class TagProgressServiceImpl implements TagProgressService {
         }
 
         //the min value required for completing a tag is the max value to be submitted as progress for this tag
-        double maxValue = tagProgress.getTemplateSectionRequiredTag().getCriteriaMinValue();
+        double maxValue = tagProgress.getRequiredValue();
         double boundValue = Math.min(completedValue, maxValue);
 
         tagProgress.setCompletedValue(boundValue);
@@ -85,7 +85,7 @@ public class TagProgressServiceImpl implements TagProgressService {
         double totalPercent = sectionProgress.getTagProgressList().stream()
                 .mapToDouble(tag -> {
                     double completed = tag.getCompletedValue();
-                    double required = tag.getTemplateSectionRequiredTag().getCriteriaMinValue();
+                    double required = tag.getRequiredValue();
                     return Math.min(completed / required, 1.0) * perTagWeight;
                 }).sum();
 

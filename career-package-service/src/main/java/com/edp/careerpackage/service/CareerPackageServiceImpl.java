@@ -70,7 +70,8 @@ public class CareerPackageServiceImpl implements CareerPackageService {
 
         CareerPackage careerPackage = CareerPackage.builder()
                 .userId(userId)
-                .template(template)
+                .department(template.getDepartment())
+                .position(template.getPosition())
                 .status(CareerPackageStatus.NOT_STARTED)
                 .active(true)
                 .createdAt(LocalDateTime.now())
@@ -102,7 +103,8 @@ public class CareerPackageServiceImpl implements CareerPackageService {
                 .map(templateSection -> {
                     CareerPackageSectionProgress sectionProgress = CareerPackageSectionProgress.builder()
                             .careerPackage(careerPackage)
-                            .packageTemplateSection(templateSection)
+                            .sectionName(templateSection.getSection().getName())
+                            .sectionDescription(templateSection.getSection().getDescription())
                             .totalProgressPercent(0.0)
                             .updatedAt(LocalDateTime.now())
                             .build();
@@ -123,7 +125,9 @@ public class CareerPackageServiceImpl implements CareerPackageService {
         return templateSection.getRequiredTags().stream()
                 .map(requiredTag -> CareerPackageTagProgress.builder()
                         .careerPackageSectionProgress(sectionProgress)
-                        .templateSectionRequiredTag(requiredTag)
+                        .tagName(requiredTag.getTag().getName())
+                        .criteriaType(requiredTag.getCriteriaType().toString())
+                        .requiredValue(requiredTag.getCriteriaMinValue())
                         .completedValue(0.0)
                         .build())
                 .collect(Collectors.toCollection(LinkedHashSet::new));

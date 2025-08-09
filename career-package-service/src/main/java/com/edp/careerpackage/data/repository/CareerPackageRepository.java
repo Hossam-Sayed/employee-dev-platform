@@ -11,13 +11,6 @@ import java.util.Optional;
 @Repository
 public interface CareerPackageRepository extends JpaRepository<CareerPackage, Long> {
 
-    @EntityGraph(attributePaths = {
-            "template",
-            "sectionProgressList.packageTemplateSection.section",
-            "sectionProgressList.tagProgressList.templateSectionRequiredTag.tag",
-            "progress",
-            "submissions"
-    })
     Optional<CareerPackage> findByUserIdAndActiveTrue(Long userId);
 
     boolean existsByUserIdAndActiveTrue(Long userId);

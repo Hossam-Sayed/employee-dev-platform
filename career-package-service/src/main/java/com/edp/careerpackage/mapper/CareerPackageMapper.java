@@ -16,8 +16,8 @@ public interface CareerPackageMapper {
 
     @Mappings({
             @Mapping(source = "id", target = "id"),
-            @Mapping(source = "template.department", target = "department"),
-            @Mapping(source = "template.position", target = "position"),
+            @Mapping(source = "department", target = "department"),
+            @Mapping(source = "position", target = "position"),
             @Mapping(source = "createdAt", target = "createdAt"),
             @Mapping(source = "updatedAt", target = "updatedAt"),
             @Mapping(source = "sectionProgressList", target = "sections"),
@@ -35,8 +35,8 @@ public interface CareerPackageMapper {
 
     @Mappings({
             @Mapping(source = "id", target = "sectionProgressId"),
-            @Mapping(source = "packageTemplateSection.section.name", target = "sectionName"),
-            @Mapping(source = "packageTemplateSection.section.description", target = "sectionDescription"),
+            @Mapping(source = "sectionName", target = "sectionName"),
+            @Mapping(source = "sectionDescription", target = "sectionDescription"),
             @Mapping(source = "totalProgressPercent", target = "sectionProgressPercent"),
             @Mapping(source = "tagProgressList", target = "tags")
     })
@@ -44,9 +44,9 @@ public interface CareerPackageMapper {
 
     @Mappings({
             @Mapping(source = "id", target = "tagProgressId"),
-            @Mapping(source = "templateSectionRequiredTag.tag.name", target = "tagName"),
-            @Mapping(source = "templateSectionRequiredTag.criteriaType", target = "criteriaType"),
-            @Mapping(source = "templateSectionRequiredTag.criteriaMinValue", target = "requiredValue"),
+            @Mapping(source = "tagName", target = "tagName"),
+            @Mapping(source = "criteriaType", target = "criteriaType"),
+            @Mapping(source = "requiredValue", target = "requiredValue"),
             @Mapping(source = "completedValue", target = "completedValue"),
             @Mapping(source = "proofUrl", target = "proofUrl"),
             @Mapping(source = "fileId", target = "fileId")

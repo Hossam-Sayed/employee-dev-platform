@@ -23,9 +23,14 @@ public class CareerPackage {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "template_id", nullable = false)
-    private PackageTemplate template;
+    @Column(name = "department", nullable = false)
+    private String department;
+
+    @Column(name = "position", nullable = false)
+    private String position;
+
+    @Column(name = "source_template_id")
+    private Long sourceTemplateId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
