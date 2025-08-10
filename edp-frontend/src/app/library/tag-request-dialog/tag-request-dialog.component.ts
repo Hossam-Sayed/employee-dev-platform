@@ -40,6 +40,7 @@ export class TagRequestDialogComponent {
 
   isLoading = signal(false);
   errorMessage = signal<string | null>(null);
+  isAdmin = this.authService.isAdmin();
 
   tagRequestForm = this.fb.nonNullable.group({
     requestedName: [
@@ -54,12 +55,6 @@ export class TagRequestDialogComponent {
 
   onSubmit(): void {
     if (this.tagRequestForm.invalid) {
-      return;
-    }
-
-    const requesterId = this.authService.getUserId();
-    if (!requesterId) {
-      this.errorMessage.set('User not authenticated. Please log in.');
       return;
     }
 
@@ -81,29 +76,55 @@ export class TagRequestDialogComponent {
 
       const requestBody: TagCreateRequest = { requestedName };
 
-      this.tagService
-        .createTagRequest(requestBody, requesterId)
-        .pipe(finalize(() => this.isLoading.set(false)))
-        .subscribe({
-          next: (response) => {
-            this.dialogRef.close({
-              success: true,
-              message: `Tag request "${response.requestedName}" submitted successfully!`,
-            });
-          },
-          error: (err) => {
-            if (err.status === 409) {
-              this.errorMessage.set(
-                err.error?.message ||
-                  'A tag with this name already exists or has a pending request.'
-              );
-            } else {
-              this.errorMessage.set(
-                'Failed to submit tag request. Please try again.'
-              );
-            }
-          },
-        });
+      if (this.isAdmin) {
+        this.tagService
+          .createTagRequest(requestBody)
+          .pipe(finalize(() => this.isLoading.set(false)))
+          .subscribe({
+            next: (response) => {
+              this.dialogRef.close({
+                success: true,
+                message: `Tag request "${response.requestedName}" submitted successfully!`,
+              });
+            },
+            error: (err) => {
+              if (err.status === 409) {
+                this.errorMessage.set(
+                  err.error?.message ||
+                    'A tag with this name already exists or has a pending request.'
+                );
+              } else {
+                this.errorMessage.set(
+                  'Failed to submit tag request. Please try again.'
+                );
+              }
+            },
+          });
+      } else {
+        this.tagService
+          .createTagRequest(requestBody)
+          .pipe(finalize(() => this.isLoading.set(false)))
+          .subscribe({
+            next: (response) => {
+              this.dialogRef.close({
+                success: true,
+                message: `Tag request "${response.requestedName}" submitted successfully!`,
+              });
+            },
+            error: (err) => {
+              if (err.status === 409) {
+                this.errorMessage.set(
+                  err.error?.message ||
+                    'A tag with this name already exists or has a pending request.'
+                );
+              } else {
+                this.errorMessage.set(
+                  'Failed to submit tag request. Please try again.'
+                );
+              }
+            },
+          });
+      }
     });
   }
 }

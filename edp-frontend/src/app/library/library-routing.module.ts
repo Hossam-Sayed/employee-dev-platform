@@ -74,6 +74,21 @@ const routes: Routes = [
     component: PendingReviewsComponent,
     canActivate: [authGuard],
   },
+  {
+    path: 'learning/:materialId/review',
+    component: MaterialDetailsComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'blog/:materialId/review',
+    component: MaterialDetailsComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'wiki/:materialId/review',
+    component: MaterialDetailsComponent,
+    canActivate: [authGuard],
+  },
 ];
 
 @NgModule({

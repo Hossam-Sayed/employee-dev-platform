@@ -22,25 +22,16 @@ export class TagService {
     return this.http.get<Tag[]>(`${this.baseUrl}active`, { params });
   }
 
-  createTagRequest(
-    request: TagCreateRequest,
-    requesterId: number
-  ): Observable<TagRequestResponse> {
-    const headers = { 'X-Requester-Id': requesterId.toString() };
+  createTagRequest(request: TagCreateRequest): Observable<TagRequestResponse> {
     return this.http.post<TagRequestResponse>(
       `${this.baseUrl}requests`,
-      request,
-      {
-        headers,
-      }
+      request
     );
   }
 
   getMyTagRequests(
-    requesterId: number,
     pagination: PaginationRequest
   ): Observable<PaginationResponse<TagRequestResponse>> {
-    const headers = { 'X-Requester-Id': requesterId.toString() };
     const params = new HttpParams()
       .set('page', pagination.page.toString())
       .set('size', pagination.size.toString())
@@ -49,10 +40,14 @@ export class TagService {
 
     return this.http.get<PaginationResponse<TagRequestResponse>>(
       `${this.baseUrl}my-requests`,
-      {
-        headers,
-        params,
-      }
+      { params }
+    );
+  }
+
+  addNewTag(request: TagCreateRequest): Observable<TagRequestResponse> {
+    return this.http.post<TagRequestResponse>(
+      `${this.baseUrl}requests`,
+      request
     );
   }
 }
