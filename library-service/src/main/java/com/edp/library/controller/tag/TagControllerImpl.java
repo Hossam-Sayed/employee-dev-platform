@@ -8,18 +8,9 @@ import com.edp.library.model.tag.TagRequestResponseDTO;
 import com.edp.library.model.tag.TagRequestReviewDTO;
 import com.edp.library.model.tag.TagUpdateStatusDTO;
 import com.edp.library.service.tag.TagService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -33,8 +24,7 @@ public class TagControllerImpl implements TagController {
     // Assuming a user can submit a tag request
     @Override
     public ResponseEntity<TagRequestResponseDTO> createTagRequest(
-            TagCreateRequestDTO request,
-            Long requesterId
+            TagCreateRequestDTO request
     ) {
         TagRequestResponseDTO response = tagService.createTagRequest(request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
