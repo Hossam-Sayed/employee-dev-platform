@@ -35,8 +35,7 @@ public interface TagController {
     })
     @PostMapping("/requests")
     ResponseEntity<TagRequestResponseDTO> createTagRequest(
-            @Valid @RequestBody TagCreateRequestDTO request,
-            @Parameter(description = "ID of the user submitting the tag request") @RequestHeader("X-Requester-Id") Long requesterId
+            @Valid @RequestBody TagCreateRequestDTO request
     );
 
     @Operation(summary = "Get all approved and active tags",
@@ -113,8 +112,7 @@ public interface TagController {
     @PutMapping("/{tagId}/status")
     ResponseEntity<TagDTO> updateTagStatus(
             @Parameter(description = "ID of the tag to update") @PathVariable Long tagId,
-            @Valid @RequestBody TagUpdateStatusDTO updateStatusDTO,
-            @Parameter(description = "ID of the administrator performing the update") @RequestHeader("X-Admin-Id") Long adminId
+            @Valid @RequestBody TagUpdateStatusDTO updateStatusDTO
     );
 
     @Operation(summary = "Create a new tag directly by an administrator",
@@ -126,7 +124,6 @@ public interface TagController {
     })
     @PostMapping
     ResponseEntity<TagDTO> createTagByAdmin(
-            @Valid @RequestBody TagCreateRequestDTO tagCreateRequestDTO,
-            @Parameter(description = "ID of the administrator creating the tag") @RequestHeader("X-Admin-Id") Long adminId
+            @Valid @RequestBody TagCreateRequestDTO tagCreateRequestDTO
     );
 }

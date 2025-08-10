@@ -36,7 +36,7 @@ public class TagControllerImpl implements TagController {
             TagCreateRequestDTO request,
             Long requesterId
     ) {
-        TagRequestResponseDTO response = tagService.createTagRequest(request, requesterId);
+        TagRequestResponseDTO response = tagService.createTagRequest(request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
@@ -54,7 +54,7 @@ public class TagControllerImpl implements TagController {
             PaginationRequestDTO paginationRequestDTO
     ) {
         PaginationResponseDTO<TagRequestResponseDTO> response =
-                tagService.getMyTagRequests(requesterId, paginationRequestDTO);
+                tagService.getMyTagRequests(paginationRequestDTO);
         return ResponseEntity.ok(response);
     }
 
@@ -75,7 +75,7 @@ public class TagControllerImpl implements TagController {
             TagRequestReviewDTO reviewDTO,
             Long reviewerId
     ) {
-        TagRequestResponseDTO response = tagService.reviewTagRequest(tagRequestId, reviewDTO, reviewerId);
+        TagRequestResponseDTO response = tagService.reviewTagRequest(tagRequestId, reviewDTO);
         return ResponseEntity.ok(response);
     }
 
@@ -95,20 +95,18 @@ public class TagControllerImpl implements TagController {
     @Override
     public ResponseEntity<TagDTO> updateTagStatus(
             Long tagId,
-            TagUpdateStatusDTO updateStatusDTO,
-            Long adminId
+            TagUpdateStatusDTO updateStatusDTO
     ) {
-        TagDTO response = tagService.updateTagStatus(tagId, updateStatusDTO, adminId);
+        TagDTO response = tagService.updateTagStatus(tagId, updateStatusDTO);
         return ResponseEntity.ok(response);
     }
 
     // Endpoint for admins to directly create a tag
     @Override
     public ResponseEntity<TagDTO> createTagByAdmin(
-            TagCreateRequestDTO tagCreateRequestDTO,
-            Long adminId
+            TagCreateRequestDTO tagCreateRequestDTO
     ) {
-        TagDTO response = tagService.createTagByAdmin(tagCreateRequestDTO, adminId);
+        TagDTO response = tagService.createTagByAdmin(tagCreateRequestDTO);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 }
