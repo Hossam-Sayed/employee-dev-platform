@@ -1,8 +1,29 @@
-<header class="text-dark py-4 shadow-sm container-fluid">
-  <div class="d-flex justify-content-around align-items-center">
-    <h1 class="display-5 fw-semibold mb-0">EDP App</h1>
-    @if(tokenService.isLoggedIn()){
-    <button class="btn btn-outline-danger" (click)="onLogout()">Logout</button>
+<mat-toolbar color="primary" class="shadow-sm">
+  <span class="d-flex align-items-center me-4">
+    <span class="fw-semibold fs-5">EDP App</span>
+  </span>
 
-    }  </div>
-</header>
+  <span class="flex-spacer"></span>
+
+  @if(tokenService.isLoggedIn()) {
+  <button mat-button (click)="goTo('/inside')" >Dashboard</button>
+  <button mat-button [matMenuTriggerFor]="careerMenu">Career Package</button>
+  <mat-menu #careerMenu="matMenu">
+    <button mat-menu-item (click)="goTo('/career-package/templates')">
+      Templates
+    </button>
+    <button mat-menu-item (click)="goTo('/career-package/package')">
+      My Package
+    </button>
+  </mat-menu>
+
+  <button mat-button [matMenuTriggerFor]="libraryMenu">Library</button>
+  <mat-menu #libraryMenu="matMenu">
+    <button mat-menu-item (click)="goTo('/library/my-materials')">
+      My Materials
+    </button>
+  </mat-menu>
+
+  <button mat-stroked-button color="warn" (click)="onLogout()">Logout</button>
+  }
+</mat-toolbar>
