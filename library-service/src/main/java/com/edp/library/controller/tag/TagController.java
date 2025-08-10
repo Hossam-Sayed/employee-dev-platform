@@ -38,17 +38,6 @@ public interface TagController {
             @Valid @RequestBody TagCreateRequestDTO request
     );
 
-    @Operation(summary = "Get all approved and active tags",
-            description = "Retrieves a list of all tags that are currently approved and active, optionally filtered by name. " +
-                    "These tags are available for use in learning materials, wikis, and blogs.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully retrieved tags")
-    })
-    @GetMapping("/active")
-    ResponseEntity<List<TagDTO>> getAllApprovedAndActiveTags(
-            @Parameter(description = "Optional filter for tag name (case-insensitive partial match)") @RequestParam(required = false) String nameFilter
-    );
-
     @Operation(summary = "Get a user's tag requests",
             description = "Retrieves a paginated list of tag requests made by a specific user.")
     @ApiResponses(value = {
@@ -86,44 +75,5 @@ public interface TagController {
             @Parameter(description = "ID of the tag request to review") @PathVariable Long tagRequestId,
             @Valid @RequestBody TagRequestReviewDTO reviewDTO,
             @Parameter(description = "ID of the administrator performing the review") @RequestHeader("X-Reviewer-Id") Long reviewerId
-    );
-
-    @Operation(summary = "Get all tags (for admin view)",
-            description = "Retrieves a paginated list of all tags, including active and inactive ones. " +
-                    "Allows filtering by name and active status. This endpoint is typically for administrative purposes.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully retrieved all tags"),
-            @ApiResponse(responseCode = "400", description = "Invalid pagination parameters", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-    })
-    @GetMapping
-    ResponseEntity<PaginationResponseDTO<TagDTO>> getAllTagsForAdmin(
-            @Parameter(description = "Optional filter for tag name (case-insensitive partial match)") @RequestParam(required = false) String nameFilter,
-            @Parameter(description = "Optional filter for tag active status") @RequestParam(required = false) Boolean isActiveFilter,
-            @Valid @Parameter(description = "Pagination and sorting parameters") PaginationRequestDTO paginationRequestDTO
-    );
-
-    @Operation(summary = "Update a tag's active status",
-            description = "Allows an administrator to activate or deactivate an existing tag.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Tag status updated successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid status or tag is already in the requested status", content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "404", description = "Tag not found", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-    })
-    @PutMapping("/{tagId}/status")
-    ResponseEntity<TagDTO> updateTagStatus(
-            @Parameter(description = "ID of the tag to update") @PathVariable Long tagId,
-            @Valid @RequestBody TagUpdateStatusDTO updateStatusDTO
-    );
-
-    @Operation(summary = "Create a new tag directly by an administrator",
-            description = "Allows an administrator to directly create a new active tag without a prior request process.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Tag created successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid tag name", content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "409", description = "A tag with the same name already exists", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-    })
-    @PostMapping
-    ResponseEntity<TagDTO> createTagByAdmin(
-            @Valid @RequestBody TagCreateRequestDTO tagCreateRequestDTO
     );
 }

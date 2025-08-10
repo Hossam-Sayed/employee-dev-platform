@@ -24,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -73,15 +72,6 @@ public class TagServiceImpl implements TagService {
         // Check for existing tag requests (case-insensitive)
         Optional<TagRequest> existingPendingRequest = tagRequestRepository.findByRequestedNameIgnoreCase(tagName);
         return existingPendingRequest.isPresent();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<TagDTO> getAllApprovedAndActiveTags(String nameFilter) {
-        List<Tag> tags = StringUtils.hasText(nameFilter) ?
-                tagRepository.findByNameContainingIgnoreCaseAndActive(nameFilter, true) :
-                tagRepository.findByActive(true);
-        return tagMapper.toTagDTOs(tags);
     }
 
     @Override
@@ -147,71 +137,5 @@ public class TagServiceImpl implements TagService {
         //  Triggered: On approval/rejection of tag request.
 
         return tagMapper.toTagRequestResponseDTO(tagRequest);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public PaginationResponseDTO<TagDTO> getAllTagsForAdmin(String nameFilter, Boolean isActiveFilter, PaginationRequestDTO paginationRequestDTO) {
-        Pageable pageable = PaginationUtils.toPageable(paginationRequestDTO, Tag.class);
-
-        Page<Tag> tags;
-        if (StringUtils.hasText(nameFilter) && isActiveFilter != null) {
-            tags = tagRepository.findByNameContainingIgnoreCaseAndActive(nameFilter, isActiveFilter, pageable);
-        } else if (StringUtils.hasText(nameFilter)) {
-            tags = tagRepository.findByNameContainingIgnoreCase(nameFilter, pageable);
-        } else if (isActiveFilter != null) {
-            tags = tagRepository.findByActive(isActiveFilter, pageable);
-        } else {
-            tags = tagRepository.findAll(pageable);
-        }
-
-        return PaginationUtils.mapToPaginationResponseDTO(tags, tagMapper.toTagDTOs(tags.getContent()));
-    }
-
-    @Override
-    @Transactional
-    public TagDTO updateTagStatus(Long tagId, TagUpdateStatusDTO updateStatusDTO) {
-        Tag tag = tagRepository.findById(tagId)
-                .orElseThrow(() -> new ResourceNotFoundException("Tag not found with ID: " + tagId));
-
-        if (tag.isActive() == updateStatusDTO.getActive()) {
-            throw new InvalidOperationException("Tag is already in the requested active status.");
-        }
-
-        tag.setActive(updateStatusDTO.getActive());
-        tagRepository.save(tag);
-        return tagMapper.toTagDTO(tag);
-    }
-
-    @Override
-    @Transactional
-    public TagDTO createTagByAdmin(TagCreateRequestDTO tagCreateRequestDTO) {
-        // 1. Validate input
-        if (!StringUtils.hasText(tagCreateRequestDTO.getRequestedName())) {
-            throw new IllegalArgumentException("Tag name cannot be null or empty.");
-        }
-
-        // 2. Check for duplicate tag name (case-insensitive)
-        Optional<Tag> existingTag = tagRepository.findByNameIgnoreCase(tagCreateRequestDTO.getRequestedName());
-        if (existingTag.isPresent()) {
-            throw new ResourceAlreadyExistsException(
-                    String.format("Tag with name '%s' already exists.", tagCreateRequestDTO.getRequestedName())
-            );
-        }
-
-        // 3. Create new Tag entity
-        Long adminId = JwtUserContext.getUserId();
-        Tag newTag = Tag.builder()
-                .name(tagCreateRequestDTO.getRequestedName())
-                .createdBy(adminId)
-                .createdAt(Instant.now())
-                .active(true)
-                .build();
-
-        // 4. Save the new tag
-        Tag savedTag = tagRepository.save(newTag);
-
-        // 5. Return the response DTO
-        return tagMapper.toTagDTO(savedTag);
     }
 }

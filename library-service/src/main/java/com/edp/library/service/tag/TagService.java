@@ -28,16 +28,6 @@ public interface TagService {
     boolean isDuplicateTagRequestOrApprovedTag(String tagName);
 
     /**
-     * Retrieves all approved and active tags.
-     * User Story: As a USER, I need to view all approved tags.
-     * User Story: As a USER, I need to search for approved tags to quickly find relevant ones. (Filtering will be in impl)
-     *
-     * @param nameFilter Optional filter for tag name (case-insensitive contains).
-     * @return A list of TagDTOs.
-     */
-    List<TagDTO> getAllApprovedAndActiveTags(String nameFilter);
-
-    /**
      * Retrieves a paginated list of tag requests for a specific user.
      * User Story: As a USER, I need to view my tag requests with their current status.
      *
@@ -67,40 +57,4 @@ public interface TagService {
      * @return The updated TagRequestResponseDTO.
      */
     TagRequestResponseDTO reviewTagRequest(Long tagRequestId, TagRequestReviewDTO reviewDTO);
-
-    /**
-     * Retrieves a paginated list of all tags (including inactive) for admin management.
-     * User Story: As an ADMIN, I need to view all tags in the system with their status.
-     * User Story: As an ADMIN, I need to search, filter, and paginate the list of all tags for easier management.
-     *
-     * @param nameFilter           Optional filter for tag name.
-     * @param isActiveFilter       Optional filter for active status.
-     * @param paginationRequestDTO Pagination and sorting parameters.
-     * @return A paginated response of TagDTOs.
-     */
-    PaginationResponseDTO<TagDTO> getAllTagsForAdmin(String nameFilter, Boolean isActiveFilter, PaginationRequestDTO paginationRequestDTO);
-
-    /**
-     * Admin deactivates or activates an existing tag.
-     * User Story: As an ADMIN, I need to be able to deactivate/archive a tag so it can no longer be used for new materials.
-     *
-     * @param tagId           The ID of the tag to update.
-     * @param updateStatusDTO The DTO containing the new active status.
-     * @return The updated TagDTO.
-     */
-    TagDTO updateTagStatus(Long tagId, TagUpdateStatusDTO updateStatusDTO);
-
-    /**
-     * User Story: As an Admin, I need to be able to add new tags directly to the system
-     * so that employees can categorize their learning materials, wikis, and blogs effectively.
-     * <p>
-     * Creates a new tag in the system directly by an administrator.
-     * Before creating, it checks if a tag with the same name (case-insensitive) already exists.
-     *
-     * @param tagCreateRequestDTO The DTO containing the requested name for the new tag.
-     * @return A {@link TagDTO} representing the newly created tag.
-     * @throws com.edp.library.exception.ResourceAlreadyExistsException if a tag with the same name already exists.
-     * @throws IllegalArgumentException                                 if the tag name is null or empty.
-     */
-    TagDTO createTagByAdmin(TagCreateRequestDTO tagCreateRequestDTO);
 }
