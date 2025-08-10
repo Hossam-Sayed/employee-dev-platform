@@ -61,6 +61,11 @@ export class AuthService {
     return this.tokenService.getPayload()?.userId;
   }
 
+  // TODO: Update implementation
+  getUserRole() {
+    return 'MANAGER';
+  }
+
   login(dto: AuthRequestDto): Observable<AuthResponseDto> {
     return this.httpClient
       .post<AuthResponseDto>(`${this.API_URL}/login`, dto)

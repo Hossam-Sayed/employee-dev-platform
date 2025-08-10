@@ -6,6 +6,7 @@ import com.edp.library.model.SubmissionReviewRequestDTO;
 import com.edp.library.model.blog.BlogCreateRequestDTO;
 import com.edp.library.model.blog.BlogResponseDTO;
 import com.edp.library.model.blog.BlogSubmissionResponseDTO;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -18,15 +19,14 @@ public interface BlogService {
      * Validates that all provided tags are active.
      * A new Blog entity is created, and the first BlogSubmission is linked as its current submission.
      *
-     * @param request    The DTO containing the blog's title, description, document URL, and tag IDs.
-     * @param authorId   The ID of the author creating this blog.
-     * @param reviewerId The ID of the manager/reviewer assigned to this submission.
+     * @param request The DTO containing the blog's title, description, document URL, and tag IDs.
+     * @param file    The blog file.
      * @return A {@link BlogResponseDTO} representing the newly created blog and its current submission.
      * @throws com.edp.library.exception.ResourceNotFoundException      if any provided tag ID does not exist.
      * @throws com.edp.library.exception.InvalidOperationException      if any provided tag is not active.
      * @throws com.edp.library.exception.ResourceAlreadyExistsException if a blog submission with the same title and document URL already exists for this author.
      */
-    BlogResponseDTO createBlog(BlogCreateRequestDTO request, Long authorId, Long reviewerId);
+    BlogResponseDTO createBlog(BlogCreateRequestDTO request, MultipartFile file);
 
     /**
      * User Story: As a User, I want to edit and resubmit a rejected blog so that it can be reviewed again.
@@ -35,15 +35,14 @@ public interface BlogService {
      * The previous rejected submission remains in history, and the new submission becomes the current one (PENDING).
      * Validates that the requesting user is the author and that all provided tags are active.
      *
-     * @param blogId     The ID of the blog to be resubmitted.
-     * @param request    The DTO containing the updated blog details (title, description, document URL, tag IDs).
-     * @param authorId   The ID of the author attempting to edit the blog.
-     * @param reviewerId The ID of the manager/reviewer assigned to this new submission.
+     * @param blogId  The ID of the blog to be resubmitted.
+     * @param request The DTO containing the updated blog details (title, description, document URL, tag IDs).
+     * @param file    The blog file.
      * @return A {@link BlogResponseDTO} representing the blog with its new current (PENDING) submission.
      * @throws com.edp.library.exception.ResourceNotFoundException if the blog or any provided tag is not found.
      * @throws com.edp.library.exception.InvalidOperationException if the blog's current submission is not REJECTED, or if the authorId does not match.
      */
-    BlogResponseDTO editRejectedBlogSubmission(Long blogId, BlogCreateRequestDTO request, Long authorId, Long reviewerId);
+    BlogResponseDTO editRejectedBlogSubmission(Long blogId, BlogCreateRequestDTO request, MultipartFile file);
 
     /**
      * User Story: As a User, I want to see a list of my submitted blogs.
@@ -53,14 +52,13 @@ public interface BlogService {
      * Can be filtered by the status of the current submission (e.g., APPROVED, PENDING, REJECTED)
      * and/or by a specific tag ID associated with the current submission.
      *
-     * @param authorId             The ID of the author whose blogs are to be retrieved.
      * @param statusFilter         Optional filter for the current submission's status.
      * @param tagIdFilter          Optional filter for a specific tag ID associated with the current submission.
      * @param paginationRequestDTO Pagination and sorting parameters.
      * @return A {@link PaginationResponseDTO} containing a paginated list of {@link BlogResponseDTO}s.
      * @throws IllegalArgumentException if an invalid statusFilter value is provided.
      */
-    PaginationResponseDTO<BlogResponseDTO> getMyBlogs(Long authorId, String statusFilter, Long tagIdFilter, PaginationRequestDTO paginationRequestDTO);
+    PaginationResponseDTO<BlogResponseDTO> getMyBlogs(String statusFilter, Long tagIdFilter, PaginationRequestDTO paginationRequestDTO);
 
     /**
      * User Story: As a User, I want to view the details of a specific blog.
@@ -76,7 +74,6 @@ public interface BlogService {
     /**
      * User Story: As a User, I want to see the submission history of a blog.
      * <p>
-     *     TODO: Check order enforcement, is it always from recent to oldest? Or controllable?
      * Retrieves a paginated list of all submissions (past and current) for a specific blog,
      * ordered from most recent to oldest.
      *
@@ -92,11 +89,10 @@ public interface BlogService {
      * <p>
      * Retrieves a paginated list of blog submissions that are in PENDING status and assigned to a specific reviewer.
      *
-     * @param reviewerId           The ID of the manager/reviewer.
      * @param paginationRequestDTO Pagination and sorting parameters.
      * @return A {@link PaginationResponseDTO} containing a paginated list of {@link BlogSubmissionResponseDTO}s.
      */
-    PaginationResponseDTO<BlogSubmissionResponseDTO> getPendingBlogSubmissionsForReview(Long reviewerId, PaginationRequestDTO paginationRequestDTO);
+    PaginationResponseDTO<BlogSubmissionResponseDTO> getPendingBlogSubmissionsForReview(PaginationRequestDTO paginationRequestDTO);
 
     /**
      * User Story: As a Manager, I want to approve or reject a blog submission.
@@ -108,14 +104,13 @@ public interface BlogService {
      *
      * @param submissionId The ID of the blog submission to review.
      * @param reviewDTO    The DTO containing the new status (APPROVED/REJECTED) and an optional reviewer comment.
-     * @param reviewerId   The ID of the manager performing the review (for authorization check).
      * @return A {@link BlogSubmissionResponseDTO} representing the updated submission.
      * @throws com.edp.library.exception.ResourceNotFoundException if the submission is not found.
      * @throws com.edp.library.exception.InvalidOperationException if the reviewer is not authorized,
      *                                                             if the submission is not PENDING,
      *                                                             or if a rejection comment is missing/too short.
      */
-    BlogSubmissionResponseDTO reviewBlogSubmission(Long submissionId, SubmissionReviewRequestDTO reviewDTO, Long reviewerId);
+    BlogSubmissionResponseDTO reviewBlogSubmission(Long submissionId, SubmissionReviewRequestDTO reviewDTO);
 
     /**
      * User Story: As a User, I want to search for approved blogs by title or description.

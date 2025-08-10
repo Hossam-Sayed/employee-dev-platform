@@ -1,7 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { AuthService } from '../../auth/service/auth.service';
 import { BlogResponse } from '../models/blog-response.model';
 import { LearningResponse } from '../models/learning-response.model';
 import { PaginationRequest } from '../models/pagination-request.model';
@@ -13,22 +12,14 @@ import { WikiCreateRequest } from '../models/wiki-create-request.model';
 import { BlogSubmissionResponse } from '../models/blog-submission-response.model';
 import { LearningSubmissionResponse } from '../models/learning-submission-response.model';
 import { WikiSubmissionResponse } from '../models/wiki-submission-response.model';
+import { SubmissionStatus } from '../models/submission-status.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class LibraryService {
   private http = inject(HttpClient);
-  private authService = inject(AuthService);
   private readonly baseUrl = 'http://localhost:8082/api/';
-
-  private get userId(): number {
-    const userId = this.authService.getUserId();
-    if (!userId) {
-      throw new Error('User is not authenticated.');
-    }
-    return userId;
-  }
 
   private createHttpParams(
     request: PaginationRequest,
@@ -57,10 +48,9 @@ export class LibraryService {
     tagIdFilter?: number | null
   ): Observable<PaginationResponse<LearningResponse>> {
     const params = this.createHttpParams(request, statusFilter, tagIdFilter);
-    const headers = { 'X-Employee-Id': this.userId.toString() };
     return this.http.get<PaginationResponse<LearningResponse>>(
       `${this.baseUrl}learnings/my-learnings`,
-      { params, headers }
+      { params }
     );
   }
 
@@ -70,10 +60,9 @@ export class LibraryService {
     tagIdFilter?: number | null
   ): Observable<PaginationResponse<BlogResponse>> {
     const params = this.createHttpParams(request, statusFilter, tagIdFilter);
-    const headers = { 'X-Author-Id': this.userId.toString() };
     return this.http.get<PaginationResponse<BlogResponse>>(
       `${this.baseUrl}blogs/my-blogs`,
-      { params, headers }
+      { params }
     );
   }
 
@@ -83,52 +72,55 @@ export class LibraryService {
     tagIdFilter?: number | null
   ): Observable<PaginationResponse<WikiResponse>> {
     const params = this.createHttpParams(request, statusFilter, tagIdFilter);
-    const headers = { 'X-Author-Id': this.userId.toString() };
     return this.http.get<PaginationResponse<WikiResponse>>(
       `${this.baseUrl}wikis/my-wikis`,
-      { params, headers }
+      { params }
     );
   }
 
-  createLearning(
-    request: LearningCreateRequest,
-    reviewerId: number
-  ): Observable<LearningResponse> {
-    const headers = {
-      'X-Submitter-Id': this.userId.toString(),
-      'X-Reviewer-Id': reviewerId.toString(),
-    };
+  createLearning(request: LearningCreateRequest): Observable<LearningResponse> {
     return this.http.post<LearningResponse>(
       `${this.baseUrl}learnings`,
-      request,
-      { headers }
+      request
     );
   }
 
-  createBlog(
-    request: BlogCreateRequest,
-    reviewerId: number
-  ): Observable<BlogResponse> {
-    const headers = {
-      'X-Author-Id': this.userId.toString(),
-      'X-Reviewer-Id': reviewerId.toString(),
-    };
-    return this.http.post<BlogResponse>(`${this.baseUrl}blogs`, request, {
-      headers,
-    });
+  createBlog(request: BlogCreateRequest, file: File): Observable<BlogResponse> {
+    const formData = new FormData();
+
+    // Append the file with the key "file"
+    formData.append('file', file);
+
+    // Append the DTO as a JSON string with the key "blogCreateRequestDto"
+    // The key here must match the @RequestPart name in your Spring Boot controller
+    formData.append(
+      'blogCreateRequestDto',
+      new Blob([JSON.stringify(request)], {
+        type: 'application/json',
+      })
+    );
+
+    // Send the formData object in the POST request
+    return this.http.post<BlogResponse>(`${this.baseUrl}blogs`, formData);
   }
 
-  createWiki(
-    request: WikiCreateRequest,
-    reviewerId: number
-  ): Observable<WikiResponse> {
-    const headers = {
-      'X-Author-Id': this.userId.toString(),
-      'X-Reviewer-Id': reviewerId.toString(),
-    };
-    return this.http.post<WikiResponse>(`${this.baseUrl}wikis`, request, {
-      headers,
-    });
+  createWiki(request: WikiCreateRequest, file: File): Observable<WikiResponse> {
+    const formData = new FormData();
+
+    // Append the file with the key "file"
+    formData.append('file', file);
+
+    // Append the DTO as a JSON string with the key "wikiCreateRequestDto"
+    // The key here must match the @RequestPart name in your Spring Boot controller
+    formData.append(
+      'wikiCreateRequestDto',
+      new Blob([JSON.stringify(request)], {
+        type: 'application/json',
+      })
+    );
+
+    // Send the formData object in the POST request
+    return this.http.post<WikiResponse>(`${this.baseUrl}wikis`, formData);
   }
 
   getLearningDetails(learningId: number): Observable<LearningResponse> {
@@ -147,50 +139,60 @@ export class LibraryService {
 
   resubmitLearning(
     learningId: number,
-    request: LearningCreateRequest,
-    reviewerId: number
+    request: LearningCreateRequest
   ): Observable<LearningResponse> {
-    const headers = {
-      'X-Submitter-Id': this.userId.toString(),
-      'X-Reviewer-Id': reviewerId.toString(),
-    };
     return this.http.put<LearningResponse>(
       `${this.baseUrl}learnings/${learningId}/resubmit`,
-      request,
-      { headers }
+      request
     );
   }
 
   resubmitBlog(
     blogId: number,
     request: BlogCreateRequest,
-    reviewerId: number
+    file?: File | null // Added optional file parameter
   ): Observable<BlogResponse> {
-    const headers = {
-      'X-Author-Id': this.userId.toString(),
-      'X-Reviewer-Id': reviewerId.toString(),
-    };
-    return this.http.put<BlogResponse>(
-      `${this.baseUrl}blogs/${blogId}/resubmit`,
-      request,
-      { headers }
-    );
+    if (file) {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append(
+        'blogCreateRequestDto',
+        new Blob([JSON.stringify(request)], { type: 'application/json' })
+      );
+      return this.http.put<BlogResponse>(
+        `${this.baseUrl}blogs/${blogId}/resubmit`,
+        formData
+      );
+    } else {
+      return this.http.put<BlogResponse>(
+        `${this.baseUrl}blogs/${blogId}/resubmit`,
+        request
+      );
+    }
   }
 
   resubmitWiki(
     wikiId: number,
     request: WikiCreateRequest,
-    reviewerId: number
+    file?: File | null // Added optional file parameter
   ): Observable<WikiResponse> {
-    const headers = {
-      'X-Author-Id': this.userId.toString(),
-      'X-Reviewer-Id': reviewerId.toString(),
-    };
-    return this.http.put<WikiResponse>(
-      `${this.baseUrl}wikis/${wikiId}/resubmit`,
-      request,
-      { headers }
-    );
+    if (file) {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append(
+        'wikiCreateRequestDto',
+        new Blob([JSON.stringify(request)], { type: 'application/json' })
+      );
+      return this.http.put<WikiResponse>(
+        `${this.baseUrl}wikis/${wikiId}/resubmit`,
+        formData
+      );
+    } else {
+      return this.http.put<WikiResponse>(
+        `${this.baseUrl}wikis/${wikiId}/resubmit`,
+        request
+      );
+    }
   }
 
   private buildParams(request: PaginationRequest): HttpParams {
@@ -236,41 +238,65 @@ export class LibraryService {
   }
 
   getPendingLearningSubmissions(
-    managerId: number,
     pagination: PaginationRequest
   ): Observable<PaginationResponse<LearningSubmissionResponse>> {
-    const headers = { 'X-Reviewer-Id': managerId.toString() };
     const params = this.createHttpParams(pagination);
 
     return this.http.get<PaginationResponse<LearningSubmissionResponse>>(
       `${this.baseUrl}learnings/submissions/pending-review`,
-      { headers, params }
+      { params }
     );
   }
 
   getPendingBlogSubmissions(
-    managerId: number,
     pagination: PaginationRequest
   ): Observable<PaginationResponse<BlogSubmissionResponse>> {
-    const headers = { 'X-Reviewer-Id': managerId.toString() };
     const params = this.createHttpParams(pagination);
 
     return this.http.get<PaginationResponse<BlogSubmissionResponse>>(
       `${this.baseUrl}blogs/submissions/pending-review`,
-      { headers, params }
+      { params }
     );
   }
 
   getPendingWikiSubmissions(
-    managerId: number,
     pagination: PaginationRequest
   ): Observable<PaginationResponse<WikiSubmissionResponse>> {
-    const headers = { 'X-Reviewer-Id': managerId.toString() };
     const params = this.createHttpParams(pagination);
 
     return this.http.get<PaginationResponse<WikiSubmissionResponse>>(
       `${this.baseUrl}wikis/submissions/pending-review`,
-      { headers, params }
+      { params }
+    );
+  }
+
+  reviewLearningSubmission(
+    matrialId: number,
+    reviewRequest: { status: SubmissionStatus; reviewerComment: string | null }
+  ) {
+    return this.http.patch<LearningSubmissionResponse>(
+      `${this.baseUrl}learnings/submissions/${matrialId}/review`,
+      reviewRequest
+    );
+  }
+
+  reviewBlogSubmission(
+    matrialId: number,
+    reviewRequest: { status: SubmissionStatus; reviewerComment: string | null }
+  ) {
+    return this.http.patch<BlogSubmissionResponse>(
+      `${this.baseUrl}blogs/submissions/${matrialId}/review`,
+      reviewRequest
+    );
+  }
+
+  reviewWikiSubmission(
+    matrialId: number,
+    reviewRequest: { status: SubmissionStatus; reviewerComment: string | null }
+  ) {
+    return this.http.patch<WikiSubmissionResponse>(
+      `${this.baseUrl}wikis/submissions/${matrialId}/review`,
+      reviewRequest
     );
   }
 }

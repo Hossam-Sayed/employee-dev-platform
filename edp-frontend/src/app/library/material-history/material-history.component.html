@@ -21,7 +21,11 @@
   <div class="submissions-list">
     <mat-accordion multi>
       @for (submission of submissionHistory()!.content; track submission.id) {
-      <mat-expansion-panel class="submission-panel mat-elevation-z1">
+      <!-- Bind the (opened) event to the new method -->
+      <mat-expansion-panel
+        class="submission-panel mat-elevation-z1"
+        (opened)="onPanelOpened(submission)"
+      >
         <mat-expansion-panel-header class="submission-header">
           <mat-panel-title class="submission-header-title">
             <span class="submission-id">Submission #{{ submission.id }}</span>
@@ -60,17 +64,37 @@
               <div matListItemTitle>Description</div>
               <div matListItemLine>{{ submission.description }}</div>
             </mat-list-item>
+
+            <!-- Conditional display for the file based on the new logic -->
+            @if (getSubmissionFileUrl(submission.id)) {
             <mat-list-item>
               <mat-icon matListItemIcon>insert_drive_file</mat-icon>
-              <div matListItemTitle>Document URL</div>
+              <div matListItemTitle>Document</div>
               <a
                 matListItemLine
-                [href]="submission.documentUrl"
+                [href]="getSubmissionFileUrl(submission.id)!"
                 target="_blank"
-                >{{ submission.documentUrl }}</a
+                download
+                >Download Document</a
               >
             </mat-list-item>
-            }
+
+            <mat-divider></mat-divider>
+
+            <div class="file-viewer-container">
+              <iframe
+                [src]="getSubmissionFileUrl(submission.id)!"
+                frameborder="0"
+                class="file-iframe"
+              ></iframe>
+            </div>
+            } @else {
+            <!-- Optionally show a loading indicator or a message -->
+            <div class="loading-file-message">
+              <mat-spinner [diameter]="20"></mat-spinner>
+              <span>Loading file...</span>
+            </div>
+            } }
           </mat-list>
 
           @if (submission.reviewerId || submission.reviewedAt ||
@@ -119,7 +143,7 @@
                 [tagName]="tag.tagName"
                 [durationMinutes]="tag.durationMinutes"
               />
-              }@else {
+              } @else {
               <app-custom-tag [tagName]="tag.tagName" />
               } }
             </mat-chip-listbox>

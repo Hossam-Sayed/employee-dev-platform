@@ -18,7 +18,7 @@ public class WikiSubmissionResponseDTO {
     private Long wikiId;
     private String title;
     private String description;
-    private String documentUrl;
+    private String documentId;
     private SubmissionStatusDTO status;
     private String reviewerComment;
     private Long submitterId;

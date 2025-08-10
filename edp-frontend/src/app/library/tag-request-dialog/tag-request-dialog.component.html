@@ -1,5 +1,9 @@
 <mat-toolbar color="primary">
+  @if(isAdmin){
+  <span>Add New Tag</span>
+  }@else{
   <span>Request New Tag</span>
+  }
   <span class="toolbar-spacer"></span>
   <button mat-icon-button (click)="onCancel()">
     <mat-icon>close</mat-icon>
@@ -12,10 +16,14 @@
   class="tag-request-form"
 >
   <mat-dialog-content>
+    @if(isAdmin){
+    <p>Enter the name for the new tag you would like to add.</p>
+    }@else{
     <p>
       Enter the name for the new tag you would like to request. It will be
       reviewed by an admin.
     </p>
+    }
 
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Tag Name</mat-label>

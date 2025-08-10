@@ -17,15 +17,15 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog } from '@angular/material/dialog';
 import { MatMenuModule } from '@angular/material/menu';
 import { Observable, catchError, EMPTY, finalize } from 'rxjs';
-import { AuthService } from '../auth/service/auth.service';
-import { CustomTagComponent } from '../library/custom-tag/custom-tag.component';
-import { BlogSubmissionResponse } from '../library/models/blog-submission-response.model';
-import { LearningSubmissionResponse } from '../library/models/learning-submission-response.model';
-import { PaginationRequest } from '../library/models/pagination-request.model';
-import { PaginationResponse } from '../library/models/pagination-response.model';
-import { WikiSubmissionResponse } from '../library/models/wiki-submission-response.model';
-import { LibraryService } from '../library/services/library.service';
-import { MaterialType } from '../library/models/material.type';
+import { AuthService } from '../../auth/service/auth.service';
+import { BlogSubmissionResponse } from '../models/blog-submission-response.model';
+import { LearningSubmissionResponse } from '../models/learning-submission-response.model';
+import { PaginationRequest } from '../models/pagination-request.model';
+import { PaginationResponse } from '../models/pagination-response.model';
+import { WikiSubmissionResponse } from '../models/wiki-submission-response.model';
+import { LibraryService } from '../services/library.service';
+import { MaterialType } from '../models/material.type';
+import { Router } from '@angular/router';
 
 type ReviewableSubmission =
   | LearningSubmissionResponse
@@ -46,7 +46,6 @@ type ReviewableSubmission =
     MatIconModule,
     MatProgressSpinnerModule,
     MatMenuModule,
-    CustomTagComponent,
   ],
   templateUrl: './pending-reviews.component.html',
   styleUrls: ['./pending-reviews.component.css'],
@@ -56,6 +55,7 @@ export class PendingReviewsComponent implements OnInit {
   private libraryService = inject(LibraryService);
   private dialog = inject(MatDialog);
   private cdr = inject(ChangeDetectorRef);
+  private router = inject(Router);
 
   currentTab = signal<MaterialType>('learning');
 
@@ -75,12 +75,7 @@ export class PendingReviewsComponent implements OnInit {
     sortDirection: 'DESC',
   });
 
-  displayedColumns: string[] = [
-    'title',
-    'submitterId',
-    'submittedAt',
-    'actions',
-  ];
+  displayedColumns: string[] = ['title', 'submitterId', 'submittedAt'];
   readonly tabLabels = {
     learning: 'Learnings',
     blog: 'Blogs',
@@ -114,22 +109,16 @@ export class PendingReviewsComponent implements OnInit {
 
     switch (this.currentTab()) {
       case 'learning':
-        fetchObservable = this.libraryService.getPendingLearningSubmissions(
-          managerId,
-          request
-        );
+        fetchObservable =
+          this.libraryService.getPendingLearningSubmissions(request);
         break;
       case 'blog':
-        fetchObservable = this.libraryService.getPendingBlogSubmissions(
-          managerId,
-          request
-        );
+        fetchObservable =
+          this.libraryService.getPendingBlogSubmissions(request);
         break;
       case 'wiki':
-        fetchObservable = this.libraryService.getPendingWikiSubmissions(
-          managerId,
-          request
-        );
+        fetchObservable =
+          this.libraryService.getPendingWikiSubmissions(request);
         break;
       default:
         this.isLoading.set(false);
@@ -188,17 +177,30 @@ export class PendingReviewsComponent implements OnInit {
     this.fetchPendingSubmissions();
   }
 
-  onViewDetails(submission: ReviewableSubmission): void {
+  onRowClick(submission: ReviewableSubmission): void {
     let dialogComponent;
     switch (this.currentTab()) {
       case 'learning':
         // dialogComponent = LearningSubmissionDetailsDialogComponent;
+        console.log('CURRENT SUBMISSION', submission);
+        submission = submission as LearningSubmissionResponse;
+        this.router.navigate([
+          `/library/${this.currentTab()}/${submission.learningId}/review`,
+        ]);
         break;
       case 'blog':
-        // dialogComponent = BlogSubmissionDetailsDialogComponent;
+        console.log('CURRENT SUBMISSION', submission);
+        submission = submission as BlogSubmissionResponse;
+        this.router.navigate([
+          `/library/${this.currentTab()}/${submission.blogId}/review`,
+        ]);
         break;
       case 'wiki':
-        // dialogComponent = WikiSubmissionDetailsDialogComponent;
+        console.log('CURRENT SUBMISSION', submission);
+        submission = submission as WikiSubmissionResponse;
+        this.router.navigate([
+          `/library/${this.currentTab()}/${submission.wikiId}/review`,
+        ]);
         break;
     }
 

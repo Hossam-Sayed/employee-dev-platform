@@ -35,13 +35,14 @@ public interface WikiMapper {
     @Mapping(target = "reviewedAt", ignore = true)
     @Mapping(target = "tags", ignore = true)
     @Mapping(target = "submitterId", source = "submitterId")
-    @Mapping(target = "reviewerId", source = "reviewerId")
-    WikiSubmission toWikiSubmission(WikiCreateRequestDTO dto, Wiki wiki, Long submitterId, Long reviewerId);
+    @Mapping(target = "reviewerId", ignore = true)
+    @Mapping(target = "documentId", source = "documentId")
+    WikiSubmission toWikiSubmission(WikiCreateRequestDTO dto, Wiki wiki, Long submitterId, String documentId);
 
     @Mapping(target = "currentSubmissionId", source = "currentSubmission.id")
     @Mapping(target = "title", source = "currentSubmission.title")
     @Mapping(target = "description", source = "currentSubmission.description")
-    @Mapping(target = "documentUrl", source = "currentSubmission.documentUrl")
+    @Mapping(target = "documentId", source = "currentSubmission.documentId")
     @Mapping(target = "status", source = "currentSubmission.status", qualifiedByName = "toSubmissionStatusDTO")
     @Mapping(target = "tags", source = "currentSubmission.tags")
     WikiResponseDTO toWikiResponseDTO(Wiki wiki);
@@ -57,6 +58,7 @@ public interface WikiMapper {
     @Mapping(target = "wikiId", source = "wiki.id")
     @Mapping(target = "status", source = "status", qualifiedByName = "toSubmissionStatusDTO")
     @Mapping(target = "tags", source = "tags")
+    @Mapping(target = "documentId", source = "documentId")
     WikiSubmissionResponseDTO toWikiSubmissionResponseDTO(WikiSubmission submission);
 
     List<WikiSubmissionResponseDTO> toWikiSubmissionResponseDTOs(List<WikiSubmission> submissions);

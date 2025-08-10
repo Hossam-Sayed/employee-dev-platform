@@ -28,14 +28,40 @@
       }
     </mat-form-field>
     } @else {
-    <mat-form-field appearance="outline" class="full-width-input">
-      <mat-label>Document URL</mat-label>
-      <input matInput formControlName="documentUrl" />
-      @if (form.get('documentUrl')?.invalid && form.get('documentUrl')?.touched)
-      {
-      <mat-error>Document URL is required.</mat-error>
-      }
-    </mat-form-field>
+    <div class="file-picker-container">
+      <mat-form-field appearance="outline" class="full-width-input">
+        <mat-label>Document File</mat-label>
+        <div class="file-picker-input-group">
+          <input
+            #fileInput
+            type="file"
+            (change)="onFileSelected($event)"
+            accept=".pdf"
+            hidden
+          />
+          <input
+            matInput
+            [value]="selectedFile()?.name || currentFileName()"
+            readonly
+            (click)="fileInput.click()"
+            placeholder="Select a file"
+            class="file-display-input"
+          />
+          <button
+            mat-icon-button
+            type="button"
+            color="primary"
+            class="upload-button"
+            (click)="fileInput.click()"
+          >
+            <mat-icon>upload_file</mat-icon>
+          </button>
+        </div>
+        @if (fileControl.invalid && fileControl.touched) {
+        <mat-error>A document file is required.</mat-error>
+        }
+      </mat-form-field>
+    </div>
 
     <mat-form-field appearance="outline" class="full-width-input">
       <mat-label>Description</mat-label>
@@ -66,8 +92,8 @@
               min="1"
               (keydown.space)="$event.preventDefault()"
             />
-            @if (tagGroup.get('duration')?.invalid &&
-            tagGroup.get('duration')?.touched) {
+            @if (tagGroup.get('durationMinutes')?.invalid &&
+            tagGroup.get('durationMinutes')?.touched) {
             <mat-error
               >Duration is required and must be a positive number.</mat-error
             >
@@ -103,7 +129,11 @@
         mat-flat-button
         color="primary"
         type="submit"
-        [disabled]="form.invalid || isSubmitting()"
+        [disabled]="
+          form.invalid ||
+          isSubmitting() ||
+          (materialType() !== 'learning' && fileControl.invalid)
+        "
       >
         <span *ngIf="!isSubmitting()">{{
           isEditMode() ? "Resubmit" : "Submit"

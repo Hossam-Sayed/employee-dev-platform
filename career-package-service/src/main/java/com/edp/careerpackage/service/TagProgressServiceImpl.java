@@ -59,7 +59,7 @@ public class TagProgressServiceImpl implements TagProgressService {
         if (file != null && !file.isEmpty()) {
             String token = JwtUserContext.getToken();
             try {
-                FileResponseDto response = fileServiceClient.uploadFile(file, token).getBody();
+                FileResponseDto response = fileServiceClient.uploadFile(file, token, false).getBody();
                 tagProgress.setFileId(response.getId());
             } catch (FeignException ex) {
                 throw new IllegalStateException("Failed to contact FileService: " + ex.getMessage());

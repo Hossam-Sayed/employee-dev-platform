@@ -13,19 +13,18 @@ import com.edp.library.model.PaginationRequestDTO;
 import com.edp.library.model.PaginationResponseDTO;
 import com.edp.library.model.enums.TagRequestStatusDTO;
 import com.edp.library.model.tag.*;
+import com.edp.library.utils.PaginationUtils;
+import com.edp.shared.security.jwt.JwtUserContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
@@ -39,11 +38,11 @@ public class TagServiceImpl implements TagService {
 
     @Override
     @Transactional
-    public TagRequestResponseDTO createTagRequest(TagCreateRequestDTO request, Long requesterId) {
+    public TagRequestResponseDTO createTagRequest(TagCreateRequestDTO request) {
         if (isDuplicateTagRequestOrApprovedTag(request.getRequestedName())) {
             throw new ResourceAlreadyExistsException("A tag with name '" + request.getRequestedName() + "' is already approved, pending, or rejected.");
         }
-
+        Long requesterId = JwtUserContext.getUserId();
         TagRequest tagRequest = tagMapper.toTagRequest(request, requesterId);
         tagRequest.setCreatedAt(Instant.now());
         tagRequest.setStatus(TagRequestStatus.PENDING); // Ensure status is PENDING
@@ -51,13 +50,13 @@ public class TagServiceImpl implements TagService {
         tagRequest = tagRequestRepository.save(tagRequest);
 
         // TODO: Notification: As a USER, I need to be notified if my tag request is approved or rejected.
-        // Initial notification: "Your tag request for 'X' has been submitted and is pending review."
-        // Event data: requesterId, tagRequestId, requestedName, status.
-        // Triggered: On successful creation of tag request.
+        //  Initial notification: "Your tag request for 'X' has been submitted and is pending review."
+        //  Event data: requesterId, tagRequestId, requestedName, status.
+        //  Triggered: On successful creation of tag request.
 
         // TODO: Notification: As an ADMIN, I need to receive notifications when a new tag request is submitted.
-        // Event data: tagRequestId, requestedName, requesterId.
-        // Triggered: On successful creation of tag request.
+        //  Event data: tagRequestId, requestedName, requesterId.
+        //  Triggered: On successful creation of tag request.
 
         return tagMapper.toTagRequestResponseDTO(tagRequest);
     }
@@ -87,31 +86,24 @@ public class TagServiceImpl implements TagService {
 
     @Override
     @Transactional(readOnly = true)
-    public PaginationResponseDTO<TagRequestResponseDTO> getMyTagRequests(Long requesterId, PaginationRequestDTO paginationRequestDTO) {
-        Pageable pageable = PageRequest.of(
-                paginationRequestDTO.getPage(),
-                paginationRequestDTO.getSize(),
-                Sort.by(Objects.requireNonNullElse(paginationRequestDTO.getSortDirection(), Sort.Direction.DESC), paginationRequestDTO.getSortBy())
-        );
+    public PaginationResponseDTO<TagRequestResponseDTO> getMyTagRequests(PaginationRequestDTO paginationRequestDTO) {
+        Pageable pageable = PaginationUtils.toPageable(paginationRequestDTO, Tag.class);
+        Long requesterId = JwtUserContext.getUserId();
         Page<TagRequest> tagRequests = tagRequestRepository.findByRequesterId(requesterId, pageable);
-        return mapToPaginationResponseDTO(tagRequests, tagMapper.toTagRequestResponseDTOs(tagRequests.getContent()));
+        return PaginationUtils.mapToPaginationResponseDTO(tagRequests, tagMapper.toTagRequestResponseDTOs(tagRequests.getContent()));
     }
 
     @Override
     @Transactional(readOnly = true)
     public PaginationResponseDTO<TagRequestResponseDTO> getAllPendingTagRequests(PaginationRequestDTO paginationRequestDTO) {
-        Pageable pageable = PageRequest.of(
-                paginationRequestDTO.getPage(),
-                paginationRequestDTO.getSize(),
-                Sort.by(Objects.requireNonNullElse(paginationRequestDTO.getSortDirection(), Sort.Direction.DESC), paginationRequestDTO.getSortBy())
-        );
+        Pageable pageable = PaginationUtils.toPageable(paginationRequestDTO, Tag.class);
         Page<TagRequest> pendingRequests = tagRequestRepository.findByStatus(TagRequestStatus.PENDING, pageable);
-        return mapToPaginationResponseDTO(pendingRequests, tagMapper.toTagRequestResponseDTOs(pendingRequests.getContent()));
+        return PaginationUtils.mapToPaginationResponseDTO(pendingRequests, tagMapper.toTagRequestResponseDTOs(pendingRequests.getContent()));
     }
 
     @Override
     @Transactional
-    public TagRequestResponseDTO reviewTagRequest(Long tagRequestId, TagRequestReviewDTO reviewDTO, Long reviewerId) {
+    public TagRequestResponseDTO reviewTagRequest(Long tagRequestId, TagRequestReviewDTO reviewDTO) {
         TagRequest tagRequest = tagRequestRepository.findById(tagRequestId)
                 .orElseThrow(() -> new ResourceNotFoundException("Tag Request not found with ID: " + tagRequestId));
 
@@ -127,8 +119,10 @@ public class TagServiceImpl implements TagService {
             throw new InvalidOperationException("Reviewer comment must be at least 10 characters long for rejection.");
         }
 
+        Long adminId = JwtUserContext.getUserId();
+
         tagRequest.setStatus(tagMapper.toTagRequestStatusEntity(reviewDTO.getStatus()));
-        tagRequest.setReviewerId(reviewerId);
+        tagRequest.setReviewerId(adminId);
         tagRequest.setReviewedAt(Instant.now());
         tagRequest.setReviewerComment(reviewDTO.getReviewerComment());
 
@@ -139,7 +133,7 @@ public class TagServiceImpl implements TagService {
             }
             Tag newTag = Tag.builder()
                     .name(tagRequest.getRequestedName())
-                    .createdBy(reviewerId) // Admin who approved it
+                    .createdBy(adminId) // Admin who approved it
                     .createdAt(Instant.now())
                     .active(true)
                     .build();
@@ -149,8 +143,8 @@ public class TagServiceImpl implements TagService {
         tagRequest = tagRequestRepository.save(tagRequest);
 
         // TODO: Notification: As a USER, I need to be notified if my tag request is approved or rejected.
-        // Event data: requesterId, tagRequestId, requestedName, newStatus, reviewerComment (if rejected)
-        // Triggered: On approval/rejection of tag request.
+        //  Event data: requesterId, tagRequestId, requestedName, newStatus, reviewerComment (if rejected)
+        //  Triggered: On approval/rejection of tag request.
 
         return tagMapper.toTagRequestResponseDTO(tagRequest);
     }
@@ -158,11 +152,7 @@ public class TagServiceImpl implements TagService {
     @Override
     @Transactional(readOnly = true)
     public PaginationResponseDTO<TagDTO> getAllTagsForAdmin(String nameFilter, Boolean isActiveFilter, PaginationRequestDTO paginationRequestDTO) {
-        Pageable pageable = PageRequest.of(
-                paginationRequestDTO.getPage(),
-                paginationRequestDTO.getSize(),
-                Sort.by(Objects.requireNonNullElse(paginationRequestDTO.getSortDirection(), Sort.Direction.DESC), paginationRequestDTO.getSortBy())
-        );
+        Pageable pageable = PaginationUtils.toPageable(paginationRequestDTO, Tag.class);
 
         Page<Tag> tags;
         if (StringUtils.hasText(nameFilter) && isActiveFilter != null) {
@@ -175,12 +165,12 @@ public class TagServiceImpl implements TagService {
             tags = tagRepository.findAll(pageable);
         }
 
-        return mapToPaginationResponseDTO(tags, tagMapper.toTagDTOs(tags.getContent()));
+        return PaginationUtils.mapToPaginationResponseDTO(tags, tagMapper.toTagDTOs(tags.getContent()));
     }
 
     @Override
     @Transactional
-    public TagDTO updateTagStatus(Long tagId, TagUpdateStatusDTO updateStatusDTO, Long adminId) {
+    public TagDTO updateTagStatus(Long tagId, TagUpdateStatusDTO updateStatusDTO) {
         Tag tag = tagRepository.findById(tagId)
                 .orElseThrow(() -> new ResourceNotFoundException("Tag not found with ID: " + tagId));
 
@@ -189,17 +179,13 @@ public class TagServiceImpl implements TagService {
         }
 
         tag.setActive(updateStatusDTO.getActive());
-        // Optionally, record who updated it and when if such fields exist in Tag entity
-        // tag.setUpdatedBy(adminId);
-        // tag.setUpdatedAt(Instant.now());
-
         tagRepository.save(tag);
         return tagMapper.toTagDTO(tag);
     }
 
     @Override
     @Transactional
-    public TagDTO createTagByAdmin(TagCreateRequestDTO tagCreateRequestDTO, Long adminId) {
+    public TagDTO createTagByAdmin(TagCreateRequestDTO tagCreateRequestDTO) {
         // 1. Validate input
         if (!StringUtils.hasText(tagCreateRequestDTO.getRequestedName())) {
             throw new IllegalArgumentException("Tag name cannot be null or empty.");
@@ -214,6 +200,7 @@ public class TagServiceImpl implements TagService {
         }
 
         // 3. Create new Tag entity
+        Long adminId = JwtUserContext.getUserId();
         Tag newTag = Tag.builder()
                 .name(tagCreateRequestDTO.getRequestedName())
                 .createdBy(adminId)
@@ -226,20 +213,5 @@ public class TagServiceImpl implements TagService {
 
         // 5. Return the response DTO
         return tagMapper.toTagDTO(savedTag);
-    }
-
-    // Helper method for pagination response mapping
-    private <T, U> PaginationResponseDTO<U> mapToPaginationResponseDTO(Page<T> page, List<U> content) {
-        return PaginationResponseDTO.<U>builder()
-                .content(content)
-                .page(page.getNumber())
-                .size(page.getSize())
-                .totalElements(page.getTotalElements())
-                .totalPages(page.getTotalPages())
-                .isFirst(page.isFirst())
-                .isLast(page.isLast())
-                .hasNext(page.hasNext())
-                .hasPrevious(page.hasPrevious())
-                .build();
     }
 }

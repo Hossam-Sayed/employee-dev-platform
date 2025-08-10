@@ -75,7 +75,7 @@ export class MyTagRequestsComponent implements OnInit {
     this.error.set(null);
 
     this.tagService
-      .getMyTagRequests(requesterId, this.paginationRequest())
+      .getMyTagRequests(this.paginationRequest())
       .pipe(
         finalize(() => this.isLoading.set(false)),
         catchError((err) => {

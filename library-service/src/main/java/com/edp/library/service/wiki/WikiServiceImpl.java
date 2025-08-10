@@ -19,6 +19,12 @@ import com.edp.library.model.enums.SubmissionStatusDTO;
 import com.edp.library.model.wiki.WikiCreateRequestDTO;
 import com.edp.library.model.wiki.WikiResponseDTO;
 import com.edp.library.model.wiki.WikiSubmissionResponseDTO;
+import com.edp.library.utils.PaginationUtils;
+import com.edp.shared.client.auth.AuthServiceClient;
+import com.edp.shared.client.auth.model.UserProfileDto;
+import com.edp.shared.client.file.FileServiceClient;
+import com.edp.shared.client.file.model.FileResponseDto;
+import com.edp.shared.security.jwt.JwtUserContext;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
@@ -31,6 +37,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.util.*;
@@ -46,10 +53,12 @@ public class WikiServiceImpl implements WikiService {
     private final WikiSubmissionTagRepository wikiSubmissionTagRepository;
     private final TagRepository tagRepository;
     private final WikiMapper wikiMapper;
+    private final AuthServiceClient authServiceClient;
+    private final FileServiceClient fileServiceClient;
 
     @Override
     @Transactional
-    public WikiResponseDTO createWiki(WikiCreateRequestDTO request, Long authorId, Long reviewerId) {
+    public WikiResponseDTO createWiki(WikiCreateRequestDTO request, MultipartFile file) {
         // TODO: AUTHENTICATION: Ensure the authorId corresponds to a valid authenticated user.
         // TODO: AUTHORIZATION: Verify the authenticated user has permission to create a wiki.
 
@@ -74,12 +83,23 @@ public class WikiServiceImpl implements WikiService {
             throw new InvalidOperationException("One or more selected tags are not active: " + inactiveTagIds);
         }
 
+        if (file == null || file.isEmpty()) {
+            throw new InvalidOperationException("No blog file available. A blog must have a file.");
+        }
+
+        FileResponseDto fileResponse = fileServiceClient.uploadFile(file, JwtUserContext.getToken(), true).getBody();
+
+        if (fileResponse == null) {
+            throw new InvalidOperationException("Something went wrong while uploading the file! Please try again!");
+        }
+
         // 2. Create a new Wiki entity
+        Long authorId = JwtUserContext.getUserId();
         Wiki wiki = wikiMapper.toWiki(authorId);
         wiki = wikiRepository.save(wiki);
 
         // 3. Create and save the new WikiSubmission for this new Wiki
-        WikiSubmission submission = wikiMapper.toWikiSubmission(request, wiki, authorId, reviewerId);
+        WikiSubmission submission = wikiMapper.toWikiSubmission(request, wiki, authorId, fileResponse.getId());
         submission = wikiSubmissionRepository.save(submission);
 
         // 4. Save WikiSubmissionTag entries
@@ -107,11 +127,13 @@ public class WikiServiceImpl implements WikiService {
 
     @Override
     @Transactional
-    public WikiResponseDTO editRejectedWikiSubmission(Long wikiId, WikiCreateRequestDTO request, Long authorId, Long reviewerId) {
+    public WikiResponseDTO editRejectedWikiSubmission(Long wikiId, WikiCreateRequestDTO request, MultipartFile file) {
         // TODO: AUTHENTICATION: Ensure the authorId corresponds to a valid authenticated user.
         // TODO: AUTHORIZATION: Verify the authenticated user has permission to edit this wiki (i.e., is the author).
         Wiki wiki = wikiRepository.findById(wikiId)
                 .orElseThrow(() -> new ResourceNotFoundException("Wiki not found with ID: " + wikiId));
+
+        Long authorId = JwtUserContext.getUserId();
 
         if (!wiki.getAuthorId().equals(authorId)) {
             throw new InvalidOperationException("User is not authorized to edit this wiki material.");
@@ -141,8 +163,18 @@ public class WikiServiceImpl implements WikiService {
             throw new InvalidOperationException("One or more selected tags are not active: " + inactiveTagIds);
         }
 
+        if (file == null || file.isEmpty()) {
+            throw new InvalidOperationException("No blog file available. A blog must have a file.");
+        }
+
+        FileResponseDto fileResponse = fileServiceClient.uploadFile(file, JwtUserContext.getToken(), true).getBody();
+
+        if (fileResponse == null) {
+            throw new InvalidOperationException("Something went wrong while uploading the file! Please try again!");
+        }
+
         // Create and save the new WikiSubmission for the existing Wiki
-        WikiSubmission newSubmission = wikiMapper.toWikiSubmission(request, wiki, authorId, reviewerId);
+        WikiSubmission newSubmission = wikiMapper.toWikiSubmission(request, wiki, authorId, fileResponse.getId());
         newSubmission = wikiSubmissionRepository.save(newSubmission);
 
         // Save WikiSubmissionTag entries for the new submission
@@ -170,12 +202,14 @@ public class WikiServiceImpl implements WikiService {
 
     @Override
     @Transactional(readOnly = true)
-    public PaginationResponseDTO<WikiResponseDTO> getMyWikis(Long authorId, String statusFilter, Long tagIdFilter, PaginationRequestDTO paginationRequestDTO) {
+    public PaginationResponseDTO<WikiResponseDTO> getMyWikis(String statusFilter, Long tagIdFilter, PaginationRequestDTO paginationRequestDTO) {
         // TODO: AUTHORIZATION: Verify the authenticated user's ID matches the authorId in the request header.
         Pageable pageable = PageRequest.of(
                 paginationRequestDTO.getPage(),
                 paginationRequestDTO.getSize()
         );
+
+        Long authorId = JwtUserContext.getUserId();
 
         Specification<Wiki> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -217,7 +251,7 @@ public class WikiServiceImpl implements WikiService {
 
 
         Page<Wiki> wikis = wikiRepository.findAll(spec, pageable);
-        return mapToPaginationResponseDTO(wikis, wikiMapper.toWikiResponseDTOs(wikis.getContent()));
+        return PaginationUtils.mapToPaginationResponseDTO(wikis, wikiMapper.toWikiResponseDTOs(wikis.getContent()));
     }
 
     @Override
@@ -242,38 +276,48 @@ public class WikiServiceImpl implements WikiService {
         // TODO: AUTHORIZATION: Restrict this endpoint. Only the author or a reviewer should be able to see the full submission history.
         // A regular user might only be able to see the current APPROVED submission.
 
-        Pageable pageable = PageRequest.of(
-                paginationRequestDTO.getPage(),
-                paginationRequestDTO.getSize(),
-                Sort.by(paginationRequestDTO.getSortDirection(), getActualSortBy(paginationRequestDTO.getSortBy(), WikiSubmission.class))
-        );
+        Pageable pageable = PaginationUtils.toPageable(paginationRequestDTO, WikiSubmission.class);
         Page<WikiSubmission> submissions = wikiSubmissionRepository.findByWikiIdOrderBySubmittedAtDesc(wikiId, pageable);
-        return mapToPaginationResponseDTO(submissions, wikiMapper.toWikiSubmissionResponseDTOs(submissions.getContent()));
+        return PaginationUtils.mapToPaginationResponseDTO(submissions, wikiMapper.toWikiSubmissionResponseDTOs(submissions.getContent()));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public PaginationResponseDTO<WikiSubmissionResponseDTO> getPendingWikiSubmissionsForReview(Long reviewerId, PaginationRequestDTO paginationRequestDTO) {
+    public PaginationResponseDTO<WikiSubmissionResponseDTO> getPendingWikiSubmissionsForReview(PaginationRequestDTO paginationRequestDTO) {
         // TODO: AUTHORIZATION: Verify the authenticated user's ID matches the reviewerId in the request header.
         // TODO: AUTHORIZATION: Verify the authenticated user has a 'REVIEWER' or 'MANAGER' role.
-        Pageable pageable = PageRequest.of(
-                paginationRequestDTO.getPage(),
-                paginationRequestDTO.getSize(),
-                Sort.by(paginationRequestDTO.getSortDirection(), getActualSortBy(paginationRequestDTO.getSortBy(), WikiSubmission.class))
-        );
-        Page<WikiSubmission> pendingSubmissions = wikiSubmissionRepository.findByReviewerIdAndStatus(reviewerId, SubmissionStatus.PENDING, pageable);
-        return mapToPaginationResponseDTO(pendingSubmissions, wikiMapper.toWikiSubmissionResponseDTOs(pendingSubmissions.getContent()));
+        Pageable pageable = PaginationUtils.toPageable(paginationRequestDTO, WikiSubmission.class);
+
+        Long managerId = JwtUserContext.getUserId();
+        String token = JwtUserContext.getToken();
+        List<UserProfileDto> managedUsers = authServiceClient.getManagedUsers(managerId, token);
+        List<Long> managedUserIds = managedUsers.stream()
+                .map(UserProfileDto::getId)
+                .toList();
+
+        Page<WikiSubmission> pendingSubmissions = wikiSubmissionRepository.findBySubmitterIdInAndStatus(managedUserIds, SubmissionStatus.PENDING, pageable);
+        return PaginationUtils.mapToPaginationResponseDTO(pendingSubmissions, wikiMapper.toWikiSubmissionResponseDTOs(pendingSubmissions.getContent()));
     }
 
     @Override
     @Transactional
-    public WikiSubmissionResponseDTO reviewWikiSubmission(Long submissionId, SubmissionReviewRequestDTO reviewDTO, Long reviewerId) {
+    public WikiSubmissionResponseDTO reviewWikiSubmission(Long submissionId, SubmissionReviewRequestDTO reviewDTO) {
         // TODO: AUTHORIZATION: Verify the authenticated user's ID matches the reviewerId in the request header.
         // TODO: AUTHORIZATION: Verify the authenticated user has a 'REVIEWER' or 'MANAGER' role.
         WikiSubmission submission = wikiSubmissionRepository.findById(submissionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Wiki Submission not found with ID: " + submissionId));
 
-        if (!submission.getReviewerId().equals(reviewerId)) {
+        Long reviewerId = JwtUserContext.getUserId();
+        String token = JwtUserContext.getToken();
+        List<UserProfileDto> managedUsers = authServiceClient.getManagedUsers(reviewerId, token);
+
+        Set<Long> managedUserIds = managedUsers.stream()
+                .map(UserProfileDto::getId)
+                .collect(Collectors.toSet());
+
+        boolean isResponsible = managedUserIds.contains(submission.getSubmitterId());
+
+        if (!isResponsible) {
             throw new InvalidOperationException("You are not authorized to review this submission.");
         }
 
@@ -289,6 +333,7 @@ public class WikiServiceImpl implements WikiService {
         }
 
         submission.setStatus(wikiMapper.toSubmissionStatusEntity(reviewDTO.getStatus()));
+        submission.setReviewerId(reviewerId);
         submission.setReviewedAt(Instant.now());
         submission.setReviewerComment(reviewDTO.getReviewerComment());
 
@@ -313,11 +358,7 @@ public class WikiServiceImpl implements WikiService {
     @Transactional(readOnly = true)
     public PaginationResponseDTO<WikiResponseDTO> getAllApprovedAndActiveWikis(String searchKeyword, List<Long> tagIds, PaginationRequestDTO paginationRequestDTO) {
         // TODO: AUTHENTICATION: This endpoint may not require authentication, but its logic might change if user roles are introduced (e.g., an 'admin' can see more).
-        Pageable pageable = PageRequest.of(
-                paginationRequestDTO.getPage(),
-                paginationRequestDTO.getSize(),
-                Sort.by(paginationRequestDTO.getSortDirection(), getActualSortBy(paginationRequestDTO.getSortBy(), Wiki.class))
-        );
+        Pageable pageable = PaginationUtils.toPageable(paginationRequestDTO, Wiki.class);
 
         Specification<Wiki> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -342,32 +383,6 @@ public class WikiServiceImpl implements WikiService {
         };
 
         Page<Wiki> wikis = wikiRepository.findAll(spec, pageable);
-        return mapToPaginationResponseDTO(wikis, wikiMapper.toWikiResponseDTOs(wikis.getContent()));
-    }
-
-    // Helper method for pagination response mapping
-    private <T, U> PaginationResponseDTO<U> mapToPaginationResponseDTO(Page<T> page, List<U> content) {
-        return PaginationResponseDTO.<U>builder()
-                .content(content)
-                .page(page.getNumber())
-                .size(page.getSize())
-                .totalElements(page.getTotalElements())
-                .totalPages(page.getTotalPages())
-                .isFirst(page.isFirst())
-                .isLast(page.isLast())
-                .hasNext(page.hasNext())
-                .hasPrevious(page.hasPrevious())
-                .build();
-    }
-
-    // Helper to dynamically adjust sortBy field based on entity type for Pageable
-    private String getActualSortBy(String requestedSortBy, Class<?> entityClass) {
-        if ("createdAt".equalsIgnoreCase(requestedSortBy)) {
-            if (WikiSubmission.class.isAssignableFrom(entityClass)) {
-                return "submittedAt";
-            }
-            return "createdAt";
-        }
-        return requestedSortBy;
+        return PaginationUtils.mapToPaginationResponseDTO(wikis, wikiMapper.toWikiResponseDTOs(wikis.getContent()));
     }
 }

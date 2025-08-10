@@ -20,6 +20,10 @@ import com.edp.library.model.PaginationRequestDTO;
 import com.edp.library.model.learning.LearningResponseDTO;
 import com.edp.library.model.learning.LearningSubmissionResponseDTO;
 import com.edp.library.model.learning.LearningTagDTO;
+import com.edp.library.utils.PaginationUtils;
+import com.edp.shared.client.auth.AuthServiceClient;
+import com.edp.shared.client.auth.model.UserProfileDto;
+import com.edp.shared.security.jwt.JwtUserContext;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +36,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -46,10 +49,11 @@ public class LearningServiceImpl implements LearningService {
     private final LearningSubmissionTagRepository learningSubmissionTagRepository;
     private final TagRepository tagRepository;
     private final LearningMapper learningMapper;
+    private final AuthServiceClient authServiceClient;
 
     @Override
     @Transactional
-    public LearningResponseDTO createLearning(LearningCreateRequestDTO request, Long submitterId, Long reviewerId) {
+    public LearningResponseDTO createLearning(LearningCreateRequestDTO request) {
         // 1. Validate and fetch active tags
         List<Long> tagIds = request.getTags().stream().map(LearningTagDTO::getTagId).collect(Collectors.toList());
         List<Tag> tags = tagRepository.findAllById(tagIds);
@@ -68,15 +72,16 @@ public class LearningServiceImpl implements LearningService {
             throw new InvalidOperationException("One or more selected tags are not active: " + inactiveTagIds);
         }
 
+        Long submitterId = JwtUserContext.getUserId();
+
         // 3. Create a new Learning entity (as per your preferred logic, always create a new root Learning for a new request)
         Learning learning = Learning.builder()
                 .employeeId(submitterId)
-                .createdAt(Instant.now())
                 .build();
         learning = learningRepository.save(learning);
 
         // 4. Create and save the new LearningSubmission for this new Learning
-        LearningSubmission submission = learningMapper.toLearningSubmission(request, learning, submitterId, reviewerId);
+        LearningSubmission submission = learningMapper.toLearningSubmission(request, learning, submitterId);
         submission = learningSubmissionRepository.save(submission);
 
         // 5. Save LearningSubmissionTag entries
@@ -106,11 +111,12 @@ public class LearningServiceImpl implements LearningService {
 
     @Override
     @Transactional
-    public LearningResponseDTO editRejectedLearningSubmission(Long learningId, LearningCreateRequestDTO request, Long submitterId, Long reviewerId) {
+    public LearningResponseDTO editRejectedLearningSubmission(Long learningId, LearningCreateRequestDTO request) {
         Learning learning = learningRepository.findById(learningId)
                 .orElseThrow(() -> new ResourceNotFoundException("Learning material not found with ID: " + learningId));
 
-        // TODO: Revise this check if needed
+        Long submitterId = JwtUserContext.getUserId();
+
         if (!learning.getEmployeeId().equals(submitterId)) {
             throw new InvalidOperationException("User is not authorized to edit this learning material.");
         }
@@ -126,7 +132,7 @@ public class LearningServiceImpl implements LearningService {
         List<Long> tagIds = request.getTags().stream().map(LearningTagDTO::getTagId).collect(Collectors.toList());
         List<Tag> tags = tagRepository.findAllById(tagIds);
         if (tags.size() != tagIds.size()) {
-            throw new ResourceNotFoundException("One or more tags not found. Provided IDs: " + tagIds + ", Found: " + tags.stream().map(Tag::getId).collect(Collectors.toList()));
+            throw new ResourceNotFoundException("One or more tags not found. Provided IDs: " + tagIds + ", Found: " + tags.stream().map(Tag::getId).toList());
         }
         Map<Long, Tag> activeTagsMap = tags.stream()
                 .filter(Tag::isActive)
@@ -139,8 +145,7 @@ public class LearningServiceImpl implements LearningService {
         }
 
         // Create and save the new LearningSubmission for the existing Learning material
-        LearningSubmission newSubmission = learningMapper.toLearningSubmission(request, learning, submitterId, reviewerId);
-
+        LearningSubmission newSubmission = learningMapper.toLearningSubmission(request, learning, submitterId);
         newSubmission = learningSubmissionRepository.save(newSubmission);
 
         // Save LearningSubmissionTag entries for the new submission
@@ -165,11 +170,13 @@ public class LearningServiceImpl implements LearningService {
 
     @Override
     @Transactional(readOnly = true)
-    public PaginationResponseDTO<LearningResponseDTO> getMyLearnings(Long employeeId, String statusFilter, Long tagIdFilter, PaginationRequestDTO paginationRequestDTO) {
+    public PaginationResponseDTO<LearningResponseDTO> getMyLearnings(String statusFilter, Long tagIdFilter, PaginationRequestDTO paginationRequestDTO) {
         Pageable pageable = PageRequest.of(
                 paginationRequestDTO.getPage(),
                 paginationRequestDTO.getSize()
         );
+
+        Long employeeId = JwtUserContext.getUserId();
 
         Specification<Learning> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -210,7 +217,7 @@ public class LearningServiceImpl implements LearningService {
 
 
         Page<Learning> learnings = learningRepository.findAll(spec, pageable);
-        return mapToPaginationResponseDTO(learnings, learningMapper.toLearningResponseDTOs(learnings.getContent()));
+        return PaginationUtils.mapToPaginationResponseDTO(learnings, learningMapper.toLearningResponseDTOs(learnings.getContent()));
     }
 
     @Override
@@ -228,45 +235,43 @@ public class LearningServiceImpl implements LearningService {
         learningRepository.findById(learningId)
                 .orElseThrow(() -> new ResourceNotFoundException("Learning material not found with ID: " + learningId));
 
-        String actualSortBy = paginationRequestDTO.getSortBy();
-        if ("createdAt".equalsIgnoreCase(actualSortBy)) {
-            actualSortBy = "submittedAt"; // LearningSubmission uses submittedAt
-        }
-
-        Pageable pageable = PageRequest.of(
-                paginationRequestDTO.getPage(),
-                paginationRequestDTO.getSize(),
-                Sort.by(paginationRequestDTO.getSortDirection(), actualSortBy)
-        );
+        Pageable pageable = PaginationUtils.toPageable(paginationRequestDTO, LearningSubmission.class);
         Page<LearningSubmission> submissions = learningSubmissionRepository.findByLearningIdOrderBySubmittedAtDesc(learningId, pageable);
-        return mapToPaginationResponseDTO(submissions, learningMapper.toLearningSubmissionResponseDTOs(submissions.getContent()));
+        return PaginationUtils.mapToPaginationResponseDTO(submissions, learningMapper.toLearningSubmissionResponseDTOs(submissions.getContent()));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public PaginationResponseDTO<LearningSubmissionResponseDTO> getPendingLearningSubmissionsForReview(Long managerId, PaginationRequestDTO paginationRequestDTO) {
+    public PaginationResponseDTO<LearningSubmissionResponseDTO> getPendingLearningSubmissionsForReview(PaginationRequestDTO paginationRequestDTO) {
+        Long managerId = JwtUserContext.getUserId();
+        String token = JwtUserContext.getToken();
+        List<UserProfileDto> managedUsers = authServiceClient.getManagedUsers(managerId, token);
+        List<Long> managedUserIds = managedUsers.stream()
+                .map(UserProfileDto::getId)
+                .toList();
 
-        String actualSortBy = paginationRequestDTO.getSortBy();
-        if ("createdAt".equalsIgnoreCase(actualSortBy)) {
-            actualSortBy = "submittedAt"; // LearningSubmission uses submittedAt
-        }
-
-        Pageable pageable = PageRequest.of(
-                paginationRequestDTO.getPage(),
-                paginationRequestDTO.getSize(),
-                Sort.by(paginationRequestDTO.getSortDirection(), actualSortBy)
-        );
-        Page<LearningSubmission> pendingSubmissions = learningSubmissionRepository.findByReviewerIdAndStatus(managerId, SubmissionStatus.PENDING, pageable);
-        return mapToPaginationResponseDTO(pendingSubmissions, learningMapper.toLearningSubmissionResponseDTOs(pendingSubmissions.getContent()));
+        Pageable pageable = PaginationUtils.toPageable(paginationRequestDTO, LearningSubmission.class);
+        Page<LearningSubmission> pendingSubmissions = learningSubmissionRepository.findBySubmitterIdInAndStatus(managedUserIds, SubmissionStatus.PENDING, pageable);
+        return PaginationUtils.mapToPaginationResponseDTO(pendingSubmissions, learningMapper.toLearningSubmissionResponseDTOs(pendingSubmissions.getContent()));
     }
 
     @Override
     @Transactional
-    public LearningSubmissionResponseDTO reviewLearningSubmission(Long submissionId, SubmissionReviewRequestDTO reviewDTO, Long reviewerId) {
+    public LearningSubmissionResponseDTO reviewLearningSubmission(Long submissionId, SubmissionReviewRequestDTO reviewDTO) {
         LearningSubmission submission = learningSubmissionRepository.findById(submissionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Submission not found with ID: " + submissionId));
 
-        if (!submission.getReviewerId().equals(reviewerId)) {
+        Long reviewerId = JwtUserContext.getUserId();
+        String token = JwtUserContext.getToken();
+        List<UserProfileDto> managedUsers = authServiceClient.getManagedUsers(reviewerId, token);
+
+        Set<Long> managedUserIds = managedUsers.stream()
+                .map(UserProfileDto::getId)
+                .collect(Collectors.toSet());
+
+        boolean isResponsible = managedUserIds.contains(submission.getSubmitterId());
+
+        if (!isResponsible) {
             throw new InvalidOperationException("You are not authorized to review this submission.");
         }
 
@@ -282,8 +287,7 @@ public class LearningServiceImpl implements LearningService {
         }
 
         submission.setStatus(learningMapper.toSubmissionStatusEntity(reviewDTO.getStatus()));
-        // TODO: If the reviewed_at has an @UpdateTimestamp, will this line be removed?
-        submission.setReviewedAt(Instant.now());
+        submission.setReviewerId(reviewerId);
         submission.setReviewerComment(reviewDTO.getReviewerComment());
 
         LearningSubmission updatedSubmission = learningSubmissionRepository.save(submission);
@@ -294,7 +298,6 @@ public class LearningServiceImpl implements LearningService {
             // Only update if currentSubmission is not this approved one, or if its status is not APPROVED
             if (learning.getCurrentSubmission() == null || !learning.getCurrentSubmission().equals(updatedSubmission) || learning.getCurrentSubmission().getStatus() != SubmissionStatus.APPROVED) {
                 learning.setCurrentSubmission(updatedSubmission);
-//                learning.setUpdatedAt(Instant.now());
                 learningRepository.save(learning);
             }
         }
@@ -306,20 +309,5 @@ public class LearningServiceImpl implements LearningService {
         // TODO: Notification: Notify the manager of their performed action (reviewing process)
 
         return learningMapper.toLearningSubmissionResponseDTO(updatedSubmission);
-    }
-
-    // Helper method for pagination response mapping
-    private <T, U> PaginationResponseDTO<U> mapToPaginationResponseDTO(Page<T> page, List<U> content) {
-        return PaginationResponseDTO.<U>builder()
-                .content(content)
-                .page(page.getNumber())
-                .size(page.getSize())
-                .totalElements(page.getTotalElements())
-                .totalPages(page.getTotalPages())
-                .isFirst(page.isFirst())
-                .isLast(page.isLast())
-                .hasNext(page.hasNext())
-                .hasPrevious(page.hasPrevious())
-                .build();
     }
 }

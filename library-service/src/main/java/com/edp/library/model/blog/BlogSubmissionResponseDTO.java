@@ -18,7 +18,7 @@ public class BlogSubmissionResponseDTO {
     private Long blogId;
     private String title;
     private String description;
-    private String documentUrl;
+    private String documentId;
     private SubmissionStatusDTO status;
     private String reviewerComment;
     private Long submitterId;

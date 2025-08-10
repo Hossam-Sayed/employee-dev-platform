@@ -12,11 +12,10 @@ public interface TagService {
      * Creates a new tag request.
      * User Story: As a USER, I need to request a new tag.
      *
-     * @param request     The DTO containing the requested tag name.
-     * @param requesterId The ID of the user requesting the tag.
+     * @param request The DTO containing the requested tag name.
      * @return The created TagRequestResponseDTO.
      */
-    TagRequestResponseDTO createTagRequest(TagCreateRequestDTO request, Long requesterId);
+    TagRequestResponseDTO createTagRequest(TagCreateRequestDTO request);
 
     /**
      * Prevents duplicate tag requests by checking if a tag with the same name (case-insensitive)
@@ -42,11 +41,10 @@ public interface TagService {
      * Retrieves a paginated list of tag requests for a specific user.
      * User Story: As a USER, I need to view my tag requests with their current status.
      *
-     * @param requesterId          The ID of the user whose tag requests are to be retrieved.
      * @param paginationRequestDTO Pagination and sorting parameters.
      * @return A paginated response of TagRequestResponseDTOs.
      */
-    PaginationResponseDTO<TagRequestResponseDTO> getMyTagRequests(Long requesterId, PaginationRequestDTO paginationRequestDTO);
+    PaginationResponseDTO<TagRequestResponseDTO> getMyTagRequests(PaginationRequestDTO paginationRequestDTO);
 
     /**
      * Retrieves a paginated list of all pending tag requests for admin review.
@@ -66,10 +64,9 @@ public interface TagService {
      *
      * @param tagRequestId The ID of the tag request to review.
      * @param reviewDTO    The DTO containing the review status and comment.
-     * @param reviewerId   The ID of the admin reviewing the request.
      * @return The updated TagRequestResponseDTO.
      */
-    TagRequestResponseDTO reviewTagRequest(Long tagRequestId, TagRequestReviewDTO reviewDTO, Long reviewerId);
+    TagRequestResponseDTO reviewTagRequest(Long tagRequestId, TagRequestReviewDTO reviewDTO);
 
     /**
      * Retrieves a paginated list of all tags (including inactive) for admin management.
@@ -89,10 +86,9 @@ public interface TagService {
      *
      * @param tagId           The ID of the tag to update.
      * @param updateStatusDTO The DTO containing the new active status.
-     * @param adminId         The ID of the admin performing the action.
      * @return The updated TagDTO.
      */
-    TagDTO updateTagStatus(Long tagId, TagUpdateStatusDTO updateStatusDTO, Long adminId);
+    TagDTO updateTagStatus(Long tagId, TagUpdateStatusDTO updateStatusDTO);
 
     /**
      * User Story: As an Admin, I need to be able to add new tags directly to the system
@@ -102,10 +98,9 @@ public interface TagService {
      * Before creating, it checks if a tag with the same name (case-insensitive) already exists.
      *
      * @param tagCreateRequestDTO The DTO containing the requested name for the new tag.
-     * @param adminId             The ID of the administrator performing this action, used for auditing.
      * @return A {@link TagDTO} representing the newly created tag.
      * @throws com.edp.library.exception.ResourceAlreadyExistsException if a tag with the same name already exists.
      * @throws IllegalArgumentException                                 if the tag name is null or empty.
      */
-    TagDTO createTagByAdmin(TagCreateRequestDTO tagCreateRequestDTO, Long adminId);
+    TagDTO createTagByAdmin(TagCreateRequestDTO tagCreateRequestDTO);
 }

@@ -15,8 +15,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -39,12 +41,10 @@ public interface WikiController {
             @ApiResponse(responseCode = "409", description = "A wiki submission with the same title and document URL already exists for this author.",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     ResponseEntity<WikiResponseDTO> createWiki(
-            @Valid @RequestBody WikiCreateRequestDTO request,
-            @Parameter(description = "ID of the author submitting the wiki material", required = true)
-            @RequestHeader("X-Author-Id") Long authorId,
-            @RequestHeader("X-Reviewer-Id") Long reviewerId
+            @RequestPart("wikiCreateRequestDto") @Valid WikiCreateRequestDTO request,
+            @RequestPart("file") MultipartFile file
     );
 
     @Operation(summary = "Resubmit a rejected wiki",
@@ -61,13 +61,11 @@ public interface WikiController {
             @ApiResponse(responseCode = "403", description = "User is not authorized to edit this wiki material",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    @PutMapping("/{wikiId}/resubmit")
+    @PutMapping(value = "/{wikiId}/resubmit", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     ResponseEntity<WikiResponseDTO> editRejectedWikiSubmission(
             @Parameter(description = "ID of the wiki to resubmit", required = true) @PathVariable Long wikiId,
-            @Valid @RequestBody WikiCreateRequestDTO request,
-            @Parameter(description = "ID of the author resubmitting the wiki", required = true)
-            @RequestHeader("X-Author-Id") Long authorId,
-            @RequestHeader("X-Reviewer-Id") Long reviewerId
+            @RequestPart("wikiCreateRequestDto") @Valid WikiCreateRequestDTO request,
+            @RequestPart("file") MultipartFile file
     );
 
     @Operation(summary = "Get my wikis",
@@ -81,8 +79,6 @@ public interface WikiController {
     })
     @GetMapping("/my-wikis")
     ResponseEntity<PaginationResponseDTO<WikiResponseDTO>> getMyWikis(
-            @Parameter(description = "ID of the author whose wikis are to be retrieved", required = true)
-            @RequestHeader("X-Author-Id") Long authorId,
             @Parameter(description = "Optional filter for current submission status (PENDING, APPROVED, REJECTED)")
             @RequestParam(required = false) String statusFilter,
             @Parameter(description = "Optional filter for a specific tag ID")
@@ -129,8 +125,6 @@ public interface WikiController {
     })
     @GetMapping("/submissions/pending-review")
     ResponseEntity<PaginationResponseDTO<WikiSubmissionResponseDTO>> getPendingWikiSubmissionsForReview(
-            @Parameter(description = "ID of the manager/reviewer", required = true)
-            @RequestHeader("X-Reviewer-Id") Long reviewerId,
             @Valid @Parameter(description = "Pagination and sorting parameters") PaginationRequestDTO paginationRequestDTO
     );
 
@@ -151,9 +145,7 @@ public interface WikiController {
     @PatchMapping("/submissions/{submissionId}/review")
     ResponseEntity<WikiSubmissionResponseDTO> reviewWikiSubmission(
             @Parameter(description = "ID of the wiki submission to review", required = true) @PathVariable Long submissionId,
-            @Valid @RequestBody SubmissionReviewRequestDTO reviewDTO,
-            @Parameter(description = "ID of the manager/reviewer performing the review", required = true)
-            @RequestHeader("X-Reviewer-Id") Long reviewerId
+            @Valid @RequestBody SubmissionReviewRequestDTO reviewDTO
     );
 
     @Operation(summary = "Get all approved and active wikis",
