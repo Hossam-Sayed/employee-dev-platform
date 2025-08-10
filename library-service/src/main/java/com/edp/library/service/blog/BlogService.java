@@ -6,6 +6,7 @@ import com.edp.library.model.SubmissionReviewRequestDTO;
 import com.edp.library.model.blog.BlogCreateRequestDTO;
 import com.edp.library.model.blog.BlogResponseDTO;
 import com.edp.library.model.blog.BlogSubmissionResponseDTO;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -18,13 +19,14 @@ public interface BlogService {
      * Validates that all provided tags are active.
      * A new Blog entity is created, and the first BlogSubmission is linked as its current submission.
      *
-     * @param request    The DTO containing the blog's title, description, document URL, and tag IDs.
+     * @param request The DTO containing the blog's title, description, document URL, and tag IDs.
+     * @param file    The blog file.
      * @return A {@link BlogResponseDTO} representing the newly created blog and its current submission.
      * @throws com.edp.library.exception.ResourceNotFoundException      if any provided tag ID does not exist.
      * @throws com.edp.library.exception.InvalidOperationException      if any provided tag is not active.
      * @throws com.edp.library.exception.ResourceAlreadyExistsException if a blog submission with the same title and document URL already exists for this author.
      */
-    BlogResponseDTO createBlog(BlogCreateRequestDTO request);
+    BlogResponseDTO createBlog(BlogCreateRequestDTO request, MultipartFile file);
 
     /**
      * User Story: As a User, I want to edit and resubmit a rejected blog so that it can be reviewed again.
@@ -33,13 +35,14 @@ public interface BlogService {
      * The previous rejected submission remains in history, and the new submission becomes the current one (PENDING).
      * Validates that the requesting user is the author and that all provided tags are active.
      *
-     * @param blogId     The ID of the blog to be resubmitted.
-     * @param request    The DTO containing the updated blog details (title, description, document URL, tag IDs).
+     * @param blogId  The ID of the blog to be resubmitted.
+     * @param request The DTO containing the updated blog details (title, description, document URL, tag IDs).
+     * @param file    The blog file.
      * @return A {@link BlogResponseDTO} representing the blog with its new current (PENDING) submission.
      * @throws com.edp.library.exception.ResourceNotFoundException if the blog or any provided tag is not found.
      * @throws com.edp.library.exception.InvalidOperationException if the blog's current submission is not REJECTED, or if the authorId does not match.
      */
-    BlogResponseDTO editRejectedBlogSubmission(Long blogId, BlogCreateRequestDTO request);
+    BlogResponseDTO editRejectedBlogSubmission(Long blogId, BlogCreateRequestDTO request, MultipartFile file);
 
     /**
      * User Story: As a User, I want to see a list of my submitted blogs.

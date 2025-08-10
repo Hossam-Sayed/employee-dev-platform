@@ -15,8 +15,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -27,8 +29,7 @@ public interface BlogController {
 
     @Operation(summary = "Create a new blog submission",
             description = "Allows an author to submit a new blog article for review. " +
-                    "A new Blog entity will be created along with its first PENDING submission. " +
-                    "The authorId header is required. The reviewerId will be assigned based on internal business logic (e.g., default reviewer, author's manager).")
+                    "A new Blog entity will be created along with its first PENDING submission.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Blog submitted successfully",
                     content = @Content(schema = @Schema(implementation = BlogResponseDTO.class))),
@@ -39,15 +40,15 @@ public interface BlogController {
             @ApiResponse(responseCode = "409", description = "A blog submission with the same title and document URL already exists for this author.",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     ResponseEntity<BlogResponseDTO> createBlog(
-            @Valid @RequestBody BlogCreateRequestDTO request
+            @RequestPart("blogCreateRequestDto") @Valid BlogCreateRequestDTO request,
+            @RequestPart("file") MultipartFile file
     );
 
     @Operation(summary = "Resubmit a rejected blog",
             description = "Allows an author to resubmit a previously REJECTED blog. " +
-                    "A new PENDING submission will be created for the existing Blog entity. " +
-                    "Requires authorId header.")
+                    "A new PENDING submission will be created for the existing Blog entity.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Blog resubmitted successfully",
                     content = @Content(schema = @Schema(implementation = BlogResponseDTO.class))),
@@ -58,10 +59,11 @@ public interface BlogController {
             @ApiResponse(responseCode = "403", description = "User is not authorized to edit this blog material",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    @PutMapping("/{blogId}/resubmit")
+    @PutMapping(value = "/{blogId}/resubmit", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     ResponseEntity<BlogResponseDTO> editRejectedBlogSubmission(
             @Parameter(description = "ID of the blog to resubmit", required = true) @PathVariable Long blogId,
-            @Valid @RequestBody BlogCreateRequestDTO request
+            @RequestPart("blogCreateRequestDto") @Valid BlogCreateRequestDTO request,
+            @RequestPart("file") MultipartFile file
     );
 
     @Operation(summary = "Get my blogs",

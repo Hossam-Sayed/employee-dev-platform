@@ -19,7 +19,7 @@ public class BlogResponseDTO {
     private Long currentSubmissionId;
     private String title; // From current submission
     private String description; // From current submission
-    private String documentUrl; // From current submission
+    private String documentId; // From current submission
     private SubmissionStatusDTO status; // Status of the current submission
     private List<BlogTagResponseDTO> tags; // Tags from current submission
     private Instant createdAt;

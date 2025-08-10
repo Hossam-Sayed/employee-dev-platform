@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -22,18 +23,20 @@ public class BlogControllerImpl implements BlogController {
 
     @Override
     public ResponseEntity<BlogResponseDTO> createBlog(
-            BlogCreateRequestDTO request
+            BlogCreateRequestDTO request,
+            MultipartFile file
     ) {
-        BlogResponseDTO response = blogService.createBlog(request);
+        BlogResponseDTO response = blogService.createBlog(request, file);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @Override
     public ResponseEntity<BlogResponseDTO> editRejectedBlogSubmission(
             Long blogId,
-            BlogCreateRequestDTO request
+            BlogCreateRequestDTO request,
+            MultipartFile file
     ) {
-        BlogResponseDTO response = blogService.editRejectedBlogSubmission(blogId, request);
+        BlogResponseDTO response = blogService.editRejectedBlogSubmission(blogId, request, file);
         return ResponseEntity.ok(response);
     }
 

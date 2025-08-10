@@ -36,12 +36,13 @@ public interface BlogMapper {
     @Mapping(target = "tags", ignore = true)
     @Mapping(target = "submitterId", source = "submitterId")
     @Mapping(target = "reviewerId", ignore = true)
-    BlogSubmission toBlogSubmission(BlogCreateRequestDTO dto, Blog blog, Long submitterId);
+    @Mapping(target = "documentId", source = "documentId")
+    BlogSubmission toBlogSubmission(BlogCreateRequestDTO dto, Blog blog, Long submitterId, String documentId);
 
     @Mapping(target = "currentSubmissionId", source = "currentSubmission.id")
     @Mapping(target = "title", source = "currentSubmission.title")
     @Mapping(target = "description", source = "currentSubmission.description")
-    @Mapping(target = "documentUrl", source = "currentSubmission.documentUrl")
+    @Mapping(target = "documentId", source = "currentSubmission.documentId")
     @Mapping(target = "status", source = "currentSubmission.status", qualifiedByName = "toSubmissionStatusDTO")
     @Mapping(target = "tags", source = "currentSubmission.tags")
     BlogResponseDTO toBlogResponseDTO(Blog blog);
@@ -57,6 +58,7 @@ public interface BlogMapper {
     @Mapping(target = "blogId", source = "blog.id")
     @Mapping(target = "status", source = "status", qualifiedByName = "toSubmissionStatusDTO")
     @Mapping(target = "tags", source = "tags")
+    @Mapping(target = "documentId", source = "documentId")
     BlogSubmissionResponseDTO toBlogSubmissionResponseDTO(BlogSubmission submission);
 
     List<BlogSubmissionResponseDTO> toBlogSubmissionResponseDTOs(List<BlogSubmission> submissions);

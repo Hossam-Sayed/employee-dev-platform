@@ -19,8 +19,11 @@ import com.edp.library.model.blog.BlogCreateRequestDTO;
 import com.edp.library.model.blog.BlogResponseDTO;
 import com.edp.library.model.blog.BlogSubmissionResponseDTO;
 import com.edp.library.model.enums.SubmissionStatusDTO;
+import com.edp.library.utils.PaginationUtils;
 import com.edp.shared.client.auth.AuthServiceClient;
 import com.edp.shared.client.auth.model.UserProfileDto;
+import com.edp.shared.client.file.FileServiceClient;
+import com.edp.shared.client.file.model.FileResponseDto;
 import com.edp.shared.security.jwt.JwtUserContext;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Path;
@@ -34,7 +37,9 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -49,10 +54,11 @@ public class BlogServiceImpl implements BlogService {
     private final TagRepository tagRepository;
     private final BlogMapper blogMapper;
     private final AuthServiceClient authServiceClient;
+    private final FileServiceClient fileServiceClient;
 
     @Override
     @Transactional
-    public BlogResponseDTO createBlog(BlogCreateRequestDTO request) {
+    public BlogResponseDTO createBlog(BlogCreateRequestDTO request, MultipartFile file) {
         // 1. Validate and fetch active tags
         List<Long> tagIds = request.getTagIds();
         List<Tag> tags = tagRepository.findAllById(tagIds);
@@ -74,6 +80,16 @@ public class BlogServiceImpl implements BlogService {
             throw new InvalidOperationException("One or more selected tags are not active: " + inactiveTagIds);
         }
 
+        if (file == null || file.isEmpty()) {
+            throw new InvalidOperationException("No blog file available. A blog must have a file.");
+        }
+
+        FileResponseDto fileResponse = fileServiceClient.uploadFile(file, JwtUserContext.getToken(), true).getBody();
+
+        if (fileResponse == null) {
+            throw new InvalidOperationException("Something went wrong while uploading the file! Please try again!");
+        }
+
         Long authorId = JwtUserContext.getUserId();
 
         // 3. Create a new Blog entity
@@ -81,7 +97,7 @@ public class BlogServiceImpl implements BlogService {
         blog = blogRepository.save(blog);
 
         // 4. Create and save the new BlogSubmission for this new Blog
-        BlogSubmission submission = blogMapper.toBlogSubmission(request, blog, authorId);
+        BlogSubmission submission = blogMapper.toBlogSubmission(request, blog, authorId, fileResponse.getId());
         submission = blogSubmissionRepository.save(submission); // Save to get submission ID for tags
 
         // 5. Save BlogSubmissionTag entries
@@ -109,7 +125,7 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     @Transactional
-    public BlogResponseDTO editRejectedBlogSubmission(Long blogId, BlogCreateRequestDTO request) {
+    public BlogResponseDTO editRejectedBlogSubmission(Long blogId, BlogCreateRequestDTO request, MultipartFile file) {
         Blog blog = blogRepository.findById(blogId)
                 .orElseThrow(() -> new ResourceNotFoundException("Blog not found with ID: " + blogId));
 
@@ -143,8 +159,18 @@ public class BlogServiceImpl implements BlogService {
             throw new InvalidOperationException("One or more selected tags are not active: " + inactiveTagIds);
         }
 
+        if (file == null || file.isEmpty()) {
+            throw new InvalidOperationException("No blog file available. A blog must have a file.");
+        }
+
+        FileResponseDto fileResponse = fileServiceClient.uploadFile(file, JwtUserContext.getToken(), true).getBody();
+
+        if (fileResponse == null) {
+            throw new InvalidOperationException("Something went wrong while uploading the file! Please try again!");
+        }
+
         // Create and save the new BlogSubmission for the existing Blog material
-        BlogSubmission newSubmission = blogMapper.toBlogSubmission(request, blog, authorId);
+        BlogSubmission newSubmission = blogMapper.toBlogSubmission(request, blog, authorId, fileResponse.getId());
         newSubmission = blogSubmissionRepository.save(newSubmission);
 
         // Save BlogSubmissionTag entries for the new submission
@@ -207,7 +233,7 @@ public class BlogServiceImpl implements BlogService {
 
             // Handle sorting manually
             String sortBy = paginationRequestDTO.getSortBy();
-            Sort.Direction direction = paginationRequestDTO.getSortDirection();
+            Sort.Direction direction = Objects.requireNonNullElse(paginationRequestDTO.getSortDirection(), Sort.Direction.DESC);
 
             Path<?> sortPath = switch (sortBy) {
                 case "title", "submittedAt", "status" -> root.get("currentSubmission").get(sortBy);
@@ -224,7 +250,7 @@ public class BlogServiceImpl implements BlogService {
 
 
         Page<Blog> blogs = blogRepository.findAll(spec, pageable);
-        return mapToPaginationResponseDTO(blogs, blogMapper.toBlogResponseDTOs(blogs.getContent()));
+        return PaginationUtils.mapToPaginationResponseDTO(blogs, blogMapper.toBlogResponseDTOs(blogs.getContent()));
     }
 
 
@@ -243,23 +269,15 @@ public class BlogServiceImpl implements BlogService {
         blogRepository.findById(blogId)
                 .orElseThrow(() -> new ResourceNotFoundException("Blog not found with ID: " + blogId));
 
-        Pageable pageable = PageRequest.of(
-                paginationRequestDTO.getPage(),
-                paginationRequestDTO.getSize(),
-                Sort.by(paginationRequestDTO.getSortDirection(), getActualSortBy(paginationRequestDTO.getSortBy(), BlogSubmission.class))
-        );
+        Pageable pageable = PaginationUtils.toPageable(paginationRequestDTO, BlogSubmission.class);
         Page<BlogSubmission> submissions = blogSubmissionRepository.findByBlogIdOrderBySubmittedAtDesc(blogId, pageable);
-        return mapToPaginationResponseDTO(submissions, blogMapper.toBlogSubmissionResponseDTOs(submissions.getContent()));
+        return PaginationUtils.mapToPaginationResponseDTO(submissions, blogMapper.toBlogSubmissionResponseDTOs(submissions.getContent()));
     }
 
     @Override
     @Transactional(readOnly = true)
     public PaginationResponseDTO<BlogSubmissionResponseDTO> getPendingBlogSubmissionsForReview(PaginationRequestDTO paginationRequestDTO) {
-        Pageable pageable = PageRequest.of(
-                paginationRequestDTO.getPage(),
-                paginationRequestDTO.getSize(),
-                Sort.by(paginationRequestDTO.getSortDirection(), getActualSortBy(paginationRequestDTO.getSortBy(), BlogSubmission.class))
-        );
+        Pageable pageable = PaginationUtils.toPageable(paginationRequestDTO, BlogSubmission.class);
 
         Long managerId = JwtUserContext.getUserId();
         String token = JwtUserContext.getToken();
@@ -269,7 +287,7 @@ public class BlogServiceImpl implements BlogService {
                 .toList();
 
         Page<BlogSubmission> pendingSubmissions = blogSubmissionRepository.findBySubmitterIdInAndStatus(managedUserIds, SubmissionStatus.PENDING, pageable);
-        return mapToPaginationResponseDTO(pendingSubmissions, blogMapper.toBlogSubmissionResponseDTOs(pendingSubmissions.getContent()));
+        return PaginationUtils.mapToPaginationResponseDTO(pendingSubmissions, blogMapper.toBlogSubmissionResponseDTOs(pendingSubmissions.getContent()));
     }
 
     @Override
@@ -304,6 +322,7 @@ public class BlogServiceImpl implements BlogService {
 
         submission.setStatus(blogMapper.toSubmissionStatusEntity(reviewDTO.getStatus()));
         submission.setReviewerId(reviewerId);
+        submission.setReviewedAt(Instant.now());
         submission.setReviewerComment(reviewDTO.getReviewerComment());
 
         BlogSubmission updatedSubmission = blogSubmissionRepository.save(submission);
@@ -327,11 +346,7 @@ public class BlogServiceImpl implements BlogService {
     @Override
     @Transactional(readOnly = true)
     public PaginationResponseDTO<BlogResponseDTO> getAllApprovedAndActiveBlogs(String searchKeyword, List<Long> tagIds, PaginationRequestDTO paginationRequestDTO) {
-        Pageable pageable = PageRequest.of(
-                paginationRequestDTO.getPage(),
-                paginationRequestDTO.getSize(),
-                Sort.by(paginationRequestDTO.getSortDirection(), getActualSortBy(paginationRequestDTO.getSortBy(), Blog.class))
-        );
+        Pageable pageable = PaginationUtils.toPageable(paginationRequestDTO, Blog.class);
 
         Specification<Blog> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -357,35 +372,6 @@ public class BlogServiceImpl implements BlogService {
         };
 
         Page<Blog> blogs = blogRepository.findAll(spec, pageable);
-        return mapToPaginationResponseDTO(blogs, blogMapper.toBlogResponseDTOs(blogs.getContent()));
-    }
-
-    // Helper method for pagination response mapping
-    private <T, U> PaginationResponseDTO<U> mapToPaginationResponseDTO(Page<T> page, List<U> content) {
-        return PaginationResponseDTO.<U>builder()
-                .content(content)
-                .page(page.getNumber())
-                .size(page.getSize())
-                .totalElements(page.getTotalElements())
-                .totalPages(page.getTotalPages())
-                .isFirst(page.isFirst())
-                .isLast(page.isLast())
-                .hasNext(page.hasNext())
-                .hasPrevious(page.hasPrevious())
-                .build();
-    }
-
-    // Helper to dynamically adjust sortBy field based on entity type for Pageable
-    private String getActualSortBy(String requestedSortBy, Class<?> entityClass) {
-        if ("createdAt".equalsIgnoreCase(requestedSortBy)) {
-            // If the entity is a BlogSubmission, use 'submittedAt'
-            if (BlogSubmission.class.isAssignableFrom(entityClass)) {
-                return "submittedAt";
-            }
-            // If the entity is Blog, use 'createdAt' (assuming Blog has createdAt)
-            return "createdAt"; // This is the default if not BlogSubmission
-        }
-        // For other requestedSortBy values, return as is
-        return requestedSortBy;
+        return PaginationUtils.mapToPaginationResponseDTO(blogs, blogMapper.toBlogResponseDTOs(blogs.getContent()));
     }
 }

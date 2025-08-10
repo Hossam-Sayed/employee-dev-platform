@@ -22,9 +22,6 @@ public class BlogCreateRequestDTO {
     @NotBlank(message = "Description cannot be empty")
     private String description;
 
-    @NotBlank(message = "Document URL cannot be empty")
-    private String documentUrl;
-
     @NotEmpty(message = "Blog must have at least one tag")
     private List<Long> tagIds;
 }
