@@ -20,6 +20,7 @@ import com.edp.library.model.PaginationRequestDTO;
 import com.edp.library.model.learning.LearningResponseDTO;
 import com.edp.library.model.learning.LearningSubmissionResponseDTO;
 import com.edp.library.model.learning.LearningTagDTO;
+import com.edp.library.utils.PaginationUtils;
 import com.edp.shared.client.auth.AuthServiceClient;
 import com.edp.shared.client.auth.model.UserProfileDto;
 import com.edp.shared.security.jwt.JwtUserContext;
@@ -216,7 +217,7 @@ public class LearningServiceImpl implements LearningService {
 
 
         Page<Learning> learnings = learningRepository.findAll(spec, pageable);
-        return mapToPaginationResponseDTO(learnings, learningMapper.toLearningResponseDTOs(learnings.getContent()));
+        return PaginationUtils.mapToPaginationResponseDTO(learnings, learningMapper.toLearningResponseDTOs(learnings.getContent()));
     }
 
     @Override
@@ -234,29 +235,14 @@ public class LearningServiceImpl implements LearningService {
         learningRepository.findById(learningId)
                 .orElseThrow(() -> new ResourceNotFoundException("Learning material not found with ID: " + learningId));
 
-        String actualSortBy = paginationRequestDTO.getSortBy();
-        if ("createdAt".equalsIgnoreCase(actualSortBy)) {
-            actualSortBy = "submittedAt"; // LearningSubmission uses submittedAt
-        }
-
-        Pageable pageable = PageRequest.of(
-                paginationRequestDTO.getPage(),
-                paginationRequestDTO.getSize(),
-                Sort.by(paginationRequestDTO.getSortDirection(), actualSortBy)
-        );
+        Pageable pageable = PaginationUtils.toPageable(paginationRequestDTO, LearningSubmission.class);
         Page<LearningSubmission> submissions = learningSubmissionRepository.findByLearningIdOrderBySubmittedAtDesc(learningId, pageable);
-        return mapToPaginationResponseDTO(submissions, learningMapper.toLearningSubmissionResponseDTOs(submissions.getContent()));
+        return PaginationUtils.mapToPaginationResponseDTO(submissions, learningMapper.toLearningSubmissionResponseDTOs(submissions.getContent()));
     }
 
     @Override
     @Transactional(readOnly = true)
     public PaginationResponseDTO<LearningSubmissionResponseDTO> getPendingLearningSubmissionsForReview(PaginationRequestDTO paginationRequestDTO) {
-
-        String actualSortBy = paginationRequestDTO.getSortBy();
-        if ("createdAt".equalsIgnoreCase(actualSortBy)) {
-            actualSortBy = "submittedAt"; // LearningSubmission uses submittedAt
-        }
-
         Long managerId = JwtUserContext.getUserId();
         String token = JwtUserContext.getToken();
         List<UserProfileDto> managedUsers = authServiceClient.getManagedUsers(managerId, token);
@@ -264,13 +250,9 @@ public class LearningServiceImpl implements LearningService {
                 .map(UserProfileDto::getId)
                 .toList();
 
-        Pageable pageable = PageRequest.of(
-                paginationRequestDTO.getPage(),
-                paginationRequestDTO.getSize(),
-                Sort.by(paginationRequestDTO.getSortDirection(), actualSortBy)
-        );
+        Pageable pageable = PaginationUtils.toPageable(paginationRequestDTO, LearningSubmission.class);
         Page<LearningSubmission> pendingSubmissions = learningSubmissionRepository.findBySubmitterIdInAndStatus(managedUserIds, SubmissionStatus.PENDING, pageable);
-        return mapToPaginationResponseDTO(pendingSubmissions, learningMapper.toLearningSubmissionResponseDTOs(pendingSubmissions.getContent()));
+        return PaginationUtils.mapToPaginationResponseDTO(pendingSubmissions, learningMapper.toLearningSubmissionResponseDTOs(pendingSubmissions.getContent()));
     }
 
     @Override
@@ -327,20 +309,5 @@ public class LearningServiceImpl implements LearningService {
         // TODO: Notification: Notify the manager of their performed action (reviewing process)
 
         return learningMapper.toLearningSubmissionResponseDTO(updatedSubmission);
-    }
-
-    // Helper method for pagination response mapping
-    private <T, U> PaginationResponseDTO<U> mapToPaginationResponseDTO(Page<T> page, List<U> content) {
-        return PaginationResponseDTO.<U>builder()
-                .content(content)
-                .page(page.getNumber())
-                .size(page.getSize())
-                .totalElements(page.getTotalElements())
-                .totalPages(page.getTotalPages())
-                .isFirst(page.isFirst())
-                .isLast(page.isLast())
-                .hasNext(page.hasNext())
-                .hasPrevious(page.hasPrevious())
-                .build();
     }
 }
