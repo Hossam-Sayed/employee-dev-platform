@@ -6,6 +6,7 @@ import com.edp.library.model.SubmissionReviewRequestDTO;
 import com.edp.library.model.wiki.WikiCreateRequestDTO;
 import com.edp.library.model.wiki.WikiResponseDTO;
 import com.edp.library.model.wiki.WikiSubmissionResponseDTO;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -18,13 +19,14 @@ public interface WikiService {
      * Validates that all provided tags are active.
      * A new Wiki entity is created, and the first WikiSubmission is linked as its current submission.
      *
-     * @param request    The DTO containing the wiki's title, description, document URL, and tag IDs.
+     * @param request The DTO containing the wiki's title, description, document URL, and tag IDs.
+     * @param file    The blog file.
      * @return A {@link WikiResponseDTO} representing the newly created wiki and its current submission.
      * @throws com.edp.library.exception.ResourceNotFoundException      if any provided tag ID does not exist.
      * @throws com.edp.library.exception.InvalidOperationException      if any provided tag is not active.
      * @throws com.edp.library.exception.ResourceAlreadyExistsException if a wiki submission with the same title and document URL already exists for this author.
      */
-    WikiResponseDTO createWiki(WikiCreateRequestDTO request);
+    WikiResponseDTO createWiki(WikiCreateRequestDTO request, MultipartFile file);
 
     /**
      * User Story: As a User, I want to edit and resubmit a rejected wiki so that it can be reviewed again.
@@ -33,13 +35,14 @@ public interface WikiService {
      * The previous rejected submission remains in history, and the new submission becomes the current one (PENDING).
      * Validates that the requesting user is the author and that all provided tags are active.
      *
-     * @param wikiId     The ID of the wiki to be resubmitted.
-     * @param request    The DTO containing the updated wiki details (title, description, document URL, tag IDs).
+     * @param wikiId  The ID of the wiki to be resubmitted.
+     * @param request The DTO containing the updated wiki details (title, description, document URL, tag IDs).
+     * @param file    The blog file.
      * @return A {@link WikiResponseDTO} representing the wiki with its new current (PENDING) submission.
      * @throws com.edp.library.exception.ResourceNotFoundException if the wiki or any provided tag is not found.
      * @throws com.edp.library.exception.InvalidOperationException if the wiki's current submission is not REJECTED, or if the authorId does not match.
      */
-    WikiResponseDTO editRejectedWikiSubmission(Long wikiId, WikiCreateRequestDTO request);
+    WikiResponseDTO editRejectedWikiSubmission(Long wikiId, WikiCreateRequestDTO request, MultipartFile file);
 
     /**
      * User Story: As a User, I want to see a list of my submitted wikis.

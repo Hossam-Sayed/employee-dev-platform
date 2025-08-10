@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Check;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
 import java.util.HashSet;
@@ -36,8 +35,8 @@ public class WikiSubmission {
     @Column(name = "description", nullable = false, columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "document_url", nullable = false, columnDefinition = "TEXT")
-    private String documentUrl;
+    @Column(name = "document_id", nullable = false, columnDefinition = "TEXT")
+    private String documentId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
@@ -53,7 +52,6 @@ public class WikiSubmission {
     @Column(name = "reviewer_id")
     private Long reviewerId;
 
-    @UpdateTimestamp
     @Column(name = "reviewed_at")
     private Instant reviewedAt;
 

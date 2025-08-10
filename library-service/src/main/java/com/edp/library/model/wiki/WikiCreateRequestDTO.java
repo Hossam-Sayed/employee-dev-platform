@@ -22,9 +22,6 @@ public class WikiCreateRequestDTO {
     @NotBlank(message = "Description cannot be empty")
     private String description;
 
-    @NotBlank(message = "Document URL cannot be empty")
-    private String documentUrl;
-
     @NotEmpty(message = "Wiki must have at least one tag")
     private List<Long> tagIds;
 }

@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -22,18 +23,20 @@ public class WikiControllerImpl implements WikiController {
 
     @Override
     public ResponseEntity<WikiResponseDTO> createWiki(
-            WikiCreateRequestDTO request
+            WikiCreateRequestDTO request,
+            MultipartFile file
     ) {
-        WikiResponseDTO response = wikiService.createWiki(request);
+        WikiResponseDTO response = wikiService.createWiki(request, file);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @Override
     public ResponseEntity<WikiResponseDTO> editRejectedWikiSubmission(
             Long wikiId,
-            WikiCreateRequestDTO request
+            WikiCreateRequestDTO request,
+            MultipartFile file
     ) {
-        WikiResponseDTO response = wikiService.editRejectedWikiSubmission(wikiId, request);
+        WikiResponseDTO response = wikiService.editRejectedWikiSubmission(wikiId, request, file);
         return ResponseEntity.ok(response);
     }
 
