@@ -59,10 +59,12 @@
           </a>
         </div>
         } @else if (blogOrWikiMaterial) {
+        <!-- Display file download link and an embed view if the URL exists -->
+        @if (fileDataUrl()) {
         <div class="detail-row">
-          <span class="label">Document URL</span>
-          <a [href]="blogOrWikiMaterial.documentUrl" target="_blank">
-            {{ blogOrWikiMaterial.documentUrl }}
+          <span class="label">Document</span>
+          <a [href]="fileDataUrl()!" target="_blank" download>
+            Download Document
           </a>
         </div>
 
@@ -70,7 +72,16 @@
           <span class="label">Description</span>
           <p class="description-text">{{ blogOrWikiMaterial.description }}</p>
         </div>
-        }
+
+        <div class="file-viewer-container">
+          <!-- A simple iframe to embed the document for viewing -->
+          <iframe
+            [src]="fileDataUrl()!"
+            frameborder="0"
+            class="file-iframe"
+          ></iframe>
+        </div>
+        } }
       </div>
 
       <mat-divider></mat-divider>
@@ -91,5 +102,68 @@
       </div>
     </mat-card-content>
   </mat-card>
-  }
+
+  <!-- New section for manager's review actions -->
+  @if (isManager() && isPending()) {
+  <mat-card class="review-actions-card">
+    <mat-card-header>
+      <mat-card-title>Review Submission</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="review-selection">
+        <mat-button-toggle-group
+          name="reviewStatus"
+          [ngModel]="selectedReviewAction()"
+          (ngModelChange)="selectedReviewAction.set($event)"
+          aria-label="Review decision"
+        >
+          <mat-button-toggle value="APPROVED" class="approve-toggle">
+            <mat-icon>check_circle</mat-icon>
+            Approve
+          </mat-button-toggle>
+
+          <mat-button-toggle value="REJECTED" class="reject-toggle">
+            <mat-icon>cancel</mat-icon>
+            Reject
+          </mat-button-toggle>
+        </mat-button-toggle-group>
+      </div>
+
+      @if (selectedReviewAction() === 'REJECTED') {
+      <div class="rejection-form">
+        <mat-form-field appearance="outline" class="rejection-textarea">
+          <mat-label>Rejection Comment (Min. 10 characters)</mat-label>
+          <textarea
+            matInput
+            rows="3"
+            [ngModel]="rejectionComment()"
+            (ngModelChange)="rejectionComment.set($event)"
+            required
+            minlength="10"
+          ></textarea>
+        </mat-form-field>
+      </div>
+      }
+
+      <button
+        mat-raised-button
+        color="primary"
+        class="submit-review-button"
+        (click)="
+          onSubmitReview(
+            selectedReviewAction() === 'REJECTED' ? 'REJECTED' : 'APPROVED'
+          )
+        "
+        [disabled]="
+          !selectedReviewAction() ||
+          (selectedReviewAction() === 'REJECTED' &&
+            rejectionComment().length < 10)
+        "
+      >
+        Submit Review
+      </button>
+    </mat-card-content>
+  </mat-card>
+  } }
 </div>
