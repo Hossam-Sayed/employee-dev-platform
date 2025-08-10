@@ -7,7 +7,7 @@ export interface WikiResponse {
   currentSubmissionId: number;
   title: string;
   description: string;
-  documentUrl: string;
+  documentId: string;
   status: SubmissionStatus;
   tags: WikiTagResponse[];
   createdAt: string;

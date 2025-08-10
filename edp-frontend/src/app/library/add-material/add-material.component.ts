@@ -6,6 +6,7 @@ import {
   Validators,
   ReactiveFormsModule,
   FormArray,
+  FormControl,
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -16,9 +17,18 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { Observable, switchMap, tap, of, catchError, forkJoin } from 'rxjs';
+import {
+  Observable,
+  switchMap,
+  tap,
+  of,
+  catchError,
+  forkJoin,
+  EMPTY,
+} from 'rxjs';
 import { LibraryService } from '../services/library.service';
 import { TagService } from '../services/tag.service';
+import { FileService } from '../services/file.service';
 import { Tag } from '../models/tag.model';
 import { BlogCreateRequest } from '../models/blog-create-request.model';
 import { LearningCreateRequest } from '../models/learning-create-request.model';
@@ -54,6 +64,7 @@ export class AddMaterialComponent implements OnInit {
   private router = inject(Router);
   private libraryService = inject(LibraryService);
   private tagsService = inject(TagService);
+  private fileService = inject(FileService);
 
   materialType = signal<MaterialType | null>(null);
   materialId = signal<number | null>(null);
@@ -62,6 +73,11 @@ export class AddMaterialComponent implements OnInit {
   isLoading = signal(true);
   isSubmitting = signal(false);
   isEditMode = signal(false);
+
+  // Signals to manage the file for blogs and wikis
+  selectedFile = signal<File | null>(null);
+  currentFileName = signal<string | null>(null);
+  fileControl = new FormControl<File | null>(null);
 
   ngOnInit(): void {
     // Check for material ID in the route to determine edit mode
@@ -72,22 +88,65 @@ export class AddMaterialComponent implements OnInit {
             .replace('add-', '')
             .replace('edit-', '') as MaterialType;
           this.materialType.set(type);
+
           const id = Number(params.get('materialId'));
           if (id) {
             this.materialId.set(id);
             this.isEditMode.set(true);
+            // In edit mode, the file is not required on load
+            this.fileControl.clearValidators();
+          } else {
+            // In add mode, the file is required for blogs/wikis
+            this.fileControl.setValidators(Validators.required);
           }
         }),
         switchMap(() => {
           this.initializeForm();
           const tagFetch$ = this.tagsService.getAllActiveTags();
-          const materialFetch$ =
-            this.isEditMode() && this.materialId()
-              ? this.getMaterialDetails(
-                  this.materialId()!,
-                  this.materialType()!
-                )
-              : of(null);
+
+          let materialFetch$: Observable<MaterialResponse | null>;
+          if (this.isEditMode() && this.materialId()) {
+            materialFetch$ = this.getMaterialDetails(
+              this.materialId()!,
+              this.materialType()!
+            ).pipe(
+              // After fetching material, fetch the file if it's a blog or wiki
+              switchMap((material) => {
+                if (
+                  material &&
+                  (this.materialType() === 'blog' ||
+                    this.materialType() === 'wiki')
+                ) {
+                  // Assuming the material response has a documentId
+                  const documentId =
+                    'documentId' in material ? material.documentId : null;
+                  if (documentId) {
+                    // Fetch the file and combine it with the material data
+                    return this.fileService.getFile(documentId).pipe(
+                      tap((blob) => {
+                        // Create a file from the blob to pre-populate the form
+                        const fileName = 'document.pdf'; // Use a default name, or fetch from a 'documentName' field if your API provides it
+                        const file = new File([blob], fileName, {
+                          type: blob.type,
+                        });
+                        this.selectedFile.set(file);
+                        this.fileControl.setValue(file);
+                        this.currentFileName.set(fileName);
+                      }),
+                      switchMap(() => of(material))
+                    );
+                  }
+                }
+                return of(material);
+              }),
+              catchError((err) => {
+                console.error('Failed to fetch material or file', err);
+                return of(null);
+              })
+            );
+          } else {
+            materialFetch$ = of(null);
+          }
 
           return forkJoin({
             tags: tagFetch$,
@@ -103,7 +162,7 @@ export class AddMaterialComponent implements OnInit {
             catchError((err) => {
               console.error('Failed to fetch data', err);
               this.isLoading.set(false);
-              return of({ tags: [], material: null });
+              return EMPTY;
             })
           );
         })
@@ -144,10 +203,8 @@ export class AddMaterialComponent implements OnInit {
         'description',
         this.fb.control('', Validators.required)
       );
-      this.form.addControl(
-        'documentUrl',
-        this.fb.control('', Validators.required)
-      );
+      // Add the file control to the form group for validation
+      this.form.addControl('file', this.fileControl);
     }
   }
 
@@ -162,7 +219,6 @@ export class AddMaterialComponent implements OnInit {
     } else {
       this.form.patchValue({
         description: material.description,
-        documentUrl: material.documentUrl,
       });
       this.populateGenericTags(
         material.tags as (BlogTagResponse | WikiTagResponse)[]
@@ -171,6 +227,7 @@ export class AddMaterialComponent implements OnInit {
   }
 
   private populateLearningTags(tags: LearningTagResponse[]): void {
+    this.tagsArray.clear();
     tags.forEach((tag) => {
       this.tagsArray.push(
         this.fb.group({
@@ -239,13 +296,26 @@ export class AddMaterialComponent implements OnInit {
     return this.allTags().filter((tag) => !selectedTagIds.includes(tag.id));
   }
 
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      this.selectedFile.set(file);
+      this.fileControl.setValue(file);
+      this.currentFileName.set(file.name);
+    }
+  }
+
   onSubmit(): void {
-    if (this.form.invalid) {
+    if (
+      this.form.invalid ||
+      (this.materialType() !== 'learning' && this.fileControl.invalid)
+    ) {
       this.form.markAllAsTouched();
+      this.fileControl.markAsTouched();
       return;
     }
     this.isSubmitting.set(true);
-    const reviewerId = 1; // TODO: Get this from a real service
 
     let actionObservable: Observable<any>;
     const formValue = this.form.value;
@@ -270,24 +340,26 @@ export class AddMaterialComponent implements OnInit {
           const blogEditRequest: BlogCreateRequest = {
             title: formValue.title,
             description: formValue.description,
-            documentUrl: formValue.documentUrl,
             tagIds: formValue.tags.map((t: any) => t.tagId),
           };
+          // Pass the selected file to the resubmit method
           actionObservable = this.libraryService.resubmitBlog(
             this.materialId()!,
-            blogEditRequest
+            blogEditRequest,
+            this.selectedFile()
           );
           break;
         case 'wiki':
           const wikiEditRequest: WikiCreateRequest = {
             title: formValue.title,
             description: formValue.description,
-            documentUrl: formValue.documentUrl,
             tagIds: formValue.tags.map((t: any) => t.tagId),
           };
+          // Pass the selected file to the resubmit method
           actionObservable = this.libraryService.resubmitWiki(
             this.materialId()!,
-            wikiEditRequest
+            wikiEditRequest,
+            this.selectedFile()
           );
           break;
         default:
@@ -296,7 +368,7 @@ export class AddMaterialComponent implements OnInit {
           return;
       }
     } else {
-      // This is the original 'create' logic
+      // Create logic remains the same
       switch (this.materialType()) {
         case 'learning':
           const learningCreateRequest: LearningCreateRequest = {
@@ -315,19 +387,23 @@ export class AddMaterialComponent implements OnInit {
           const blogCreateRequest: BlogCreateRequest = {
             title: formValue.title,
             description: formValue.description,
-            documentUrl: formValue.documentUrl,
             tagIds: formValue.tags.map((t: any) => t.tagId),
           };
-          actionObservable = this.libraryService.createBlog(blogCreateRequest);
+          actionObservable = this.libraryService.createBlog(
+            blogCreateRequest,
+            this.selectedFile()!
+          );
           break;
         case 'wiki':
           const wikiCreateRequest: WikiCreateRequest = {
             title: formValue.title,
             description: formValue.description,
-            documentUrl: formValue.documentUrl,
             tagIds: formValue.tags.map((t: any) => t.tagId),
           };
-          actionObservable = this.libraryService.createWiki(wikiCreateRequest);
+          actionObservable = this.libraryService.createWiki(
+            wikiCreateRequest,
+            this.selectedFile()!
+          );
           break;
         default:
           console.error('Unknown material type');

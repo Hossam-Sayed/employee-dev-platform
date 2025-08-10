@@ -7,7 +7,7 @@ export interface BlogResponse {
   currentSubmissionId: number;
   title: string;
   description: string;
-  documentUrl: string;
+  documentId: string;
   status: SubmissionStatus;
   tags: BlogTagResponse[];
   createdAt: string;

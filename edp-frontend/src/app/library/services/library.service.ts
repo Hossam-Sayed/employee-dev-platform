@@ -12,6 +12,7 @@ import { WikiCreateRequest } from '../models/wiki-create-request.model';
 import { BlogSubmissionResponse } from '../models/blog-submission-response.model';
 import { LearningSubmissionResponse } from '../models/learning-submission-response.model';
 import { WikiSubmissionResponse } from '../models/wiki-submission-response.model';
+import { SubmissionStatus } from '../models/submission-status.model';
 
 @Injectable({
   providedIn: 'root',
@@ -84,12 +85,42 @@ export class LibraryService {
     );
   }
 
-  createBlog(request: BlogCreateRequest): Observable<BlogResponse> {
-    return this.http.post<BlogResponse>(`${this.baseUrl}blogs`, request);
+  createBlog(request: BlogCreateRequest, file: File): Observable<BlogResponse> {
+    const formData = new FormData();
+
+    // Append the file with the key "file"
+    formData.append('file', file);
+
+    // Append the DTO as a JSON string with the key "blogCreateRequestDto"
+    // The key here must match the @RequestPart name in your Spring Boot controller
+    formData.append(
+      'blogCreateRequestDto',
+      new Blob([JSON.stringify(request)], {
+        type: 'application/json',
+      })
+    );
+
+    // Send the formData object in the POST request
+    return this.http.post<BlogResponse>(`${this.baseUrl}blogs`, formData);
   }
 
-  createWiki(request: WikiCreateRequest): Observable<WikiResponse> {
-    return this.http.post<WikiResponse>(`${this.baseUrl}wikis`, request);
+  createWiki(request: WikiCreateRequest, file: File): Observable<WikiResponse> {
+    const formData = new FormData();
+
+    // Append the file with the key "file"
+    formData.append('file', file);
+
+    // Append the DTO as a JSON string with the key "wikiCreateRequestDto"
+    // The key here must match the @RequestPart name in your Spring Boot controller
+    formData.append(
+      'wikiCreateRequestDto',
+      new Blob([JSON.stringify(request)], {
+        type: 'application/json',
+      })
+    );
+
+    // Send the formData object in the POST request
+    return this.http.post<WikiResponse>(`${this.baseUrl}wikis`, formData);
   }
 
   getLearningDetails(learningId: number): Observable<LearningResponse> {
@@ -118,22 +149,50 @@ export class LibraryService {
 
   resubmitBlog(
     blogId: number,
-    request: BlogCreateRequest
+    request: BlogCreateRequest,
+    file?: File | null // Added optional file parameter
   ): Observable<BlogResponse> {
-    return this.http.put<BlogResponse>(
-      `${this.baseUrl}blogs/${blogId}/resubmit`,
-      request
-    );
+    if (file) {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append(
+        'blogCreateRequestDto',
+        new Blob([JSON.stringify(request)], { type: 'application/json' })
+      );
+      return this.http.put<BlogResponse>(
+        `${this.baseUrl}blogs/${blogId}/resubmit`,
+        formData
+      );
+    } else {
+      return this.http.put<BlogResponse>(
+        `${this.baseUrl}blogs/${blogId}/resubmit`,
+        request
+      );
+    }
   }
 
   resubmitWiki(
     wikiId: number,
-    request: WikiCreateRequest
+    request: WikiCreateRequest,
+    file?: File | null // Added optional file parameter
   ): Observable<WikiResponse> {
-    return this.http.put<WikiResponse>(
-      `${this.baseUrl}wikis/${wikiId}/resubmit`,
-      request
-    );
+    if (file) {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append(
+        'wikiCreateRequestDto',
+        new Blob([JSON.stringify(request)], { type: 'application/json' })
+      );
+      return this.http.put<WikiResponse>(
+        `${this.baseUrl}wikis/${wikiId}/resubmit`,
+        formData
+      );
+    } else {
+      return this.http.put<WikiResponse>(
+        `${this.baseUrl}wikis/${wikiId}/resubmit`,
+        request
+      );
+    }
   }
 
   private buildParams(request: PaginationRequest): HttpParams {
@@ -208,6 +267,36 @@ export class LibraryService {
     return this.http.get<PaginationResponse<WikiSubmissionResponse>>(
       `${this.baseUrl}wikis/submissions/pending-review`,
       { params }
+    );
+  }
+
+  reviewLearningSubmission(
+    matrialId: number,
+    reviewRequest: { status: SubmissionStatus; reviewerComment: string | null }
+  ) {
+    return this.http.patch<LearningSubmissionResponse>(
+      `${this.baseUrl}learnings/submissions/${matrialId}/review`,
+      reviewRequest
+    );
+  }
+
+  reviewBlogSubmission(
+    matrialId: number,
+    reviewRequest: { status: SubmissionStatus; reviewerComment: string | null }
+  ) {
+    return this.http.patch<BlogSubmissionResponse>(
+      `${this.baseUrl}blogs/submissions/${matrialId}/review`,
+      reviewRequest
+    );
+  }
+
+  reviewWikiSubmission(
+    matrialId: number,
+    reviewRequest: { status: SubmissionStatus; reviewerComment: string | null }
+  ) {
+    return this.http.patch<WikiSubmissionResponse>(
+      `${this.baseUrl}wikis/submissions/${matrialId}/review`,
+      reviewRequest
     );
   }
 }

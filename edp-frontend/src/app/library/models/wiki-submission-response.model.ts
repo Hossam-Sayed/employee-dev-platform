@@ -6,7 +6,7 @@ export interface WikiSubmissionResponse {
   wikiId: number;
   title: string;
   description: string;
-  documentUrl: string;
+  documentId: string;
   status: SubmissionStatus;
   reviewerComment: string;
   submitterId: number;
