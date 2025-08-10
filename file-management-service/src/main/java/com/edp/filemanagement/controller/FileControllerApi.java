@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 
 @Tag(name = "File Management", description = "Manage upload, storage and download of files")
+@CrossOrigin(origins = "http://localhost:4200")
 @RequestMapping("/api/files")
 public interface FileControllerApi {
 
