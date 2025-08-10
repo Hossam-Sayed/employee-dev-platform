@@ -11,5 +11,9 @@ import org.springframework.web.multipart.MultipartFile;
 public interface FileServiceClient {
 
     @PostMapping(value = "/api/files", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    ResponseEntity<FileResponseDto> uploadFile(@RequestPart("file") MultipartFile file, @RequestHeader("Authorization") String token);
+    ResponseEntity<FileResponseDto> uploadFile(
+            @RequestPart("file") MultipartFile file,
+            @RequestHeader("Authorization") String token,
+            @RequestParam("publiclyAvailable") boolean publiclyAvailable
+    );
 }
