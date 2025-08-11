@@ -30,6 +30,11 @@ export const careerPackageRoutes: Routes = [
         loadComponent: () =>
           import('./my-package/package-detail/package-detail.component').then(m => m.PackageDetailComponent),
       },
+      {
+        path: 'sections/:sectionProgressId',
+        loadComponent: () =>
+          import('./my-package/package-section-detail/package-section-detail.component').then(m => m.PackageSectionDetailComponent),
+      },
     ],
   },
 ];

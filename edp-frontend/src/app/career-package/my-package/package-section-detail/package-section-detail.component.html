@@ -1,0 +1,119 @@
+<div class="container py-4">
+  @if (loading()) {
+  <div class="d-flex justify-content-center my-5">
+    <mat-spinner></mat-spinner>
+  </div>
+  } @else if (sectionData()) {
+  <mat-card class="p-4 mb-4 mat-elevation-z3">
+    <mat-card-header
+      class="d-flex align-items-center mb-3 justify-content-between"
+    >
+      <mat-card-title class="mb-0">
+        <h2 class="mb-0">{{ sectionData()!.sectionName }}</h2>
+      </mat-card-title>
+      <button
+        mat-flat-button
+        color="primary"
+        routerLink="/career-package/my-package"
+      >
+        Back to My Package
+      </button>
+    </mat-card-header>
+    <mat-card-content class="mt-3">
+      <p class="lead">{{ sectionData()!.sectionDescription }}</p>
+      <div class="d-flex align-items-center mt-3">
+        <mat-progress-bar
+          mode="determinate"
+          [value]="sectionData()!.sectionProgressPercent"
+          class="flex-grow-1"
+        ></mat-progress-bar>
+        <span class="ms-3 fs-5 fw-bold">
+          {{ sectionData()!.sectionProgressPercent }}% Complete
+        </span>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="p-4 mat-elevation-z3">
+    <mat-card-header>
+      <mat-card-title>Tags Progress</mat-card-title>
+    </mat-card-header>
+    <mat-card-content class="mt-3">
+      @if (sectionData()!.tags && sectionData()!.tags.length > 0) {
+      <mat-accordion multi>
+        @for (tag of sectionData()!.tags; track tag.tagProgressId) {
+        <mat-expansion-panel class="mb-2">
+          <mat-expansion-panel-header>
+            <mat-panel-title
+              class="d-flex align-items-center justify-content-between w-100"
+            >
+              <span class="fw-bold me-2">{{ tag.tagName }}:</span>
+              @if (tag.criteriaType === 'BOOLEAN') {
+              <span
+                [ngClass]="{
+                  'text-success': tag.completedValue === 1,
+                  'text-danger': tag.completedValue === 0
+                }"
+              >
+                {{ tag.completedValue === 1 ? "Done" : "Missing" }}
+              </span>
+              } @else {
+              <span>
+                {{ tag.completedValue }} / {{ tag.requiredValue }}
+                {{ tag.criteriaType }}
+              </span>
+              }
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+          <div class="p-2">
+            <p class="mb-2">
+              <strong>Proof (Comment/Link): </strong>
+              @if (isUrl(tag.proofUrl)) {
+              <a
+                [href]="tag.proofUrl"
+                target="_blank"
+                class="text-primary text-decoration-underline"
+                >{{ tag.proofUrl }}</a
+              >
+              } @else {
+              <span>{{ tag.proofUrl || "N/A" }}</span>
+              }
+            </p>
+            <div class="p-2 d-flex gap-2 align-items-center">
+              @if (tag.fileId) {
+              <button
+                mat-flat-button
+                color="primary"
+                (click)="viewPdfProof(tag.fileId)"
+              >
+                View Document
+              </button>
+              } @else {
+              <p class="text-muted mb-0">No associated document file.</p>
+              }
+
+              <button
+                mat-flat-button
+                color="primary"
+                (click)="onUpdateProgressClick(tag)"
+              >
+                Update Progress
+              </button>
+            </div>
+          </div>
+        </mat-expansion-panel>
+        }
+      </mat-accordion>
+      } @else {
+      <div class="alert alert-info text-center" role="alert">
+        No tags found for this section.
+      </div>
+      }
+    </mat-card-content>
+  </mat-card>
+  } @else {
+  <div class="alert alert-danger text-center" role="alert">
+    Failed to load section details. Please try again.
+  </div>
+  }
+</div>

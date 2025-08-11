@@ -1,0 +1,41 @@
+<h2 mat-dialog-title>Update {{ data.tagName }} Progress</h2>
+
+<mat-dialog-content class="d-flex flex-column gap-3">
+  @if (data.criteriaType !== 'BOOLEAN') {
+    <mat-form-field>
+      <mat-label>Completed Value (out of {{ data.requiredValue }})</mat-label>
+      <input matInput type="number"
+             [ngModel]="completedValue()"
+             (ngModelChange)="completedValue.set($event)"
+             [min]="0"
+             [max]="data.requiredValue"
+             [disabled]="isSaving()" />
+    </mat-form-field>
+  }
+
+  <mat-form-field>
+    <mat-label>Proof URL / Comment</mat-label>
+    <textarea matInput
+              [ngModel]="proofUrl()"
+              (ngModelChange)="proofUrl.set($event)"
+              placeholder="Enter a link or comment here"
+              [disabled]="isSaving()"></textarea>
+  </mat-form-field>
+
+    <div class="d-flex align-items-center gap-3">
+    <button mat-stroked-button color="primary" [disabled]="isSaving()" (click)="fileInput.click()">
+      <mat-icon>upload_file</mat-icon> Upload File
+    </button>
+    <input #fileInput type="file" hidden (change)="onFileSelected($event)">
+    <span class="text-truncate" [matTooltip]="fileName()">{{ fileName() }}</span>
+  </div>
+
+  @if (isSaving()) {
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()" [disabled]="isSaving()">Cancel</button>
+  <button mat-raised-button color="primary" (click)="save()" [disabled]="isSaving()">Update</button>
+</mat-dialog-actions>

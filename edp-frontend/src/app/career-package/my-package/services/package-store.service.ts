@@ -1,5 +1,8 @@
 import { Injectable, signal } from '@angular/core';
 import { CareerPackageResponseDto } from '../models/package-detail-response.dto';
+import { CareerPackageStatusEnum } from '../models/career-package-status.enum';
+
+
 
 @Injectable({ providedIn: 'root' })
 export class PackageDetailService {
@@ -12,9 +15,6 @@ export class PackageDetailService {
   }
 
   submitCareerPackage() {
-    const updatedPackage = {
-      ...this._careerPackage()!,
-      status: 'SUBMITTED',
-    };
+    this._careerPackage.set({ ...this._careerPackage()!, status: CareerPackageStatusEnum.SUBMITTED });
   }
 }
