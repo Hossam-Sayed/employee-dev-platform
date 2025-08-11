@@ -3,9 +3,7 @@ package com.edp.shared.client.tag;
 import com.edp.shared.client.tag.model.TagRequestDto;
 import com.edp.shared.client.tag.model.TagResponseDto;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
 
@@ -14,7 +12,7 @@ public interface TagServiceClient {
 
     @GetMapping("/api/tags")
     List<TagResponseDto> searchTags(
-            @RequestParam(name="query",required = false) String query,
+            @RequestParam(name = "query", required = false) String query,
             @RequestHeader("Authorization") String token
     );
 
@@ -34,5 +32,5 @@ public interface TagServiceClient {
     List<TagResponseDto> findAllTagsByIds(
             @RequestParam("ids") List<Long> tagIds,
             @RequestHeader("Authorization") String token
-            );
+    );
 }

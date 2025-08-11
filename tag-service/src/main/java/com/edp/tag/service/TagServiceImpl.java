@@ -13,8 +13,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -50,6 +50,7 @@ public class TagServiceImpl implements TagService {
 
     @Override
     public List<TagResponseDto> findAllTagsByIds(List<Long> tagIds) {
+        if (tagIds.isEmpty()) return Collections.emptyList();
         List<Tag> tagsList = tagRepository.findAllById(tagIds);
         if (tagsList.isEmpty()) throw new EntityNotFoundException("No tag exist");
         return tagMapper.toTagsResponse(tagsList);
