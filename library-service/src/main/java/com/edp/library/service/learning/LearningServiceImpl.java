@@ -3,26 +3,26 @@ package com.edp.library.service.learning;
 import com.edp.library.data.entity.learning.Learning;
 import com.edp.library.data.entity.learning.LearningSubmission;
 import com.edp.library.data.entity.learning.LearningSubmissionTag;
-import com.edp.library.data.entity.tag.Tag;
 import com.edp.library.data.enums.SubmissionStatus;
 import com.edp.library.data.repository.learning.LearningRepository;
 import com.edp.library.data.repository.learning.LearningSubmissionRepository;
 import com.edp.library.data.repository.learning.LearningSubmissionTagRepository;
-import com.edp.library.data.repository.tag.TagRepository;
 import com.edp.library.exception.InvalidOperationException;
 import com.edp.library.exception.ResourceNotFoundException;
 import com.edp.library.mapper.LearningMapper;
+import com.edp.library.model.PaginationRequestDTO;
+import com.edp.library.model.PaginationResponseDTO;
 import com.edp.library.model.SubmissionReviewRequestDTO;
 import com.edp.library.model.enums.SubmissionStatusDTO;
 import com.edp.library.model.learning.LearningCreateRequestDTO;
-import com.edp.library.model.PaginationResponseDTO;
-import com.edp.library.model.PaginationRequestDTO;
 import com.edp.library.model.learning.LearningResponseDTO;
 import com.edp.library.model.learning.LearningSubmissionResponseDTO;
 import com.edp.library.model.learning.LearningTagDTO;
 import com.edp.library.utils.PaginationUtils;
 import com.edp.shared.client.auth.AuthServiceClient;
 import com.edp.shared.client.auth.model.UserProfileDto;
+import com.edp.shared.client.tag.TagServiceClient;
+import com.edp.shared.client.tag.model.TagResponseDto;
 import com.edp.shared.security.jwt.JwtUserContext;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
@@ -36,8 +36,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.Instant;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -47,66 +47,54 @@ public class LearningServiceImpl implements LearningService {
     private final LearningRepository learningRepository;
     private final LearningSubmissionRepository learningSubmissionRepository;
     private final LearningSubmissionTagRepository learningSubmissionTagRepository;
-    private final TagRepository tagRepository;
     private final LearningMapper learningMapper;
     private final AuthServiceClient authServiceClient;
+    private final TagServiceClient tagServiceClient;
 
     @Override
     @Transactional
     public LearningResponseDTO createLearning(LearningCreateRequestDTO request) {
-        // 1. Validate and fetch active tags
+        // 1. Validate tags by calling the remote tag service
         List<Long> tagIds = request.getTags().stream().map(LearningTagDTO::getTagId).collect(Collectors.toList());
-        List<Tag> tags = tagRepository.findAllById(tagIds);
+        String token = JwtUserContext.getToken();
+
+        List<TagResponseDto> tags = Collections.emptyList();
+        if (!tagIds.isEmpty()) tags = tagServiceClient.findAllTagsByIds(tagIds, token);
 
         if (tags.size() != tagIds.size()) {
-            throw new ResourceNotFoundException("One or more tags not found. Provided IDs: " + tagIds + ", Found: " + tags.stream().map(Tag::getId).toList());
-        }
-
-        Map<Long, Tag> activeTagsMap = tags.stream()
-                .filter(Tag::isActive)
-                .collect(Collectors.toMap(Tag::getId, Function.identity()));
-        if (activeTagsMap.size() != tagIds.size()) {
-            Set<Long> inactiveTagIds = tagIds.stream()
-                    .filter(id -> !activeTagsMap.containsKey(id))
-                    .collect(Collectors.toSet());
-            throw new InvalidOperationException("One or more selected tags are not active: " + inactiveTagIds);
+            Set<Long> foundTagIds = tags.stream().map(TagResponseDto::getId).collect(Collectors.toSet());
+            Set<Long> missingTagIds = new HashSet<>(tagIds);
+            missingTagIds.removeAll(foundTagIds);
+            throw new ResourceNotFoundException("One or more tags not found. Missing IDs: " + missingTagIds);
         }
 
         Long submitterId = JwtUserContext.getUserId();
 
-        // 3. Create a new Learning entity (as per your preferred logic, always create a new root Learning for a new request)
+        // 2. Create a new Learning entity
         Learning learning = Learning.builder()
                 .employeeId(submitterId)
                 .build();
         learning = learningRepository.save(learning);
 
-        // 4. Create and save the new LearningSubmission for this new Learning
-        LearningSubmission submission = learningMapper.toLearningSubmission(request, learning, submitterId);
-        submission = learningSubmissionRepository.save(submission);
+        // 3. Create and save the new LearningSubmission for this new Learning
+        LearningSubmission submission = learningSubmissionRepository.save(learningMapper.toLearningSubmission(request, learning, submitterId));
 
-        // 5. Save LearningSubmissionTag entries
-        Set<LearningSubmissionTag> submissionTags = new HashSet<>();
-        for (LearningTagDTO tagDto : request.getTags()) {
-            LearningSubmissionTag submissionTag = learningMapper.toLearningSubmissionTag(tagDto, submission);
-            submissionTag.setTag(activeTagsMap.get(tagDto.getTagId()));
-            submissionTags.add(submissionTag);
-        }
+        // 4. Save LearningSubmissionTag entries
+        Set<LearningSubmissionTag> submissionTags = request.getTags().stream()
+                .map(tagDto -> learningMapper.toLearningSubmissionTag(tagDto, submission))
+                .collect(Collectors.toSet());
+
         learningSubmissionTagRepository.saveAll(submissionTags);
         submission.setTags(submissionTags);
 
-        // 6. Set the current submission for the newly created Learning material
+        // 5. Set the current submission for the newly created Learning material
         learning.setCurrentSubmission(submission);
         learningRepository.save(learning);
 
-        // TODO: Notification: As a USER, I need to receive notifications when my material submission status changes (e.g., pending on submission/approved/rejected).
-        // Event data: employeeId (owner), submissionId, learningId, status=PENDING.
-        // Triggered: On successful creation of a new submission.
-
+        // TODO: Notification: As a USER, I need to receive notifications when my material submission status changes.
         // TODO: Notification: As a MANAGER, I need to receive notifications when a new submission is assigned to me for review.
-        // Event data: reviewerId, submissionId, learningId, submitterId.
-        // Triggered: On successful creation of a new submission.
 
-        return learningMapper.toLearningResponseDTO(learning);
+        return learningMapper.toLearningResponseDTO(learning, tags);
     }
 
     @Override
@@ -121,8 +109,6 @@ public class LearningServiceImpl implements LearningService {
             throw new InvalidOperationException("User is not authorized to edit this learning material.");
         }
 
-        // Crucial check: Is the *current* submission for this learning material REJECTED?
-        // And ensure there IS a current submission to begin with.
         if (learning.getCurrentSubmission() == null || learning.getCurrentSubmission().getStatus() != SubmissionStatus.REJECTED) {
             throw new InvalidOperationException("Only learning materials with a REJECTED current submission can be edited directly via this method. Current status: " +
                     (learning.getCurrentSubmission() != null ? learning.getCurrentSubmission().getStatus() : "N/A"));
@@ -130,31 +116,26 @@ public class LearningServiceImpl implements LearningService {
 
         // Validate tags
         List<Long> tagIds = request.getTags().stream().map(LearningTagDTO::getTagId).collect(Collectors.toList());
-        List<Tag> tags = tagRepository.findAllById(tagIds);
+        String token = JwtUserContext.getToken();
+
+        List<TagResponseDto> tags = Collections.emptyList();
+        if (!tagIds.isEmpty()) tags = tagServiceClient.findAllTagsByIds(tagIds, token);
+
         if (tags.size() != tagIds.size()) {
-            throw new ResourceNotFoundException("One or more tags not found. Provided IDs: " + tagIds + ", Found: " + tags.stream().map(Tag::getId).toList());
-        }
-        Map<Long, Tag> activeTagsMap = tags.stream()
-                .filter(Tag::isActive)
-                .collect(Collectors.toMap(Tag::getId, Function.identity()));
-        if (activeTagsMap.size() != tagIds.size()) {
-            Set<Long> inactiveTagIds = tagIds.stream()
-                    .filter(id -> !activeTagsMap.containsKey(id))
-                    .collect(Collectors.toSet());
-            throw new InvalidOperationException("One or more selected tags are not active: " + inactiveTagIds);
+            Set<Long> foundTagIds = tags.stream().map(TagResponseDto::getId).collect(Collectors.toSet());
+            Set<Long> missingTagIds = new HashSet<>(tagIds);
+            missingTagIds.removeAll(foundTagIds);
+            throw new ResourceNotFoundException("One or more tags not found. Missing IDs: " + missingTagIds);
         }
 
         // Create and save the new LearningSubmission for the existing Learning material
-        LearningSubmission newSubmission = learningMapper.toLearningSubmission(request, learning, submitterId);
-        newSubmission = learningSubmissionRepository.save(newSubmission);
+        LearningSubmission newSubmission = learningSubmissionRepository.save(learningMapper.toLearningSubmission(request, learning, submitterId));
 
         // Save LearningSubmissionTag entries for the new submission
-        Set<LearningSubmissionTag> newSubmissionTags = new HashSet<>();
-        for (LearningTagDTO tagDto : request.getTags()) {
-            LearningSubmissionTag submissionTag = learningMapper.toLearningSubmissionTag(tagDto, newSubmission);
-            submissionTag.setTag(activeTagsMap.get(tagDto.getTagId()));
-            newSubmissionTags.add(submissionTag);
-        }
+        Set<LearningSubmissionTag> newSubmissionTags = request.getTags().stream()
+                .map(tagDto -> learningMapper.toLearningSubmissionTag(tagDto, newSubmission))
+                .collect(Collectors.toSet());
+
         learningSubmissionTagRepository.saveAll(newSubmissionTags);
         newSubmission.setTags(newSubmissionTags);
 
@@ -165,7 +146,7 @@ public class LearningServiceImpl implements LearningService {
         // TODO: Notification: Similar to create, notify owner of new pending submission
         // TODO: Notification: Notify manager of new submission assigned for review
 
-        return learningMapper.toLearningResponseDTO(learning);
+        return learningMapper.toLearningResponseDTO(learning, tags);
     }
 
     @Override
@@ -194,7 +175,7 @@ public class LearningServiceImpl implements LearningService {
 
             if (tagIdFilter != null) {
                 Objects.requireNonNull(query).distinct(true);
-                predicates.add(cb.equal(root.join("currentSubmission").join("tags").get("tag").get("id"), tagIdFilter));
+                predicates.add(cb.equal(root.join("currentSubmission").join("tags").get("tagId"), tagIdFilter));
             }
 
             // Apply custom sort safely
@@ -215,9 +196,19 @@ public class LearningServiceImpl implements LearningService {
             return cb.and(predicates.toArray(new Predicate[0]));
         };
 
-
         Page<Learning> learnings = learningRepository.findAll(spec, pageable);
-        return PaginationUtils.mapToPaginationResponseDTO(learnings, learningMapper.toLearningResponseDTOs(learnings.getContent()));
+
+        Set<Long> tagIds = learnings.getContent().stream()
+                .filter(learning -> learning.getCurrentSubmission() != null)
+                .flatMap(learning -> learning.getCurrentSubmission().getTags().stream())
+                .map(LearningSubmissionTag::getTagId)
+                .collect(Collectors.toSet());
+
+        List<TagResponseDto> tags = Collections.emptyList();
+        if (!tagIds.isEmpty())
+            tags = tagServiceClient.findAllTagsByIds(new ArrayList<>(tagIds), JwtUserContext.getToken());
+
+        return PaginationUtils.mapToPaginationResponseDTO(learnings, learningMapper.toLearningResponseDTOs(learnings.getContent(), tags));
     }
 
     @Override
@@ -225,19 +216,41 @@ public class LearningServiceImpl implements LearningService {
     public LearningResponseDTO getLearningDetails(Long learningId) {
         Learning learning = learningRepository.findById(learningId)
                 .orElseThrow(() -> new ResourceNotFoundException("Learning material not found with ID: " + learningId));
-        return learningMapper.toLearningResponseDTO(learning);
+
+        if (learning.getCurrentSubmission() == null) {
+            throw new InvalidOperationException("Learning does not have a current submission.");
+        }
+
+        Set<Long> tagIds = learning.getCurrentSubmission().getTags().stream()
+                .map(LearningSubmissionTag::getTagId)
+                .collect(Collectors.toSet());
+
+        List<TagResponseDto> tags = Collections.emptyList();
+        if (!tagIds.isEmpty())
+            tags = tagServiceClient.findAllTagsByIds(new ArrayList<>(tagIds), JwtUserContext.getToken());
+
+        return learningMapper.toLearningResponseDTO(learning, tags);
     }
 
     @Override
     @Transactional(readOnly = true)
     public PaginationResponseDTO<LearningSubmissionResponseDTO> getLearningSubmissionHistory(Long learningId, PaginationRequestDTO paginationRequestDTO) {
-        // Ensure the learning exists, or the subsequent findByLearningId will return empty, which might be acceptable.
         learningRepository.findById(learningId)
                 .orElseThrow(() -> new ResourceNotFoundException("Learning material not found with ID: " + learningId));
 
         Pageable pageable = PaginationUtils.toPageable(paginationRequestDTO, LearningSubmission.class);
         Page<LearningSubmission> submissions = learningSubmissionRepository.findByLearningIdOrderBySubmittedAtDesc(learningId, pageable);
-        return PaginationUtils.mapToPaginationResponseDTO(submissions, learningMapper.toLearningSubmissionResponseDTOs(submissions.getContent()));
+
+        Set<Long> tagIds = submissions.getContent().stream()
+                .flatMap(submission -> submission.getTags().stream())
+                .map(LearningSubmissionTag::getTagId)
+                .collect(Collectors.toSet());
+
+        List<TagResponseDto> tags = Collections.emptyList();
+        if (!tagIds.isEmpty())
+            tags = tagServiceClient.findAllTagsByIds(new ArrayList<>(tagIds), JwtUserContext.getToken());
+
+        return PaginationUtils.mapToPaginationResponseDTO(submissions, learningMapper.toLearningSubmissionResponseDTOs(submissions.getContent(), tags));
     }
 
     @Override
@@ -252,7 +265,16 @@ public class LearningServiceImpl implements LearningService {
 
         Pageable pageable = PaginationUtils.toPageable(paginationRequestDTO, LearningSubmission.class);
         Page<LearningSubmission> pendingSubmissions = learningSubmissionRepository.findBySubmitterIdInAndStatus(managedUserIds, SubmissionStatus.PENDING, pageable);
-        return PaginationUtils.mapToPaginationResponseDTO(pendingSubmissions, learningMapper.toLearningSubmissionResponseDTOs(pendingSubmissions.getContent()));
+
+        Set<Long> tagIds = pendingSubmissions.getContent().stream()
+                .flatMap(submission -> submission.getTags().stream())
+                .map(LearningSubmissionTag::getTagId)
+                .collect(Collectors.toSet());
+        List<TagResponseDto> tags = Collections.emptyList();
+        if (!tagIds.isEmpty())
+            tags = tagServiceClient.findAllTagsByIds(new ArrayList<>(tagIds), JwtUserContext.getToken());
+
+        return PaginationUtils.mapToPaginationResponseDTO(pendingSubmissions, learningMapper.toLearningSubmissionResponseDTOs(pendingSubmissions.getContent(), tags));
     }
 
     @Override
@@ -288,14 +310,13 @@ public class LearningServiceImpl implements LearningService {
 
         submission.setStatus(learningMapper.toSubmissionStatusEntity(reviewDTO.getStatus()));
         submission.setReviewerId(reviewerId);
+        submission.setReviewedAt(Instant.now());
         submission.setReviewerComment(reviewDTO.getReviewerComment());
 
         LearningSubmission updatedSubmission = learningSubmissionRepository.save(submission);
 
         if (reviewDTO.getStatus() == SubmissionStatusDTO.APPROVED) {
             Learning learning = updatedSubmission.getLearning();
-            // This ensures the 'currentSubmission' always points to the latest APPROVED one.
-            // Only update if currentSubmission is not this approved one, or if its status is not APPROVED
             if (learning.getCurrentSubmission() == null || !learning.getCurrentSubmission().equals(updatedSubmission) || learning.getCurrentSubmission().getStatus() != SubmissionStatus.APPROVED) {
                 learning.setCurrentSubmission(updatedSubmission);
                 learningRepository.save(learning);
@@ -303,11 +324,14 @@ public class LearningServiceImpl implements LearningService {
         }
 
         // TODO: Notification: As a MANAGER, I need the submitter to be notified when I approve or reject their submission.
-        // Event data: submitterId, submissionId, learningId, newStatus, reviewerComment (if rejected)
-        // Triggered: On approval/rejection of submission.
-
         // TODO: Notification: Notify the manager of their performed action (reviewing process)
+        Set<Long> tagIds = updatedSubmission.getTags().stream()
+                .map(LearningSubmissionTag::getTagId)
+                .collect(Collectors.toSet());
+        List<TagResponseDto> tags = Collections.emptyList();
+        if (!tagIds.isEmpty())
+            tags = tagServiceClient.findAllTagsByIds(new ArrayList<>(tagIds), JwtUserContext.getToken());
 
-        return learningMapper.toLearningSubmissionResponseDTO(updatedSubmission);
+        return learningMapper.toLearningSubmissionResponseDTO(updatedSubmission, tags);
     }
 }

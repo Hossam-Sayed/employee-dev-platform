@@ -6,10 +6,18 @@ import com.edp.library.data.entity.learning.LearningSubmissionTag;
 import com.edp.library.data.enums.SubmissionStatus;
 import com.edp.library.model.enums.SubmissionStatusDTO;
 import com.edp.library.model.learning.*;
-import org.mapstruct.*;
+import com.edp.shared.client.tag.model.TagResponseDto;
+import org.mapstruct.Context;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
+import org.mapstruct.ReportingPolicy;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface LearningMapper {
@@ -33,27 +41,61 @@ public interface LearningMapper {
     LearningSubmission toLearningSubmission(LearningCreateRequestDTO dto, Learning learning, Long submitterId);
 
     // Map to LearningResponseDTO from Learning entity, fetching details from currentSubmission
-    @Mapping(target = "currentSubmissionId", source = "currentSubmission.id")
-    @Mapping(target = "title", source = "currentSubmission.title")
-    @Mapping(target = "proofUrl", source = "currentSubmission.proofUrl")
-    @Mapping(target = "status", source = "currentSubmission.status", qualifiedByName = "toSubmissionStatusDTO")
-    @Mapping(target = "tags", source = "currentSubmission.tags")
-    LearningResponseDTO toLearningResponseDTO(Learning learning);
+    @Mapping(target = "currentSubmissionId", source = "learning.currentSubmission.id")
+    @Mapping(target = "title", source = "learning.currentSubmission.title")
+    @Mapping(target = "proofUrl", source = "learning.currentSubmission.proofUrl")
+    @Mapping(target = "status", source = "learning.currentSubmission.status", qualifiedByName = "toSubmissionStatusDTO")
+    @Mapping(
+            target = "tags",
+            expression = "java(mapTags(learning.getCurrentSubmission().getTags(), tagResponseDtos))"
+    )
+    LearningResponseDTO toLearningResponseDTO(Learning learning, List<TagResponseDto> tagResponseDtos);
 
-    List<LearningResponseDTO> toLearningResponseDTOs(List<Learning> learnings);
+    @Mapping(target = "learningId", source = "submission.learning.id")
+    @Mapping(target = "status", source = "submission.status", qualifiedByName = "toSubmissionStatusDTO")
+    @Mapping(
+            target = "tags",
+            expression = "java(mapTags(submission.getTags(), tagResponseDtos))"
+    )
+    LearningSubmissionResponseDTO toLearningSubmissionResponseDTO(LearningSubmission submission, List<TagResponseDto> tagResponseDtos);
 
-    @Mapping(target = "tagId", source = "tag.id")
-    @Mapping(target = "tagName", source = "tag.name")
-    LearningTagResponseDTO toLearningTagResponseDTO(LearningSubmissionTag learningSubmissionTag);
+    @Named("mapTags")
+    default List<LearningTagResponseDTO> mapTags(Set<LearningSubmissionTag> submissionTags, List<TagResponseDto> tagResponseDtos) {
+        if (submissionTags == null || submissionTags.isEmpty() || tagResponseDtos == null || tagResponseDtos.isEmpty()) {
+            return Collections.emptyList();
+        }
 
-    List<LearningTagResponseDTO> toLearningTagResponseDTOs(Set<LearningSubmissionTag> tags);
+        Map<Long, String> tagNameMap = tagResponseDtos.stream()
+                .collect(Collectors.toMap(TagResponseDto::getId, TagResponseDto::getName));
 
-    @Mapping(target = "learningId", source = "learning.id")
-    @Mapping(target = "status", source = "status", qualifiedByName = "toSubmissionStatusDTO")
-    @Mapping(target = "tags", source = "tags")
-    LearningSubmissionResponseDTO toLearningSubmissionResponseDTO(LearningSubmission submission);
+        return submissionTags.stream()
+                .map(submissionTag -> LearningTagResponseDTO.builder()
+                        .id(submissionTag.getId())
+                        .tagId(submissionTag.getTagId())
+                        .tagName(tagNameMap.getOrDefault(submissionTag.getTagId(), "Unknown Tag"))
+                        .durationMinutes(submissionTag.getDurationMinutes())
+                        .createdAt(submissionTag.getCreatedAt())
+                        .build())
+                .collect(Collectors.toList());
+    }
 
-    List<LearningSubmissionResponseDTO> toLearningSubmissionResponseDTOs(List<LearningSubmission> submissions);
+    default List<LearningResponseDTO> toLearningResponseDTOs(List<Learning> learnings, List<TagResponseDto> tagResponseDtos) {
+        if (learnings == null || learnings.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return learnings.stream()
+                .map(learning -> toLearningResponseDTO(learning, tagResponseDtos))
+                .collect(Collectors.toList());
+    }
+
+    default List<LearningSubmissionResponseDTO> toLearningSubmissionResponseDTOs(List<LearningSubmission> submissions, List<TagResponseDto> tagResponseDtos) {
+        if (submissions == null || submissions.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return submissions.stream()
+                .map(submission -> toLearningSubmissionResponseDTO(submission, tagResponseDtos))
+                .collect(Collectors.toList());
+    }
 
     @Named("toSubmissionStatusDTO")
     SubmissionStatusDTO toSubmissionStatusDTO(SubmissionStatus status);
@@ -61,10 +103,10 @@ public interface LearningMapper {
     @Named("toSubmissionStatusEntity")
     SubmissionStatus toSubmissionStatusEntity(SubmissionStatusDTO status);
 
-    // Map a single LearningTagDTO to LearningSubmissionTag (tag will be null initially)
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "tag", ignore = true)
     @Mapping(target = "learningSubmission", expression = "java(submission)")
+    @Mapping(target = "tagId", source = "dto.tagId")
+    @Mapping(target = "durationMinutes", source = "dto.durationMinutes")
+    @Mapping(target = "createdAt", ignore = true)
     LearningSubmissionTag toLearningSubmissionTag(LearningTagDTO dto, @Context LearningSubmission submission);
-
 }

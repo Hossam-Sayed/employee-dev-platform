@@ -1,6 +1,5 @@
 package com.edp.library.data.entity.learning;
 
-import com.edp.library.data.entity.tag.Tag;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -26,9 +25,8 @@ public class LearningSubmissionTag {
     @JoinColumn(name = "learning_submission_id", nullable = false)
     private LearningSubmission learningSubmission;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tag_id", nullable = false)
-    private Tag tag;
+    @Column(name = "tag_id", nullable = false)
+    private Long tagId;
 
     @Column(name = "duration_minutes", nullable = false)
     private Integer durationMinutes;
