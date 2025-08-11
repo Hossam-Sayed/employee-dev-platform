@@ -25,14 +25,9 @@ public class CareerPackageSectionProgress {
     @JoinColumn(name = "career_package_id", nullable = false)
     private CareerPackage careerPackage;
 
-    @Column(name = "section_name", nullable = false)
-    private String sectionName;
-
-    @Column(name = "section_description")
-    private String sectionDescription;
-
-    @Column(name = "source_section_id")
-    private Long sourceSectionId;
+    @ManyToOne(optional = false,fetch = FetchType.LAZY)
+    @JoinColumn(name = "source_section_id",nullable = false)
+    private Section sourceSection;
 
     @OneToMany(mappedBy = "careerPackageSectionProgress", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id ASC")

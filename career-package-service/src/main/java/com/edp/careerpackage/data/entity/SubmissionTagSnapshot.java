@@ -23,8 +23,8 @@ public class SubmissionTagSnapshot {
     @Column(name = "tag_id", nullable = false)
     private Long tagId;
 
-    @Column(name = "section_name", nullable = false)
-    private String sectionName;
+    @Column(name = "source_section_id",nullable = false)
+    private Long sourceSectionId;
 
     @Column(name = "criteria_type", nullable = false)
     private String criteriaType;

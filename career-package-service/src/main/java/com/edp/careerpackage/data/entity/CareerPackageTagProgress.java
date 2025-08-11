@@ -29,9 +29,6 @@ public class CareerPackageTagProgress {
     @Column(name = "required_value", nullable = false)
     private Double requiredValue;
 
-    @Column(name = "source_required_tag_id")
-    private Long sourceRequiredTagId;
-
     @Column(name = "completed_value", nullable = false)
     private Double completedValue;
 

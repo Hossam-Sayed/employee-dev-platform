@@ -13,7 +13,7 @@ public interface SubmissionTagSnapshotMapper {
 
     @Mappings({
             @Mapping(source = "tagId", target = "tagId"),
-            @Mapping(source = "sectionName", target = "sectionName"),
+            @Mapping(source = "sourceSectionId", target = "sourceSectionId"),
             @Mapping(source = "criteriaType", target = "criteriaType"),
             @Mapping(source = "requiredValue", target = "requiredValue"),
             @Mapping(source = "submittedValue", target = "submittedValue"),

@@ -103,8 +103,7 @@ public class CareerPackageServiceImpl implements CareerPackageService {
                 .map(templateSection -> {
                     CareerPackageSectionProgress sectionProgress = CareerPackageSectionProgress.builder()
                             .careerPackage(careerPackage)
-                            .sectionName(templateSection.getSection().getName())
-                            .sectionDescription(templateSection.getSection().getDescription())
+                            .sourceSection(templateSection.getSection())
                             .totalProgressPercent(0.0)
                             .updatedAt(LocalDateTime.now())
                             .build();

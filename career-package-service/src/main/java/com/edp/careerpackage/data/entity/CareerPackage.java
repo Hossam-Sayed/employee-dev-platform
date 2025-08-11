@@ -29,9 +29,6 @@ public class CareerPackage {
     @Column(name = "position", nullable = false)
     private String position;
 
-    @Column(name = "source_template_id")
-    private Long sourceTemplateId;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CareerPackageStatus status;

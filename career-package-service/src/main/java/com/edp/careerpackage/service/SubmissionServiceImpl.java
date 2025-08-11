@@ -183,7 +183,7 @@ public class SubmissionServiceImpl implements SubmissionService {
                         SubmissionTagSnapshot.builder()
                                 .submission(submission)
                                 .tagId(tagProgress.getTagId())
-                                .sectionName(section.getSectionName())
+                                .sourceSectionId(section.getSourceSection().getId())
                                 .criteriaType(tagProgress.getCriteriaType())
                                 .requiredValue(tagProgress.getRequiredValue())
                                 .submittedValue(tagProgress.getCompletedValue())

@@ -10,7 +10,7 @@ import lombok.*;
 public class SubmissionTagSnapshotResponseDto {
 
     private String tagId;
-    private String sectionName;
+    private Long sourceSectionId;
     private String criteriaType;
     private Double requiredValue;
     private Double submittedValue;

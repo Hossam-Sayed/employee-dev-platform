@@ -35,10 +35,10 @@ public interface CareerPackageMapper {
 
     @Mappings({
             @Mapping(source = "id", target = "sectionProgressId"),
-            @Mapping(source = "sectionName", target = "sectionName"),
-            @Mapping(source = "sectionDescription", target = "sectionDescription"),
+            @Mapping(source = "sourceSection.name", target = "sectionName"),
+            @Mapping(source = "sourceSection.description", target = "sectionDescription"),
             @Mapping(source = "totalProgressPercent", target = "sectionProgressPercent"),
-            @Mapping(source = "tagProgressList", target = "tags")
+            @Mapping(target = "tags",ignore = true)
     })
     SectionProgressResponseDto toCareerPackageSectionProgress(CareerPackageSectionProgress sectionProgress);
 
@@ -63,6 +63,5 @@ public interface CareerPackageMapper {
     SubmissionResponseDto toSubmissionResponseDto(Submission submission);
 
     List<SectionProgressResponseDto> toCareerPackageSectionProgressList(Collection<CareerPackageSectionProgress> list);
-    List<TagPogressResponseDto> toCareerPackageTagProgressList(Collection<CareerPackageTagProgress> list);
     List<SubmissionResponseDto> toSubmissionResponseDtoList(Collection<Submission> submissions);
 }
