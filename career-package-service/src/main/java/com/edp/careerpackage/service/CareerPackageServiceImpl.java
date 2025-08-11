@@ -32,15 +32,14 @@ public class CareerPackageServiceImpl implements CareerPackageService {
     private final AuthServiceClient authServiceClient;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public CareerPackageResponseDto getCareerPackage() {
         Long userId = JwtUserContext.getUserId();
 
-        CareerPackage careerPackage = careerPackageRepository
+        return careerPackageRepository
                 .findByUserIdAndActiveTrue(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Career package not found"));
-
-        return careerPackageMapper.toCareerPackageResponse(careerPackage);
+                .map(careerPackageMapper::toCareerPackageResponse)
+                .orElseGet(this::createCareerPackage);
     }
 
     @Override
