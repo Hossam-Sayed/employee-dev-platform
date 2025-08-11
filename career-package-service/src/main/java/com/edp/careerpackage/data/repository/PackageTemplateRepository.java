@@ -20,11 +20,5 @@ public interface PackageTemplateRepository extends JpaRepository<PackageTemplate
 
     boolean existsByDepartmentIgnoreCaseAndPositionIgnoreCase(String department, String position);
 
-    @EntityGraph(attributePaths = {
-            "sections",
-            "sections.section",
-            "sections.requiredTags",
-            "sections.requiredTags.tagId"
-    })
     Optional<PackageTemplate> findById(Long id);
 }
