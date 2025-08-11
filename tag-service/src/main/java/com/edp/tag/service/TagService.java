@@ -10,4 +10,8 @@ public interface TagService {
     List<TagResponseDto> searchTags(String query);
 
     TagResponseDto createTag(TagRequestDto request);
+
+    TagResponseDto findTagById(Long tagId);
+
+    List<TagResponseDto> findAllTagsByIds(List<Long> tagIds);
 }

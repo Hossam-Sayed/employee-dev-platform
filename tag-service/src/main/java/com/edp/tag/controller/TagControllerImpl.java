@@ -31,4 +31,14 @@ public class TagControllerImpl implements TagController {
                 .created(uriBuilder.path("/api/tags/{id}").buildAndExpand(created.getId()).toUri())
                 .body(created);
     }
+
+    @Override
+    public ResponseEntity<TagResponseDto> findTagById(Long tagId) {
+        return ResponseEntity.ok(tagService.findTagById(tagId));
+    }
+
+    @Override
+    public ResponseEntity<List<TagResponseDto>> findAllTagsByIds(List<Long> tagIds) {
+        return ResponseEntity.ok(tagService.findAllTagsByIds(tagIds));
+    }
 }

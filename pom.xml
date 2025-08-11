@@ -17,6 +17,7 @@
         <module>library-service</module>
         <module>career-package-service</module>
         <module>file-management-service</module>
+        <module>tag-service</module>
     </modules>
 
     <dependencyManagement>

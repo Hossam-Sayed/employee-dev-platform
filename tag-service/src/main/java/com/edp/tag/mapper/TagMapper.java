@@ -20,6 +20,9 @@ public interface TagMapper {
     })
     TagResponseDto toTagResponse(Tag tag);
 
+
+    List<TagResponseDto> toTagsResponse(List<Tag> tags);
+
     List<TagResponseDto> toTagResponseList(List<Tag> tags);
 
     @Mappings({

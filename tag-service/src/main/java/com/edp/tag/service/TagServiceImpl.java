@@ -7,12 +7,14 @@ import com.edp.tag.mapper.TagMapper;
 import com.edp.tag.model.tag.TagRequestDto;
 import com.edp.tag.model.tag.TagResponseDto;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -38,5 +40,18 @@ public class TagServiceImpl implements TagService {
         Tag tag = tagMapper.toTag(request);
         tag.setCreatedBy(JwtUserContext.getUserId());
         return tagMapper.toTagResponse(tagRepository.save(tag));
+    }
+
+    @Override
+    public TagResponseDto findTagById(Long tagId) {
+        Tag tag = tagRepository.findById(tagId).orElseThrow(() -> new EntityNotFoundException("Tag doesn't exist"));
+        return tagMapper.toTagResponse(tag);
+    }
+
+    @Override
+    public List<TagResponseDto> findAllTagsByIds(List<Long> tagIds) {
+        List<Tag> tagsList = tagRepository.findAllById(tagIds);
+        if (tagsList.isEmpty()) throw new EntityNotFoundException("No tag exist");
+        return tagMapper.toTagsResponse(tagsList);
     }
 }

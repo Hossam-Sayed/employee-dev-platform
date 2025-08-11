@@ -50,4 +50,29 @@ public interface TagController {
             @Valid @RequestBody TagRequestDto request,
             UriComponentsBuilder uriBuilder
     );
+
+    @Operation(
+            summary = "Fetch tag by ID",
+            description = "Fetch tag by ID."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Tag created successfully"),
+            @ApiResponse(responseCode = "400", description = "Validation failed"),
+            @ApiResponse(responseCode = "409", description = "Tag doesn't exist")
+    })
+    @GetMapping("/{id}")
+    ResponseEntity<TagResponseDto> findTagById(@PathVariable("id") Long tagId);
+
+
+    @Operation(
+            summary = "Fetch tags by IDs",
+            description = "Fetch tags by IDs."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Tags fetched successfully"),
+            @ApiResponse(responseCode = "400", description = "Validation failed"),
+            @ApiResponse(responseCode = "404", description = "No tag exist")
+    })
+    @GetMapping("/by-ids")
+    ResponseEntity<List<TagResponseDto>> findAllTagsByIds(@RequestParam("ids") List<Long> tagIds);
 }
