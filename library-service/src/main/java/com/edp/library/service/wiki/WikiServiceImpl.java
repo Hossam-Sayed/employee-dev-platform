@@ -1,11 +1,9 @@
 package com.edp.library.service.wiki;
 
-import com.edp.library.data.entity.tag.Tag;
 import com.edp.library.data.entity.wiki.Wiki;
 import com.edp.library.data.entity.wiki.WikiSubmission;
 import com.edp.library.data.entity.wiki.WikiSubmissionTag;
 import com.edp.library.data.enums.SubmissionStatus;
-import com.edp.library.data.repository.tag.TagRepository;
 import com.edp.library.data.repository.wiki.WikiRepository;
 import com.edp.library.data.repository.wiki.WikiSubmissionRepository;
 import com.edp.library.data.repository.wiki.WikiSubmissionTagRepository;
@@ -24,6 +22,8 @@ import com.edp.shared.client.auth.AuthServiceClient;
 import com.edp.shared.client.auth.model.UserProfileDto;
 import com.edp.shared.client.file.FileServiceClient;
 import com.edp.shared.client.file.model.FileResponseDto;
+import com.edp.shared.client.tag.TagServiceClient;
+import com.edp.shared.client.tag.model.TagResponseDto;
 import com.edp.shared.security.jwt.JwtUserContext;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Path;
@@ -41,7 +41,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -51,10 +50,10 @@ public class WikiServiceImpl implements WikiService {
     private final WikiRepository wikiRepository;
     private final WikiSubmissionRepository wikiSubmissionRepository;
     private final WikiSubmissionTagRepository wikiSubmissionTagRepository;
-    private final TagRepository tagRepository;
     private final WikiMapper wikiMapper;
     private final AuthServiceClient authServiceClient;
     private final FileServiceClient fileServiceClient;
+    private final TagServiceClient tagServiceClient;
 
     @Override
     @Transactional
@@ -62,67 +61,61 @@ public class WikiServiceImpl implements WikiService {
         // TODO: AUTHENTICATION: Ensure the authorId corresponds to a valid authenticated user.
         // TODO: AUTHORIZATION: Verify the authenticated user has permission to create a wiki.
 
-        // 1. Validate and fetch active tags
+        // 1. Validate tags by calling the remote tag service
         List<Long> tagIds = request.getTagIds();
-        List<Tag> tags = tagRepository.findAllById(tagIds);
+        String token = JwtUserContext.getToken();
+
+        // Efficiently fetch all tags in a single remote call
+        List<TagResponseDto> tags = Collections.emptyList();
+        if (!tagIds.isEmpty()) tags = tagServiceClient.findAllTagsByIds(tagIds, token);
 
         if (tags.size() != tagIds.size()) {
-            Set<Long> foundTagIds = tags.stream().map(Tag::getId).collect(Collectors.toSet());
+            Set<Long> foundTagIds = tags.stream().map(TagResponseDto::getId).collect(Collectors.toSet());
             Set<Long> missingTagIds = new HashSet<>(tagIds);
             missingTagIds.removeAll(foundTagIds);
             throw new ResourceNotFoundException("One or more tags not found. Missing IDs: " + missingTagIds);
         }
 
-        Map<Long, Tag> activeTagsMap = tags.stream()
-                .filter(Tag::isActive)
-                .collect(Collectors.toMap(Tag::getId, Function.identity()));
-        if (activeTagsMap.size() != tagIds.size()) {
-            Set<Long> inactiveTagIds = tagIds.stream()
-                    .filter(id -> !activeTagsMap.containsKey(id))
-                    .collect(Collectors.toSet());
-            throw new InvalidOperationException("One or more selected tags are not active: " + inactiveTagIds);
-        }
-
+        // 2. Validate file availability
         if (file == null || file.isEmpty()) {
-            throw new InvalidOperationException("No blog file available. A blog must have a file.");
+            throw new InvalidOperationException("No wiki file available. A wiki must have a file.");
         }
 
-        FileResponseDto fileResponse = fileServiceClient.uploadFile(file, JwtUserContext.getToken(), true).getBody();
+        // 3. Upload file to the remote file service
+        FileResponseDto fileResponse = fileServiceClient.uploadFile(file, token, false).getBody();
 
         if (fileResponse == null) {
             throw new InvalidOperationException("Something went wrong while uploading the file! Please try again!");
         }
 
-        // 2. Create a new Wiki entity
+        // 4. Create and save the new Wiki entity
         Long authorId = JwtUserContext.getUserId();
         Wiki wiki = wikiMapper.toWiki(authorId);
         wiki = wikiRepository.save(wiki);
 
-        // 3. Create and save the new WikiSubmission for this new Wiki
-        WikiSubmission submission = wikiMapper.toWikiSubmission(request, wiki, authorId, fileResponse.getId());
-        submission = wikiSubmissionRepository.save(submission);
+        // 5. Create and save the new WikiSubmission
+        final WikiSubmission submission = wikiSubmissionRepository.save(wikiMapper.toWikiSubmission(request, wiki, authorId, fileResponse.getId()));
 
-        // 4. Save WikiSubmissionTag entries
-        Set<WikiSubmissionTag> submissionTags = new HashSet<>();
-        for (Long tagId : request.getTagIds()) {
-            Tag tag = activeTagsMap.get(tagId);
-            WikiSubmissionTag wikiSubmissionTag = WikiSubmissionTag.builder()
-                    .wikiSubmission(submission)
-                    .tag(tag)
-                    .build();
-            submissionTags.add(wikiSubmissionTag);
-        }
+        // 6. Create and save WikiSubmissionTag entities for the submission
+        Set<WikiSubmissionTag> submissionTags = tagIds.stream()
+                .map(tagId -> WikiSubmissionTag.builder()
+                        .wikiSubmission(submission)
+                        .tagId(tagId)
+                        .build())
+                .collect(Collectors.toSet());
+
         wikiSubmissionTagRepository.saveAll(submissionTags);
         submission.setTags(submissionTags);
 
-        // 5. Set the current submission for the newly created Wiki
+        // 7. Set the current submission for the newly created Wiki
         wiki.setCurrentSubmission(submission);
         wikiRepository.save(wiki);
 
         // TODO: Notification: As a USER, I need to receive notifications when my wiki submission status changes.
         // TODO: Notification: As a MANAGER, I need to receive notifications when a new wiki submission is assigned to me for review.
 
-        return wikiMapper.toWikiResponseDTO(wiki);
+        // Pass the fetched tags to the mapper
+        return wikiMapper.toWikiResponseDTO(wiki, tags);
     }
 
     @Override
@@ -144,27 +137,22 @@ public class WikiServiceImpl implements WikiService {
                     (wiki.getCurrentSubmission() != null ? wiki.getCurrentSubmission().getStatus() : "N/A"));
         }
 
-        // Validate tags
+        // Validate tags by calling the remote tag service
         List<Long> tagIds = request.getTagIds();
-        List<Tag> tags = tagRepository.findAllById(tagIds);
+        String token = JwtUserContext.getToken();
+
+        List<TagResponseDto> tags = Collections.emptyList();
+        if (!tagIds.isEmpty()) tags = tagServiceClient.findAllTagsByIds(tagIds, token);
+
         if (tags.size() != tagIds.size()) {
-            Set<Long> foundTagIds = tags.stream().map(Tag::getId).collect(Collectors.toSet());
+            Set<Long> foundTagIds = tags.stream().map(TagResponseDto::getId).collect(Collectors.toSet());
             Set<Long> missingTagIds = new HashSet<>(tagIds);
             missingTagIds.removeAll(foundTagIds);
             throw new ResourceNotFoundException("One or more tags not found. Missing IDs: " + missingTagIds);
         }
-        Map<Long, Tag> activeTagsMap = tags.stream()
-                .filter(Tag::isActive)
-                .collect(Collectors.toMap(Tag::getId, Function.identity()));
-        if (activeTagsMap.size() != tagIds.size()) {
-            Set<Long> inactiveTagIds = tagIds.stream()
-                    .filter(id -> !activeTagsMap.containsKey(id))
-                    .collect(Collectors.toSet());
-            throw new InvalidOperationException("One or more selected tags are not active: " + inactiveTagIds);
-        }
 
         if (file == null || file.isEmpty()) {
-            throw new InvalidOperationException("No blog file available. A blog must have a file.");
+            throw new InvalidOperationException("No wiki file available. A wiki must have a file.");
         }
 
         FileResponseDto fileResponse = fileServiceClient.uploadFile(file, JwtUserContext.getToken(), true).getBody();
@@ -174,19 +162,16 @@ public class WikiServiceImpl implements WikiService {
         }
 
         // Create and save the new WikiSubmission for the existing Wiki
-        WikiSubmission newSubmission = wikiMapper.toWikiSubmission(request, wiki, authorId, fileResponse.getId());
-        newSubmission = wikiSubmissionRepository.save(newSubmission);
+        WikiSubmission newSubmission = wikiSubmissionRepository.save(wikiMapper.toWikiSubmission(request, wiki, authorId, fileResponse.getId()));
 
         // Save WikiSubmissionTag entries for the new submission
-        Set<WikiSubmissionTag> newSubmissionTags = new HashSet<>();
-        for (Long tagId : request.getTagIds()) {
-            Tag tag = activeTagsMap.get(tagId);
-            WikiSubmissionTag submissionTag = WikiSubmissionTag.builder()
-                    .wikiSubmission(newSubmission)
-                    .tag(tag)
-                    .build();
-            newSubmissionTags.add(submissionTag);
-        }
+        Set<WikiSubmissionTag> newSubmissionTags = tagIds.stream()
+                .map(tagId -> WikiSubmissionTag.builder()
+                        .wikiSubmission(newSubmission)
+                        .tagId(tagId)
+                        .build())
+                .collect(Collectors.toSet());
+
         wikiSubmissionTagRepository.saveAll(newSubmissionTags);
         newSubmission.setTags(newSubmissionTags);
 
@@ -197,7 +182,8 @@ public class WikiServiceImpl implements WikiService {
         // TODO: Notification: Similar to create, notify owner of new pending submission
         // TODO: Notification: Notify manager of new submission assigned for review
 
-        return wikiMapper.toWikiResponseDTO(wiki);
+        // Pass the fetched tags to the mapper
+        return wikiMapper.toWikiResponseDTO(wiki, tags);
     }
 
     @Override
@@ -229,7 +215,7 @@ public class WikiServiceImpl implements WikiService {
                 Objects.requireNonNull(query).distinct(true);
                 Join<Wiki, WikiSubmission> submissionJoin = root.join("currentSubmission");
                 Join<WikiSubmission, WikiSubmissionTag> submissionTagJoin = submissionJoin.join("tags");
-                predicates.add(cb.equal(submissionTagJoin.get("tag").get("id"), tagIdFilter));
+                predicates.add(cb.equal(submissionTagJoin.get("tagId"), tagIdFilter));
             }
 
             // Handle sorting manually
@@ -251,7 +237,19 @@ public class WikiServiceImpl implements WikiService {
 
 
         Page<Wiki> wikis = wikiRepository.findAll(spec, pageable);
-        return PaginationUtils.mapToPaginationResponseDTO(wikis, wikiMapper.toWikiResponseDTOs(wikis.getContent()));
+
+        Set<Long> tagIds = wikis.getContent().stream()
+                .filter(wiki -> wiki.getCurrentSubmission() != null)
+                .flatMap(wiki -> wiki.getCurrentSubmission().getTags().stream())
+                .map(WikiSubmissionTag::getTagId)
+                .collect(Collectors.toSet());
+
+        List<TagResponseDto> tags = Collections.emptyList();
+        if (!tagIds.isEmpty())
+            tags = tagServiceClient.findAllTagsByIds(new ArrayList<>(tagIds), JwtUserContext.getToken());
+
+        // Pass the fetched tags to the mapper
+        return PaginationUtils.mapToPaginationResponseDTO(wikis, wikiMapper.toWikiResponseDTOs(wikis.getContent(), tags));
     }
 
     @Override
@@ -263,7 +261,21 @@ public class WikiServiceImpl implements WikiService {
         // TODO: AUTHORIZATION: Restrict access to PENDING/REJECTED wikis to the author or reviewer.
         // Publicly viewable wikis must be in APPROVED status.
 
-        return wikiMapper.toWikiResponseDTO(wiki);
+        // Fetch tags for the single wiki
+        if (wiki.getCurrentSubmission() == null) {
+            throw new InvalidOperationException("Wiki does not have a current submission.");
+        }
+
+        Set<Long> tagIds = wiki.getCurrentSubmission().getTags().stream()
+                .map(WikiSubmissionTag::getTagId)
+                .collect(Collectors.toSet());
+
+        List<TagResponseDto> tags = Collections.emptyList();
+        if (!tagIds.isEmpty())
+            tags = tagServiceClient.findAllTagsByIds(new ArrayList<>(tagIds), JwtUserContext.getToken());
+
+        // Pass the fetched tags to the mapper
+        return wikiMapper.toWikiResponseDTO(wiki, tags);
     }
 
     @Override
@@ -278,7 +290,19 @@ public class WikiServiceImpl implements WikiService {
 
         Pageable pageable = PaginationUtils.toPageable(paginationRequestDTO, WikiSubmission.class);
         Page<WikiSubmission> submissions = wikiSubmissionRepository.findByWikiIdOrderBySubmittedAtDesc(wikiId, pageable);
-        return PaginationUtils.mapToPaginationResponseDTO(submissions, wikiMapper.toWikiSubmissionResponseDTOs(submissions.getContent()));
+
+        // Fetch tags for the submissions in the page
+        Set<Long> tagIds = submissions.getContent().stream()
+                .flatMap(submission -> submission.getTags().stream())
+                .map(WikiSubmissionTag::getTagId)
+                .collect(Collectors.toSet());
+
+        List<TagResponseDto> tags = Collections.emptyList();
+        if (!tagIds.isEmpty())
+            tags = tagServiceClient.findAllTagsByIds(new ArrayList<>(tagIds), JwtUserContext.getToken());
+
+        // Pass the fetched tags to the mapper
+        return PaginationUtils.mapToPaginationResponseDTO(submissions, wikiMapper.toWikiSubmissionResponseDTOs(submissions.getContent(), tags));
     }
 
     @Override
@@ -296,7 +320,19 @@ public class WikiServiceImpl implements WikiService {
                 .toList();
 
         Page<WikiSubmission> pendingSubmissions = wikiSubmissionRepository.findBySubmitterIdInAndStatus(managedUserIds, SubmissionStatus.PENDING, pageable);
-        return PaginationUtils.mapToPaginationResponseDTO(pendingSubmissions, wikiMapper.toWikiSubmissionResponseDTOs(pendingSubmissions.getContent()));
+
+        // Fetch tags for the pending submissions in the page
+        Set<Long> tagIds = pendingSubmissions.getContent().stream()
+                .flatMap(submission -> submission.getTags().stream())
+                .map(WikiSubmissionTag::getTagId)
+                .collect(Collectors.toSet());
+
+        List<TagResponseDto> tags = Collections.emptyList();
+        if (!tagIds.isEmpty())
+            tags = tagServiceClient.findAllTagsByIds(new ArrayList<>(tagIds), JwtUserContext.getToken());
+
+        // Pass the fetched tags to the mapper
+        return PaginationUtils.mapToPaginationResponseDTO(pendingSubmissions, wikiMapper.toWikiSubmissionResponseDTOs(pendingSubmissions.getContent(), tags));
     }
 
     @Override
@@ -351,7 +387,17 @@ public class WikiServiceImpl implements WikiService {
         // TODO: Notification: Notify submitter about status change.
         // TODO: Notification: Notify reviewer of their performed action.
 
-        return wikiMapper.toWikiSubmissionResponseDTO(updatedSubmission);
+        // Fetch tags for the updated submission
+        Set<Long> tagIds = updatedSubmission.getTags().stream()
+                .map(WikiSubmissionTag::getTagId)
+                .collect(Collectors.toSet());
+
+        List<TagResponseDto> tags = Collections.emptyList();
+        if (!tagIds.isEmpty())
+            tags = tagServiceClient.findAllTagsByIds(new ArrayList<>(tagIds), JwtUserContext.getToken());
+
+        // Pass the fetched tags to the mapper
+        return wikiMapper.toWikiSubmissionResponseDTO(updatedSubmission, tags);
     }
 
     @Override
@@ -376,13 +422,26 @@ public class WikiServiceImpl implements WikiService {
                 Objects.requireNonNull(query).distinct(true);
                 Join<Wiki, WikiSubmission> submissionJoin = root.join("currentSubmission");
                 Join<WikiSubmission, WikiSubmissionTag> submissionTagJoin = submissionJoin.join("tags");
-                predicates.add(submissionTagJoin.get("tag").get("id").in(tagIds));
+                predicates.add(submissionTagJoin.get("tagId").in(tagIds));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
 
         Page<Wiki> wikis = wikiRepository.findAll(spec, pageable);
-        return PaginationUtils.mapToPaginationResponseDTO(wikis, wikiMapper.toWikiResponseDTOs(wikis.getContent()));
+
+        // Fetch tags for the entire page of wikis in one call
+        Set<Long> uniqueTagIds = wikis.getContent().stream()
+                .filter(wiki -> wiki.getCurrentSubmission() != null)
+                .flatMap(wiki -> wiki.getCurrentSubmission().getTags().stream())
+                .map(WikiSubmissionTag::getTagId)
+                .collect(Collectors.toSet());
+
+        List<TagResponseDto> tags = Collections.emptyList();
+        if (!tagIds.isEmpty())
+            tags = tagServiceClient.findAllTagsByIds(new ArrayList<>(uniqueTagIds), JwtUserContext.getToken());
+
+        // Pass the fetched tags to the mapper
+        return PaginationUtils.mapToPaginationResponseDTO(wikis, wikiMapper.toWikiResponseDTOs(wikis.getContent(), tags));
     }
 }

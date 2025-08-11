@@ -1,6 +1,5 @@
 package com.edp.library.data.entity.wiki;
 
-import com.edp.library.data.entity.tag.Tag;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -26,9 +25,8 @@ public class WikiSubmissionTag {
     @JoinColumn(name = "wiki_submission_id", nullable = false)
     private WikiSubmission wikiSubmission;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tag_id", nullable = false)
-    private Tag tag;
+    @Column(name = "tag_id", nullable = false)
+    private Long tagId;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

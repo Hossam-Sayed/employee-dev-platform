@@ -9,13 +9,17 @@ import com.edp.library.model.wiki.WikiCreateRequestDTO;
 import com.edp.library.model.wiki.WikiResponseDTO;
 import com.edp.library.model.wiki.WikiSubmissionResponseDTO;
 import com.edp.library.model.wiki.WikiTagResponseDTO;
+import com.edp.shared.client.tag.model.TagResponseDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface WikiMapper {
@@ -39,29 +43,62 @@ public interface WikiMapper {
     @Mapping(target = "documentId", source = "documentId")
     WikiSubmission toWikiSubmission(WikiCreateRequestDTO dto, Wiki wiki, Long submitterId, String documentId);
 
-    @Mapping(target = "currentSubmissionId", source = "currentSubmission.id")
-    @Mapping(target = "title", source = "currentSubmission.title")
-    @Mapping(target = "description", source = "currentSubmission.description")
-    @Mapping(target = "documentId", source = "currentSubmission.documentId")
-    @Mapping(target = "status", source = "currentSubmission.status", qualifiedByName = "toSubmissionStatusDTO")
-    @Mapping(target = "tags", source = "currentSubmission.tags")
-    WikiResponseDTO toWikiResponseDTO(Wiki wiki);
+    @Mapping(target = "currentSubmissionId", source = "wiki.currentSubmission.id")
+    @Mapping(target = "title", source = "wiki.currentSubmission.title")
+    @Mapping(target = "description", source = "wiki.currentSubmission.description")
+    @Mapping(target = "documentId", source = "wiki.currentSubmission.documentId")
+    @Mapping(target = "status", source = "wiki.currentSubmission.status", qualifiedByName = "toSubmissionStatusDTO")
+    @Mapping(
+            target = "tags",
+            expression = "java(mapTags(wiki.getCurrentSubmission().getTags(), tagResponseDtos))"
+    )
+    WikiResponseDTO toWikiResponseDTO(Wiki wiki, List<TagResponseDto> tagResponseDtos);
 
-    List<WikiResponseDTO> toWikiResponseDTOs(List<Wiki> wikis);
+    @Mapping(target = "wikiId", source = "submission.wiki.id")
+    @Mapping(target = "status", source = "submission.status", qualifiedByName = "toSubmissionStatusDTO")
+    @Mapping(
+            target = "tags",
+            expression = "java(mapTags(submission.getTags(), tagResponseDtos))"
+    )
+    @Mapping(target = "documentId", source = "submission.documentId")
+    WikiSubmissionResponseDTO toWikiSubmissionResponseDTO(WikiSubmission submission, List<TagResponseDto> tagResponseDtos);
 
-    @Mapping(target = "tagId", source = "tag.id")
-    @Mapping(target = "tagName", source = "tag.name")
-    WikiTagResponseDTO toWikiTagResponseDTO(WikiSubmissionTag wikiSubmissionTag);
+    @Named("mapTags")
+    default List<WikiTagResponseDTO> mapTags(Set<WikiSubmissionTag> submissionTags, List<TagResponseDto> tagResponseDtos) {
+        if (submissionTags == null || submissionTags.isEmpty() || tagResponseDtos == null || tagResponseDtos.isEmpty()) {
+            return Collections.emptyList();
+        }
 
-    List<WikiTagResponseDTO> toWikiTagResponseDTOs(Set<WikiSubmissionTag> tags);
+        Map<Long, String> tagNameMap = tagResponseDtos.stream()
+                .collect(Collectors.toMap(TagResponseDto::getId, TagResponseDto::getName));
 
-    @Mapping(target = "wikiId", source = "wiki.id")
-    @Mapping(target = "status", source = "status", qualifiedByName = "toSubmissionStatusDTO")
-    @Mapping(target = "tags", source = "tags")
-    @Mapping(target = "documentId", source = "documentId")
-    WikiSubmissionResponseDTO toWikiSubmissionResponseDTO(WikiSubmission submission);
+        return submissionTags.stream()
+                .map(submissionTag -> WikiTagResponseDTO.builder()
+                        .id(submissionTag.getId())
+                        .tagId(submissionTag.getTagId())
+                        .tagName(tagNameMap.getOrDefault(submissionTag.getTagId(), "Unknown Tag"))
+                        .createdAt(submissionTag.getCreatedAt())
+                        .build())
+                .collect(Collectors.toList());
+    }
 
-    List<WikiSubmissionResponseDTO> toWikiSubmissionResponseDTOs(List<WikiSubmission> submissions);
+    default List<WikiResponseDTO> toWikiResponseDTOs(List<Wiki> wikis, List<TagResponseDto> tagResponseDtos) {
+        if (wikis == null || wikis.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return wikis.stream()
+                .map(wiki -> toWikiResponseDTO(wiki, tagResponseDtos))
+                .collect(Collectors.toList());
+    }
+
+    default List<WikiSubmissionResponseDTO> toWikiSubmissionResponseDTOs(List<WikiSubmission> submissions, List<TagResponseDto> tagResponseDtos) {
+        if (submissions == null || submissions.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return submissions.stream()
+                .map(submission -> toWikiSubmissionResponseDTO(submission, tagResponseDtos))
+                .collect(Collectors.toList());
+    }
 
     @Named("toSubmissionStatusDTO")
     SubmissionStatusDTO toSubmissionStatusDTO(SubmissionStatus status);
