@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.LinkedHashSet;
@@ -116,7 +117,7 @@ public class CareerPackageServiceImpl implements CareerPackageService {
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
-    private Set<CareerPackageTagProgress> buildInitialTagProgress(
+    private List<CareerPackageTagProgress> buildInitialTagProgress(
             CareerPackageSectionProgress sectionProgress,
             PackageTemplateSection templateSection
     ) {
@@ -128,6 +129,6 @@ public class CareerPackageServiceImpl implements CareerPackageService {
                         .requiredValue(requiredTag.getCriteriaMinValue())
                         .completedValue(0.0)
                         .build())
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+                .toList();
     }
 }

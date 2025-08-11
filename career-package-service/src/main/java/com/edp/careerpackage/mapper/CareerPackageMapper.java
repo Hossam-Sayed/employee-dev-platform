@@ -3,11 +3,13 @@ package com.edp.careerpackage.mapper;
 import com.edp.careerpackage.data.entity.*;
 import com.edp.careerpackage.model.careerpackage.*;
 import com.edp.careerpackage.model.packageprogress.PackageProgressResponseDto;
+import com.edp.careerpackage.model.requiredtag.TemplateSectionRequiredTagResponseDto;
 import com.edp.careerpackage.model.sectionprogress.SectionProgressResponseDto;
 import com.edp.careerpackage.model.submission.SubmissionResponseDto;
 import com.edp.careerpackage.model.tagprogress.TagPogressResponseDto;
 import org.mapstruct.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -64,4 +66,19 @@ public interface CareerPackageMapper {
 
     List<SectionProgressResponseDto> toCareerPackageSectionProgressList(Collection<CareerPackageSectionProgress> list);
     List<SubmissionResponseDto> toSubmissionResponseDtoList(Collection<Submission> submissions);
+
+    //Custom method to map SectionProgress Tags progress list + Tag name list parameter by iterating on the single mapper
+    default List<TagPogressResponseDto> toSectionTagsProgressResponseList(
+            List<CareerPackageTagProgress> tagsProgress, List<String> tagNames
+    ) {
+        if (tagsProgress == null || tagNames == null || tagsProgress.size() != tagNames.size()) {
+            throw new IllegalArgumentException("Lists must have the same size");
+        }
+
+        List<TagPogressResponseDto> result = new ArrayList<>();
+        for (int i = 0; i < tagsProgress.size(); i++) {
+            result.add(toCareerPackageTagProgress(tagsProgress.get(i), tagNames.get(i)));
+        }
+        return result;
+    }
 }

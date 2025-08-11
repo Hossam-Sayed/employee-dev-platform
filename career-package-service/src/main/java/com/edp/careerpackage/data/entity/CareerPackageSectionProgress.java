@@ -30,8 +30,7 @@ public class CareerPackageSectionProgress {
     private Section sourceSection;
 
     @OneToMany(mappedBy = "careerPackageSectionProgress", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderBy("id ASC")
-    private Set<CareerPackageTagProgress> tagProgressList;
+    private List<CareerPackageTagProgress> tagProgressList;
 
     @Column(name = "total_progress_percent")
     private Double totalProgressPercent;
