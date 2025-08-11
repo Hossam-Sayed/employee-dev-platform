@@ -13,13 +13,26 @@ import java.util.List;
 public interface TagServiceClient {
 
     @GetMapping("/api/tags")
-    ResponseEntity<List<TagResponseDto>> searchTags(
-            @RequestParam(required = false) String query
+    List<TagResponseDto> searchTags(
+            @RequestParam(name="query",required = false) String query,
+            @RequestHeader("Authorization") String token
     );
 
     @PostMapping("/api/tags")
-    ResponseEntity<TagResponseDto> createTag(
+    TagResponseDto createTag(
             @RequestBody TagRequestDto request,
-            UriComponentsBuilder uriBuilder
+            @RequestHeader("Authorization") String token
     );
+
+    @GetMapping("/api/tags/{id}")
+    TagResponseDto findTagById(
+            @PathVariable("id") Long id,
+            @RequestHeader("Authorization") String token
+    );
+
+    @GetMapping("/api/tags/by-ids")
+    List<TagResponseDto> findAllTagsByIds(
+            @RequestParam("ids") List<Long> tagIds,
+            @RequestHeader("Authorization") String token
+            );
 }
