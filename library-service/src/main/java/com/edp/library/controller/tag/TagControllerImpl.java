@@ -29,7 +29,6 @@ public class TagControllerImpl implements TagController {
     // Endpoint for a specific user to view their own tag requests
     @Override
     public ResponseEntity<PaginationResponseDTO<TagRequestResponseDTO>> getMyTagRequests(
-            Long requesterId,
             PaginationRequestDTO paginationRequestDTO
     ) {
         PaginationResponseDTO<TagRequestResponseDTO> response =
@@ -51,8 +50,7 @@ public class TagControllerImpl implements TagController {
     @Override
     public ResponseEntity<TagRequestResponseDTO> reviewTagRequest(
             Long tagRequestId,
-            TagRequestReviewDTO reviewDTO,
-            Long reviewerId
+            TagRequestReviewDTO reviewDTO
     ) {
         TagRequestResponseDTO response = tagService.reviewTagRequest(tagRequestId, reviewDTO);
         return ResponseEntity.ok(response);

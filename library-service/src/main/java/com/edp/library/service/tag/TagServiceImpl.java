@@ -1,9 +1,7 @@
 package com.edp.library.service.tag;
 
-import com.edp.library.data.entity.tag.Tag;
 import com.edp.library.data.entity.tag.TagRequest;
 import com.edp.library.data.enums.TagRequestStatus;
-import com.edp.library.data.repository.tag.TagRepository;
 import com.edp.library.data.repository.tag.TagRequestRepository;
 import com.edp.library.exception.ResourceAlreadyExistsException;
 import com.edp.library.exception.ResourceNotFoundException;
@@ -14,6 +12,9 @@ import com.edp.library.model.PaginationResponseDTO;
 import com.edp.library.model.enums.TagRequestStatusDTO;
 import com.edp.library.model.tag.*;
 import com.edp.library.utils.PaginationUtils;
+import com.edp.shared.client.tag.TagServiceClient;
+import com.edp.shared.client.tag.model.TagRequestDto;
+import com.edp.shared.client.tag.model.TagResponseDto;
 import com.edp.shared.security.jwt.JwtUserContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -31,9 +33,9 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class TagServiceImpl implements TagService {
 
-    private final TagRepository tagRepository;
     private final TagRequestRepository tagRequestRepository;
     private final TagMapper tagMapper;
+    private final TagServiceClient tagServiceClient;
 
     @Override
     @Transactional
@@ -64,8 +66,12 @@ public class TagServiceImpl implements TagService {
     @Transactional(readOnly = true)
     public boolean isDuplicateTagRequestOrApprovedTag(String tagName) {
         // Check for existing approved tags (case-insensitive)
-        Optional<Tag> existingApprovedTag = tagRepository.findByNameIgnoreCase(tagName);
-        if (existingApprovedTag.isPresent()) {
+        List<TagResponseDto> existingApprovedTags = tagServiceClient.searchTags(tagName, JwtUserContext.getToken());
+
+        boolean tagExists = existingApprovedTags.stream()
+                .anyMatch(tagResponseDto -> tagName.equals(tagResponseDto.getName()));
+
+        if (tagExists) {
             return true;
         }
 
@@ -77,7 +83,7 @@ public class TagServiceImpl implements TagService {
     @Override
     @Transactional(readOnly = true)
     public PaginationResponseDTO<TagRequestResponseDTO> getMyTagRequests(PaginationRequestDTO paginationRequestDTO) {
-        Pageable pageable = PaginationUtils.toPageable(paginationRequestDTO, Tag.class);
+        Pageable pageable = PaginationUtils.toPageable(paginationRequestDTO, TagRequest.class);
         Long requesterId = JwtUserContext.getUserId();
         Page<TagRequest> tagRequests = tagRequestRepository.findByRequesterId(requesterId, pageable);
         return PaginationUtils.mapToPaginationResponseDTO(tagRequests, tagMapper.toTagRequestResponseDTOs(tagRequests.getContent()));
@@ -86,7 +92,7 @@ public class TagServiceImpl implements TagService {
     @Override
     @Transactional(readOnly = true)
     public PaginationResponseDTO<TagRequestResponseDTO> getAllPendingTagRequests(PaginationRequestDTO paginationRequestDTO) {
-        Pageable pageable = PaginationUtils.toPageable(paginationRequestDTO, Tag.class);
+        Pageable pageable = PaginationUtils.toPageable(paginationRequestDTO, TagRequest.class);
         Page<TagRequest> pendingRequests = tagRequestRepository.findByStatus(TagRequestStatus.PENDING, pageable);
         return PaginationUtils.mapToPaginationResponseDTO(pendingRequests, tagMapper.toTagRequestResponseDTOs(pendingRequests.getContent()));
     }
@@ -118,16 +124,8 @@ public class TagServiceImpl implements TagService {
 
         if (reviewDTO.getStatus() == TagRequestStatusDTO.APPROVED) {
             // User Story: As an ADMIN, when I approve a tag request, the system should automatically create a new entry in the main 'Tag' table.
-            if (tagRepository.findByNameIgnoreCase(tagRequest.getRequestedName()).isPresent()) {
-                throw new ResourceAlreadyExistsException("An active tag with the name '" + tagRequest.getRequestedName() + "' already exists. Cannot approve duplicate.");
-            }
-            Tag newTag = Tag.builder()
-                    .name(tagRequest.getRequestedName())
-                    .createdBy(adminId) // Admin who approved it
-                    .createdAt(Instant.now())
-                    .active(true)
-                    .build();
-            tagRepository.save(newTag);
+            // TODO: Call client to add the new tag
+            tagServiceClient.createTag(new TagRequestDto(tagRequest.getRequestedName()), JwtUserContext.getToken());
         }
 
         tagRequest = tagRequestRepository.save(tagRequest);

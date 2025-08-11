@@ -1,6 +1,5 @@
 package com.edp.library.mapper;
 
-import com.edp.library.data.entity.tag.Tag;
 import com.edp.library.data.entity.tag.TagRequest;
 import com.edp.library.data.enums.TagRequestStatus;
 import com.edp.library.model.enums.TagRequestStatusDTO;
@@ -16,10 +15,6 @@ import java.util.List;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface TagMapper {
-
-    TagDTO toTagDTO(Tag tag);
-
-    List<TagDTO> toTagDTOs(List<Tag> tags);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "status", constant = "PENDING")

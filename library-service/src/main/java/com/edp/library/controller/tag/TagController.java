@@ -46,7 +46,6 @@ public interface TagController {
     })
     @GetMapping("/my-requests")
     ResponseEntity<PaginationResponseDTO<TagRequestResponseDTO>> getMyTagRequests(
-            @Parameter(description = "ID of the user whose tag requests are to be retrieved") @RequestHeader("X-Requester-Id") Long requesterId,
             @Valid @Parameter(description = "Pagination and sorting parameters") PaginationRequestDTO paginationRequestDTO
     );
 
@@ -73,7 +72,6 @@ public interface TagController {
     @PatchMapping("/requests/{tagRequestId}/review")
     ResponseEntity<TagRequestResponseDTO> reviewTagRequest(
             @Parameter(description = "ID of the tag request to review") @PathVariable Long tagRequestId,
-            @Valid @RequestBody TagRequestReviewDTO reviewDTO,
-            @Parameter(description = "ID of the administrator performing the review") @RequestHeader("X-Reviewer-Id") Long reviewerId
+            @Valid @RequestBody TagRequestReviewDTO reviewDTO
     );
 }
