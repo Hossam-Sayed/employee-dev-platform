@@ -6,12 +6,14 @@ import com.edp.careerpackage.model.submissionsnapshot.SubmissionTagSnapshotRespo
 import com.edp.careerpackage.service.SubmissionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+@CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequiredArgsConstructor
 public class SubmissionController implements SubmissionControllerApi {
