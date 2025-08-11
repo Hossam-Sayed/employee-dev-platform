@@ -21,9 +21,8 @@ public class TemplateSectionRequiredTag {
     @JoinColumn(name = "package_template_section_id", nullable = false)
     private PackageTemplateSection packageTemplateSection;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "tag_id", nullable = false)
-    private Tag tag;
+    @Column(name = "tag_id", nullable = false)
+    private Long tagId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "criteria_type", nullable = false)

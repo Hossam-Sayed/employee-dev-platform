@@ -182,7 +182,7 @@ public class SubmissionServiceImpl implements SubmissionService {
                 .flatMap(section -> section.getTagProgressList().stream().map(tagProgress ->
                         SubmissionTagSnapshot.builder()
                                 .submission(submission)
-                                .tagName(tagProgress.getTagName())
+                                .tagId(tagProgress.getTagId())
                                 .sectionName(section.getSectionName())
                                 .criteriaType(tagProgress.getCriteriaType())
                                 .requiredValue(tagProgress.getRequiredValue())

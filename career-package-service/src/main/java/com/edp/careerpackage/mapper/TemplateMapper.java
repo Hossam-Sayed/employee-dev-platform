@@ -47,12 +47,12 @@ public interface TemplateMapper {
     TemplateSectionResponseDto toTemplateSectionResponse(PackageTemplateSection templateSection);
 
     @Mappings({
-            @Mapping(source = "id", target = "id"),
-            @Mapping(source = "tag.name", target = "tagName"),
-            @Mapping(source = "criteriaType", target = "criteriaType"),
-            @Mapping(source = "criteriaMinValue", target = "criteriaMinValue")
+            @Mapping(source = "requiredTag.id", target = "id"),
+            @Mapping(source = "tagName", target = "tagName"),
+            @Mapping(source = "requiredTag.criteriaType", target = "criteriaType"),
+            @Mapping(source = "requiredTag.criteriaMinValue", target = "criteriaMinValue")
     })
-    TemplateSectionRequiredTagResponseDto toTemplateSectionRequiredTagResponse(TemplateSectionRequiredTag requiredTag);
+    TemplateSectionRequiredTagResponseDto toTemplateSectionRequiredTagResponse(TemplateSectionRequiredTag requiredTag,String tagName);
 
     List<TemplateResponseDto> toTemplateResponseList(List<PackageTemplate> templates);
     List<TemplateSectionResponseDto> toTemplateSectionResponseList(List<PackageTemplateSection> sections);

@@ -7,6 +7,8 @@ import com.edp.careerpackage.data.enums.CareerPackageStatus;
 import com.edp.careerpackage.data.repository.CareerPackageTagProgressRepository;
 import com.edp.careerpackage.mapper.CareerPackageMapper;
 import com.edp.careerpackage.model.tagprogress.TagPogressResponseDto;
+import com.edp.shared.client.tag.TagServiceClient;
+import com.edp.shared.client.tag.model.TagResponseDto;
 import com.edp.shared.security.jwt.JwtUserContext;
 
 import feign.FeignException;
@@ -27,6 +29,7 @@ public class TagProgressServiceImpl implements TagProgressService {
     private final CareerPackageTagProgressRepository tagProgressRepository;
     private final CareerPackageMapper mapper;
     private final FileServiceClient fileServiceClient;
+    private final TagServiceClient tagServiceClient;
 
 
     @Override
@@ -70,7 +73,16 @@ public class TagProgressServiceImpl implements TagProgressService {
         recalculateSectionProgress(sectionProgress);
         recalculatePackageProgress(careerPackage);
 
-        return mapper.toCareerPackageTagProgress(tagProgress);
+        TagResponseDto response;
+        String token = JwtUserContext.getToken();
+        try {
+            response = tagServiceClient.findTagById(tagProgress.getTagId(), token);
+        } catch (FeignException ex) {
+            throw new IllegalStateException("Failed to contact TagService: " + ex.getMessage());
+        }
+
+
+        return mapper.toCareerPackageTagProgress(tagProgress,response.getName());
     }
 
     private void recalculateSectionProgress(CareerPackageSectionProgress sectionProgress) {

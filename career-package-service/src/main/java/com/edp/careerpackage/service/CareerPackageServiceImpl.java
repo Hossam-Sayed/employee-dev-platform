@@ -125,7 +125,7 @@ public class CareerPackageServiceImpl implements CareerPackageService {
         return templateSection.getRequiredTags().stream()
                 .map(requiredTag -> CareerPackageTagProgress.builder()
                         .careerPackageSectionProgress(sectionProgress)
-                        .tagName(requiredTag.getTag().getName())
+                        .tagId(requiredTag.getTagId())
                         .criteriaType(requiredTag.getCriteriaType().toString())
                         .requiredValue(requiredTag.getCriteriaMinValue())
                         .completedValue(0.0)

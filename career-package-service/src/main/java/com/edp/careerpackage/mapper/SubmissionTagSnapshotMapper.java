@@ -12,7 +12,7 @@ import java.util.List;
 public interface SubmissionTagSnapshotMapper {
 
     @Mappings({
-            @Mapping(source = "tagName", target = "tagName"),
+            @Mapping(source = "tagId", target = "tagId"),
             @Mapping(source = "sectionName", target = "sectionName"),
             @Mapping(source = "criteriaType", target = "criteriaType"),
             @Mapping(source = "requiredValue", target = "requiredValue"),

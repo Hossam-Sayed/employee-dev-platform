@@ -9,7 +9,7 @@ import lombok.*;
 @Builder
 public class SubmissionTagSnapshotResponseDto {
 
-    private String tagName;
+    private String tagId;
     private String sectionName;
     private String criteriaType;
     private Double requiredValue;

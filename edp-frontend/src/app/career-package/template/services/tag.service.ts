@@ -7,7 +7,7 @@ import { TagRequestDto } from '../models/tag-request.dto';
 @Injectable({ providedIn: 'root' })
 export class TagService {
   private httpClient = inject(HttpClient);
-  private baseUrl = 'http://localhost:8081/api/tags';
+  private baseUrl = 'http://localhost:8083/api/tags';
 
   searchTags(query: string): Observable<TagResponseDto[]> {
     return this.httpClient.get<TagResponseDto[]>(this.baseUrl, {

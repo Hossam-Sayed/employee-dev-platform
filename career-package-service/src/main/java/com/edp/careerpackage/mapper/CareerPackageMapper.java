@@ -43,15 +43,15 @@ public interface CareerPackageMapper {
     SectionProgressResponseDto toCareerPackageSectionProgress(CareerPackageSectionProgress sectionProgress);
 
     @Mappings({
-            @Mapping(source = "id", target = "tagProgressId"),
+            @Mapping(source = "tagProgress.id", target = "tagProgressId"),
             @Mapping(source = "tagName", target = "tagName"),
-            @Mapping(source = "criteriaType", target = "criteriaType"),
-            @Mapping(source = "requiredValue", target = "requiredValue"),
-            @Mapping(source = "completedValue", target = "completedValue"),
-            @Mapping(source = "proofUrl", target = "proofUrl"),
-            @Mapping(source = "fileId", target = "fileId")
+            @Mapping(source = "tagProgress.criteriaType", target = "criteriaType"),
+            @Mapping(source = "tagProgress.requiredValue", target = "requiredValue"),
+            @Mapping(source = "tagProgress.completedValue", target = "completedValue"),
+            @Mapping(source = "tagProgress.proofUrl", target = "proofUrl"),
+            @Mapping(source = "tagProgress.fileId", target = "fileId")
     })
-    TagPogressResponseDto toCareerPackageTagProgress(CareerPackageTagProgress tagProgress);
+    TagPogressResponseDto toCareerPackageTagProgress(CareerPackageTagProgress tagProgress,String tagName);
 
     @Mappings({
             @Mapping(source = "id", target = "id"),

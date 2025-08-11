@@ -20,8 +20,8 @@ public class SubmissionTagSnapshot {
     @JoinColumn(name = "submission_id", nullable = false)
     private Submission submission;
 
-    @Column(name = "tag_name", nullable = false)
-    private String tagName;
+    @Column(name = "tag_id", nullable = false)
+    private Long tagId;
 
     @Column(name = "section_name", nullable = false)
     private String sectionName;

@@ -20,8 +20,8 @@ public class CareerPackageTagProgress {
     @JoinColumn(name = "career_package_section_progress_id", nullable = false)
     private CareerPackageSectionProgress careerPackageSectionProgress;
 
-    @Column(name = "tag_name", nullable = false)
-    private String tagName;
+    @Column(name = "tag_id", nullable = false)
+    private Long tagId;
 
     @Column(name = "criteria_type", nullable = false)
     private String criteriaType;

@@ -24,7 +24,7 @@ public interface PackageTemplateRepository extends JpaRepository<PackageTemplate
             "sections",
             "sections.section",
             "sections.requiredTags",
-            "sections.requiredTags.tag"
+            "sections.requiredTags.tagId"
     })
     Optional<PackageTemplate> findById(Long id);
 }

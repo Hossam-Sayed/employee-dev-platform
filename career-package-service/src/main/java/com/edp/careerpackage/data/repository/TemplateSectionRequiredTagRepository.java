@@ -7,6 +7,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface TemplateSectionRequiredTagRepository extends JpaRepository<TemplateSectionRequiredTag, Long> {
 
-    boolean existsByPackageTemplateSectionAndTag(PackageTemplateSection section, Tag tag);
+    boolean existsByPackageTemplateSectionAndTagId(PackageTemplateSection section, Long tagId);
 
 }
