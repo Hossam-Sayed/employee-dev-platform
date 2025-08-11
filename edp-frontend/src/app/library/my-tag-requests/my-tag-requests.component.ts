@@ -14,8 +14,8 @@ import { CustomTagComponent } from '../custom-tag/custom-tag.component';
 import { PaginationRequest } from '../models/pagination-request.model';
 import { PaginationResponse } from '../models/pagination-response.model';
 import { TagRequestResponse } from '../models/tag-request-response.model';
-import { TagService } from '../services/tag.service';
 import { TagRequestDetailsDialogComponent } from '../tag-request-details-dialog/tag-request-details-dialog.component';
+import { LibraryService } from '../services/library.service';
 import { TagRequestDialogComponent } from '../tag-request-dialog/tag-request-dialog.component';
 
 @Component({
@@ -36,7 +36,7 @@ import { TagRequestDialogComponent } from '../tag-request-dialog/tag-request-dia
   styleUrls: ['./my-tag-requests.component.css'],
 })
 export class MyTagRequestsComponent implements OnInit {
-  private tagService = inject(TagService);
+  private libraryService = inject(LibraryService);
   private authService = inject(AuthService);
   private dialog = inject(MatDialog);
 
@@ -74,7 +74,7 @@ export class MyTagRequestsComponent implements OnInit {
     this.isLoading.set(true);
     this.error.set(null);
 
-    this.tagService
+    this.libraryService
       .getMyTagRequests(this.paginationRequest())
       .pipe(
         finalize(() => this.isLoading.set(false)),

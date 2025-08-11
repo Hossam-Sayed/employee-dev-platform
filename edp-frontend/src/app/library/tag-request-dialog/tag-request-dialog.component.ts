@@ -13,6 +13,7 @@ import { Tag } from '../models/tag.model';
 import { TagService } from '../services/tag.service';
 import { AuthService } from '../../auth/service/auth.service';
 import { TagCreateRequest } from '../models/tag-create-request.model';
+import { LibraryService } from '../services/library.service';
 
 @Component({
   selector: 'app-tag-request-dialog',
@@ -36,7 +37,7 @@ export class TagRequestDialogComponent {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private tagService = inject(TagService);
-  private tagsService = inject(TagService);
+  private libraryService = inject(LibraryService);
 
   isLoading = signal(false);
   errorMessage = signal<string | null>(null);
@@ -61,7 +62,7 @@ export class TagRequestDialogComponent {
     const requestedName = this.tagRequestForm.value.requestedName!.trim();
 
     // Check against existing tags locally first (optional but good for UX)
-    this.tagsService.getAllActiveTags().subscribe((existingTags) => {
+    this.tagService.getAllActiveTags().subscribe((existingTags) => {
       if (
         existingTags.some(
           (tag: Tag) => tag.name.toLowerCase() === requestedName.toLowerCase()
@@ -78,13 +79,13 @@ export class TagRequestDialogComponent {
 
       if (this.isAdmin) {
         this.tagService
-          .createTagRequest(requestBody)
+          .addNewTag(requestBody)
           .pipe(finalize(() => this.isLoading.set(false)))
           .subscribe({
             next: (response) => {
               this.dialogRef.close({
                 success: true,
-                message: `Tag request "${response.requestedName}" submitted successfully!`,
+                message: `Tag added successfully!`,
               });
             },
             error: (err) => {
@@ -94,14 +95,12 @@ export class TagRequestDialogComponent {
                     'A tag with this name already exists or has a pending request.'
                 );
               } else {
-                this.errorMessage.set(
-                  'Failed to submit tag request. Please try again.'
-                );
+                this.errorMessage.set('Failed to add tag. Please try again.');
               }
             },
           });
       } else {
-        this.tagService
+        this.libraryService
           .createTagRequest(requestBody)
           .pipe(finalize(() => this.isLoading.set(false)))
           .subscribe({

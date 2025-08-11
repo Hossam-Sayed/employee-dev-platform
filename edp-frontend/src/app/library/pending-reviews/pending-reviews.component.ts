@@ -181,22 +181,18 @@ export class PendingReviewsComponent implements OnInit {
     let dialogComponent;
     switch (this.currentTab()) {
       case 'learning':
-        // dialogComponent = LearningSubmissionDetailsDialogComponent;
-        console.log('CURRENT SUBMISSION', submission);
         submission = submission as LearningSubmissionResponse;
         this.router.navigate([
           `/library/${this.currentTab()}/${submission.learningId}/review`,
         ]);
         break;
       case 'blog':
-        console.log('CURRENT SUBMISSION', submission);
         submission = submission as BlogSubmissionResponse;
         this.router.navigate([
           `/library/${this.currentTab()}/${submission.blogId}/review`,
         ]);
         break;
       case 'wiki':
-        console.log('CURRENT SUBMISSION', submission);
         submission = submission as WikiSubmissionResponse;
         this.router.navigate([
           `/library/${this.currentTab()}/${submission.wikiId}/review`,

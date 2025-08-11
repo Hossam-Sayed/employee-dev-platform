@@ -32,6 +32,8 @@ import { TagFilterDialogComponent } from '../tag-filter-dialog/tag-filter-dialog
 import { CustomTagComponent } from '../custom-tag/custom-tag.component';
 import { MaterialResponse } from '../models/material-response.type';
 import { MaterialType } from '../models/material.type';
+import { AuthService } from '../../auth/service/auth.service';
+import { TagRequestDialogComponent } from '../tag-request-dialog/tag-request-dialog.component';
 
 @Component({
   selector: 'app-my-materials',
@@ -57,6 +59,7 @@ import { MaterialType } from '../models/material.type';
 export class MyMaterialsComponent implements OnInit {
   private libraryService = inject(LibraryService);
   private tagsService = inject(TagService);
+  private authService = inject(AuthService);
   private router = inject(Router);
   private dialog = inject(MatDialog);
   private cdr = inject(ChangeDetectorRef);
@@ -70,6 +73,7 @@ export class MyMaterialsComponent implements OnInit {
 
   isLoading = signal<boolean>(false);
   allTags = signal<Tag[]>([]);
+  isAdmin = this.authService.isAdmin();
 
   // Filtering and Pagination
   paginationRequest = signal<PaginationRequest>({
@@ -285,6 +289,23 @@ export class MyMaterialsComponent implements OnInit {
     const materialType = this.currentTab();
     const materialId = material.id;
     this.router.navigate([`/library/${materialType}/${materialId}`]);
+  }
+
+  onTagButtonClick() {
+    if (this.isAdmin) {
+      console.log("ADMIN");
+      
+      this.onAddTag();
+    } else {
+      this.router.navigate(['/library/my-tag-requests']);
+    }
+  }
+
+  onAddTag(): void {
+    const dialogRef = this.dialog.open(TagRequestDialogComponent, {
+      width: '400px',
+    });
+    // this.router.navigate(['/library/request-tag']);
   }
 
   get sortDirection(): SortDirection {

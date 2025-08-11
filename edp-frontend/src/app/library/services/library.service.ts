@@ -13,6 +13,8 @@ import { BlogSubmissionResponse } from '../models/blog-submission-response.model
 import { LearningSubmissionResponse } from '../models/learning-submission-response.model';
 import { WikiSubmissionResponse } from '../models/wiki-submission-response.model';
 import { SubmissionStatus } from '../models/submission-status.model';
+import { TagCreateRequest } from '../models/tag-create-request.model';
+import { TagRequestResponse } from '../models/tag-request-response.model';
 
 @Injectable({
   providedIn: 'root',
@@ -297,6 +299,28 @@ export class LibraryService {
     return this.http.patch<WikiSubmissionResponse>(
       `${this.baseUrl}wikis/submissions/${matrialId}/review`,
       reviewRequest
+    );
+  }
+
+  createTagRequest(request: TagCreateRequest): Observable<TagRequestResponse> {
+    return this.http.post<TagRequestResponse>(
+      `${this.baseUrl}tags/requests`,
+      request
+    );
+  }
+
+  getMyTagRequests(
+    pagination: PaginationRequest
+  ): Observable<PaginationResponse<TagRequestResponse>> {
+    const params = new HttpParams()
+      .set('page', pagination.page.toString())
+      .set('size', pagination.size.toString())
+      .set('sortBy', pagination.sortBy)
+      .set('sortDirection', pagination.sortDirection);
+
+    return this.http.get<PaginationResponse<TagRequestResponse>>(
+      `${this.baseUrl}tags/my-requests`,
+      { params }
     );
   }
 }

@@ -67,7 +67,7 @@
     >
       @if (isLoading()) {
       <mat-spinner diameter="20"></mat-spinner>
-      } @else { Submit Request }
+      } @else { @if (isAdmin) { Add Tag }@else { Submit Request } }
     </button>
   </mat-dialog-actions>
 </form>
