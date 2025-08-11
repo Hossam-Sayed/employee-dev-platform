@@ -6,11 +6,12 @@ import { Router } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatIcon } from '@angular/material/icon';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [MatToolbarModule, MatButtonModule, MatMenuModule],
+  imports: [MatToolbarModule, MatButtonModule, MatMenuModule,MatIcon],
   templateUrl: './header.component.html',
   styleUrl: './header.component.css',
 })
