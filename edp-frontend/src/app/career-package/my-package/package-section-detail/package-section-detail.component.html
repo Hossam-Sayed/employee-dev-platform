@@ -12,11 +12,12 @@
         <h2 class="mb-0">{{ sectionData()!.sectionName }}</h2>
       </mat-card-title>
       <button
-        mat-flat-button
+        mat-icon-button
         color="primary"
         routerLink="/career-package/my-package"
+        matTooltip="Back to My Package"
       >
-        Back to My Package
+        <mat-icon>arrow_back</mat-icon>
       </button>
     </mat-card-header>
     <mat-card-content class="mt-3">
@@ -82,22 +83,24 @@
             <div class="p-2 d-flex gap-2 align-items-center">
               @if (tag.fileId) {
               <button
-                mat-flat-button
+                mat-icon-button
                 color="primary"
                 (click)="viewPdfProof(tag.fileId)"
+                matTooltip="View Document"
               >
-                View Document
+                <mat-icon>description</mat-icon>
               </button>
               } @else {
               <p class="text-muted mb-0">No associated document file.</p>
               }
 
               <button
-                mat-flat-button
+                mat-icon-button
                 color="primary"
                 (click)="onUpdateProgressClick(tag)"
+                matTooltip="Update Progress"
               >
-                Update Progress
+                <mat-icon>edit</mat-icon>
               </button>
             </div>
           </div>

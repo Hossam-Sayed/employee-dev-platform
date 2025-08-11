@@ -17,6 +17,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { TagProgressService } from '../services/tag-progress.service';
 import { UpdateTagProgressDialogComponent } from './update-tag-progress-dialog/update-tag-progress-dialog.component';
 import { TagProgressResponseDto } from '../models/tag-progress-reponse.dto';
+import { MatIcon } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-section-detail',
@@ -28,7 +30,9 @@ import { TagProgressResponseDto } from '../models/tag-progress-reponse.dto';
     MatExpansionModule,
     MatProgressBarModule,
     MatButtonModule,
-    RouterLink
+    RouterLink,
+    MatIcon,
+    MatTooltipModule
   ],
   templateUrl: './package-section-detail.component.html',
   styleUrls: ['./package-section-detail.component.css'],

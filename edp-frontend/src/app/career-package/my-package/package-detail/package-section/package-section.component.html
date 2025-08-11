@@ -12,8 +12,13 @@
     ></mat-progress-bar>
     <div class="d-flex justify-content-between align-items-center mb-3">
       <span>{{ sectionData().sectionProgressPercent }}% Complete</span>
-      <button mat-button color="primary" (click)="onDetailsClick()">
-        Details
+      <button
+        mat-icon-button
+        color="primary"
+        (click)="onDetailsClick()"
+        matTooltip="Details"
+      >
+        <mat-icon>edit</mat-icon>
       </button>
     </div>
     @for (tag of sectionData().tags; track tag.tagProgressId) {
