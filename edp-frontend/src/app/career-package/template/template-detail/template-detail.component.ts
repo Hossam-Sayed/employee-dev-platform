@@ -15,7 +15,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { SectionComponent } from './section/section.component';
 import { MatTableModule } from '@angular/material/table';
-import { TemplateDetailService } from '../services/template-detail.service';
+import { TemplateDetailService } from '../services/template-store.service';
 import { AddSectionDialogComponent } from './add-section-dialog/add-section-dialog.component';
 import { SectionRequestDto } from '../models/section-request.dto';
 import { SectionService } from '../services/section.service';

@@ -7,7 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { SectionRequiredTagService } from '../../services/section-required-tag.service';
-import { TemplateDetailService } from '../../services/template-detail.service';
+import { TemplateDetailService } from '../../services/template-store.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TemplateSectionService } from '../../services/template-section.service';
 import { MatDialog } from '@angular/material/dialog';

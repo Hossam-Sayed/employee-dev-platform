@@ -1,0 +1,29 @@
+<mat-expansion-panel>
+  <mat-expansion-panel-header>
+    <mat-panel-title
+      class="d-flex align-items-center justify-content-between w-100"
+    >
+      <div>
+        <strong>Submission Date:</strong>
+        {{ submissionData().submittedAt | date : "yyyy-MM-dd" }}
+      </div>
+      <div class="ms-4">
+        <span
+          class="badge"
+          [ngClass]="{
+            'bg-success': submissionData().status === 'APPROVED',
+            'bg-warning text-dark': submissionData().status === 'PENDING',
+            'bg-danger': submissionData().status === 'REJECTED'
+          }"
+        >
+          {{ submissionData().status }}
+        </span>
+      </div>
+    </mat-panel-title>
+  </mat-expansion-panel-header>
+  <p><strong>Manager Comments:</strong> {{ submissionData().comment }}</p>
+  <p>
+    <strong>Reviewed At:</strong>
+    {{ submissionData().reviewedAt | date : "yyyy-MM-dd" }}
+  </p>
+</mat-expansion-panel>

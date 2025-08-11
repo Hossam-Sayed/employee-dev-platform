@@ -22,4 +22,14 @@ export const careerPackageRoutes: Routes = [
       },
     ],
   },
+    {
+    path: 'my-package',
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import('./my-package/package-detail/package-detail.component').then(m => m.PackageDetailComponent),
+      },
+    ],
+  },
 ];

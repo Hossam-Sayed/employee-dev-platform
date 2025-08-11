@@ -1,0 +1,8 @@
+export enum CareerPackageStatusEnum {
+    NOT_STARTED = 'NOT_STARTED',
+    IN_PROGRESS = 'IN_PROGRESS',
+    COMPLETED = 'COMPLETED',
+    SUBMITTED = 'SUBMITTED',
+    APPROVED = 'APPROVED',
+    REJECTED = 'REJECTED'
+}
