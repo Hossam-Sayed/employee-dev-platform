@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { TemplateSectionRequestDto } from '../models/template-section-request.dto';
 import { Observable } from 'rxjs';
 import { TemplateSectionResponseDto } from '../models/template-section-response.dto';
+import { TemplateSectionRequiredTagResponseDto } from '../models/template-section-required-tag.dto';
 
 @Injectable({ providedIn: 'root' })
 export class TemplateSectionService {
@@ -17,5 +18,9 @@ export class TemplateSectionService {
 
   attachSection(dto: TemplateSectionRequestDto): Observable<TemplateSectionResponseDto> {
     return this.httpClient.post<TemplateSectionResponseDto>(this.baseUrl, dto);
+  }
+
+  listRequiredTags(templateSectionId: number): Observable<TemplateSectionRequiredTagResponseDto[]> {
+    return this.httpClient.get<TemplateSectionRequiredTagResponseDto[]>(`${this.baseUrl}/${templateSectionId}/required-tags`);
   }
 }

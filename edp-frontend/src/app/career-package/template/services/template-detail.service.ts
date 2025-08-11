@@ -74,4 +74,20 @@ export class TemplateDetailService {
       };
     });
   }
+  updateTags(sectionId: number, tags: TemplateSectionRequiredTagResponseDto[]) {
+    this._template.update((t) => {
+      if (!t) return t;
+      return {
+        ...t,
+        sections: t.sections.map((s) =>
+          s.id === sectionId
+            ? {
+                ...s,
+                requiredTags: tags,
+              }
+            : s
+        ),
+      };
+    });
+  }
 }

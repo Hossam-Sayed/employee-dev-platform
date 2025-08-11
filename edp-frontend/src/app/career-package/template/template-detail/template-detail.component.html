@@ -35,10 +35,16 @@
 </mat-card>
 
 @for (section of templateDetailService.template()?.sections; track section.id) {
-<app-section
-  [sectionData]="section"
-  [sectionOrder]="$index+1"
-></app-section>
+  @defer (on viewport) {
+    <app-section
+      [sectionData]="section"
+      [sectionOrder]="$index+1"
+    ></app-section>
+  } @placeholder {
+    <div class="loading-placeholder">
+      Loading section {{ $index+1 }}...
+    </div>
+  }
 }
 
 <div class="text-center my-4">

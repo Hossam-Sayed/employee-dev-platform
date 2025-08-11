@@ -1,4 +1,4 @@
-import { Component, inject, input } from '@angular/core';
+import { Component, inject, input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
@@ -32,7 +32,7 @@ import { CriteriaType } from '../../models/criteria-type.enum';
   templateUrl: './section.component.html',
   styleUrls: ['./section.component.css'],
 })
-export class SectionComponent {
+export class SectionComponent implements OnInit{
   sectionData = input<any>();
   sectionOrder = input<number>();
   displayedColumns = ['tagName', 'criteriaType', 'criteriaMinValue', 'actions'];
@@ -42,6 +42,21 @@ export class SectionComponent {
   private tagService = inject(TagService);
   private snackbar = inject(MatSnackBar);
   private dialog = inject(MatDialog);
+
+  ngOnInit() {
+    this.templateSectionService.listRequiredTags(this.sectionData().id).subscribe({
+      next: (tags) => {
+        this.templateDetailService.updateTags(this.sectionData().id, tags);
+      },
+      error: (err) => {
+        this.snackbar.open(
+          'Could not load required tags: ' + err.error.message,
+          'Close',
+          { duration: 3000 }
+        );
+      },
+    });
+  }
 
   removeTag(tag: any, sectionId: number) {
     if (!confirm(`Are you sure you want to delete tag "${tag.tagName}"?`))
