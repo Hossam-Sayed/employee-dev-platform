@@ -1,6 +1,6 @@
 package com.edp.notification.data.document;
 
-import com.edp.notification.data.enums.SubmissionStatus;
+import com.edp.shared.client.SubmissionStatus;
 import com.edp.notification.data.enums.SubmissionType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -46,7 +46,7 @@ public class Notification {
     private SubmissionStatus status;
 
     // A flag to track if the notification has been read by the owner.
-    private boolean read;
+    private boolean read = false;
 
     // The timestamp when the notification was created.
     @CreationTimestamp

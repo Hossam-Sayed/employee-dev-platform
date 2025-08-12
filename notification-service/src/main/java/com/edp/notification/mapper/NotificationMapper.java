@@ -2,6 +2,7 @@ package com.edp.notification.mapper;
 
 import com.edp.notification.data.document.Notification;
 import com.edp.notification.model.NotificationSubmissionDTO;
+import com.edp.shared.client.NotificationDetails;
 import org.mapstruct.Mapper;
 
 import java.util.List;
@@ -12,4 +13,6 @@ public interface NotificationMapper {
     NotificationSubmissionDTO toSubmissionNotificationDTO(Notification notification);
 
     List<NotificationSubmissionDTO> toSubmissionNotificationDTOs(List<Notification> notifications);
+
+    Notification toNotification(NotificationDetails notificationDetails);
 }

@@ -9,6 +9,7 @@ import com.edp.library.data.repository.blog.BlogSubmissionRepository;
 import com.edp.library.data.repository.blog.BlogSubmissionTagRepository;
 import com.edp.library.exception.InvalidOperationException;
 import com.edp.library.exception.ResourceNotFoundException;
+import com.edp.library.kafka.KafkaProducer;
 import com.edp.library.mapper.BlogMapper;
 import com.edp.library.model.PaginationRequestDTO;
 import com.edp.library.model.PaginationResponseDTO;
@@ -18,6 +19,8 @@ import com.edp.library.model.blog.BlogResponseDTO;
 import com.edp.library.model.blog.BlogSubmissionResponseDTO;
 import com.edp.library.model.enums.SubmissionStatusDTO;
 import com.edp.library.utils.PaginationUtils;
+import com.edp.shared.client.NotificationDetails;
+import com.edp.shared.client.SubmissionType;
 import com.edp.shared.client.auth.AuthServiceClient;
 import com.edp.shared.client.auth.model.UserProfileDto;
 import com.edp.shared.client.file.FileServiceClient;
@@ -54,6 +57,7 @@ public class BlogServiceImpl implements BlogService {
     private final AuthServiceClient authServiceClient;
     private final FileServiceClient fileServiceClient;
     private final TagServiceClient tagServiceClient;
+    private final KafkaProducer kafkaProducer;
 
     @Override
     @Transactional
@@ -112,6 +116,15 @@ public class BlogServiceImpl implements BlogService {
 
         // TODO: Notification: As a USER, I need to receive notifications when my blog submission status changes.
         // TODO: Notification: As a MANAGER, I need to receive notifications when a new blog submission is assigned to me for review.
+        NotificationDetails notificationDetails = NotificationDetails
+                .builder()
+                .title(submission.getTitle())
+                .ownerId(3L)
+                .actorId(authorId)
+                .submissionType(SubmissionType.BLOG)
+                .submissionId(submission.getId())
+                .status(com.edp.shared.client.SubmissionStatus.PENDING).build();
+        kafkaProducer.sendNotification("notifications-topic", notificationDetails);
 
         // Pass the fetched tags to the mapper
         return blogMapper.toBlogResponseDTO(blog, tags);

@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  kafka:
+    image: bitnami/kafka:4.0
+    container_name: kafka
+    # Expose both the internal and external listener ports
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      - KAFKA_ENABLE_KRAFT=yes
+      - KAFKA_CFG_PROCESS_ROLES=broker,controller
+      - KAFKA_CFG_NODE_ID=1
+      # Define all listeners. We use EXTERNAL for host communication.
+      # The CONTROLLER listener is for inter-broker communication in the KRaft quorum.
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,EXTERNAL://:29092,CONTROLLER://:9093
+      # Map the security protocols for each listener
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
+      - KAFKA_CFG_LOG_DIRS=/opt/bitnami/kafka/data/kraft-combined-logs
+      # CRITICAL: This advertises the EXTERNAL listener with the correct host address.
+      # Your host services will connect to localhost:29092
+      # The PLAINTEXT listener is not advertised to the outside to avoid hostname resolution issues.
+      - KAFKA_CFG_ADVERTISED_LISTENERS=EXTERNAL://localhost:29092,PLAINTEXT://kafka:9092

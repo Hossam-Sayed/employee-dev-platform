@@ -1,7 +1,5 @@
-package com.edp.notification.model;
+package com.edp.shared.client;
 
-import com.edp.shared.client.SubmissionStatus;
-import com.edp.notification.data.enums.SubmissionType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,19 +7,17 @@ import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 
+
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class NotificationSubmissionDTO {
-
-    private String id;
+public class NotificationDetails {
     private Long submissionId;
     private SubmissionType submissionType;
     private String title;
     private Long ownerId;
     private Long actorId;
     private SubmissionStatus status;
-    private boolean read;
-    private Instant createdAt;
+    private Instant createdAt = Instant.now();
 }

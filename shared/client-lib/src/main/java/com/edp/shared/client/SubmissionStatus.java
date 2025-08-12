@@ -1,4 +1,4 @@
-package com.edp.notification.data.enums;
+package com.edp.shared.client;
 
 public enum SubmissionStatus {
     PENDING,
