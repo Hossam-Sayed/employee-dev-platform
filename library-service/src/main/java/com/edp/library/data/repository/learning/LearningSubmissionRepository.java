@@ -8,7 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface LearningSubmissionRepository extends JpaRepository<LearningSubmission, Long> {
@@ -18,6 +17,4 @@ public interface LearningSubmissionRepository extends JpaRepository<LearningSubm
 
     // Find submissions waiting for review by a specific manager (reviewerId)
     Page<LearningSubmission> findBySubmitterIdInAndStatus(List<Long> submitterIds, SubmissionStatus status, Pageable pageable);
-
-    Optional<LearningSubmission> findByLearningEmployeeIdAndTitleIgnoreCaseAndProofUrlIgnoreCase(Long employeeId, String title, String proofUrl);
 }

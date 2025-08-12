@@ -3,10 +3,8 @@ package com.edp.library.controller.tag;
 import com.edp.library.model.PaginationRequestDTO;
 import com.edp.library.model.PaginationResponseDTO;
 import com.edp.library.model.tag.TagCreateRequestDTO;
-import com.edp.library.model.tag.TagDTO;
 import com.edp.library.model.tag.TagRequestResponseDTO;
 import com.edp.library.model.tag.TagRequestReviewDTO;
-import com.edp.library.model.tag.TagUpdateStatusDTO;
 import com.edp.shared.error.model.ErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -18,8 +16,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Tag(name = "Tag Management", description = "APIs for managing tags, including user requests and admin operations.")
 @CrossOrigin(origins = "http://localhost:4200")

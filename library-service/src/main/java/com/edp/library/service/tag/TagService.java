@@ -4,8 +4,6 @@ import com.edp.library.model.PaginationRequestDTO;
 import com.edp.library.model.PaginationResponseDTO;
 import com.edp.library.model.tag.*;
 
-import java.util.List;
-
 public interface TagService {
 
     /**
