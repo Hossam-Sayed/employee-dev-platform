@@ -33,7 +33,6 @@ import { CustomTagComponent } from '../custom-tag/custom-tag.component';
 import { MaterialResponse } from '../models/material-response.type';
 import { MaterialType } from '../models/material.type';
 import { AuthService } from '../../auth/service/auth.service';
-import { TagRequestDialogComponent } from '../tag-request-dialog/tag-request-dialog.component';
 
 @Component({
   selector: 'app-my-materials',
@@ -293,19 +292,10 @@ export class MyMaterialsComponent implements OnInit {
 
   onTagButtonClick() {
     if (this.isAdmin) {
-      console.log("ADMIN");
-      
-      this.onAddTag();
+      this.router.navigate(['/library/tags/manage']);
     } else {
       this.router.navigate(['/library/my-tag-requests']);
     }
-  }
-
-  onAddTag(): void {
-    const dialogRef = this.dialog.open(TagRequestDialogComponent, {
-      width: '400px',
-    });
-    // this.router.navigate(['/library/request-tag']);
   }
 
   get sortDirection(): SortDirection {

@@ -1,0 +1,31 @@
+<h2 mat-dialog-title>Reject Tag Request</h2>
+<mat-dialog-content>
+  <p>Please provide a reason for rejecting this tag request.</p>
+  <mat-form-field appearance="outline" class="rejection-textarea">
+    <mat-label>Rejection Comment</mat-label>
+    <textarea
+      matInput
+      [formControl]="commentControl"
+      placeholder="e.g., Tag already exists, inappropriate content..."
+      cdkTextareaAutosize
+      cdkAutosizeMinRows="3"
+      cdkAutosizeMaxRows="5"
+    ></textarea>
+    @if (commentControl.hasError('required')) {
+    <mat-error>Comment is required.</mat-error>
+    } @else if (commentControl.hasError('minlength')) {
+    <mat-error>Comment must be at least 10 characters long.</mat-error>
+    }
+  </mat-form-field>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()" color="primary">Cancel</button>
+  <button
+    mat-raised-button
+    color="warn"
+    [disabled]="commentControl.invalid"
+    (click)="onReject()"
+  >
+    Reject
+  </button>
+</mat-dialog-actions>

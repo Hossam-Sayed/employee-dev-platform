@@ -6,6 +6,8 @@ import { MaterialHistoryComponent } from './material-history/material-history.co
 import { MyMaterialsComponent } from './my-materials/my-materials.component';
 import { MyTagRequestsComponent } from './my-tag-requests/my-tag-requests.component';
 import { PendingReviewsComponent } from './pending-reviews/pending-reviews.component';
+import { adminGuard } from '../user/guards/admin.guard';
+import { PendingTagRequestsComponent } from './pending-tag-requests/pending-tag-requests.component';
 
 export const libraryRoutes: Routes = [
   {
@@ -87,5 +89,10 @@ export const libraryRoutes: Routes = [
     path: 'wiki/:materialId/review',
     component: MaterialDetailsComponent,
     canActivate: [authGuard],
+  },
+  {
+    path: 'tags/manage',
+    component: PendingTagRequestsComponent,
+    canActivate: [authGuard, adminGuard],
   },
 ];
