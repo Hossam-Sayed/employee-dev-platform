@@ -2,6 +2,7 @@ package com.edp.careerpackage.controller;
 
 import com.edp.careerpackage.model.submission.CommentRequestDto;
 import com.edp.careerpackage.model.submission.SubmissionResponseDto;
+import com.edp.careerpackage.model.submissionsnapshot.SubmissionSnapshotResponseDto;
 import com.edp.careerpackage.model.submissionsnapshot.SubmissionTagSnapshotResponseDto;
 import com.edp.careerpackage.service.SubmissionService;
 import lombok.RequiredArgsConstructor;
@@ -33,11 +34,6 @@ public class SubmissionController implements SubmissionControllerApi {
     }
 
     @Override
-    public ResponseEntity<List<SubmissionTagSnapshotResponseDto>> getSubmissionSnapshots(Long submissionId) {
-        return ResponseEntity.ok(submissionService.getSnapshotsBySubmissionId(submissionId));
-    }
-
-    @Override
     public ResponseEntity<List<SubmissionResponseDto>> searchSubmissions() {
         return ResponseEntity.ok(submissionService.getSubmissionsByUserIds());
     }
@@ -50,5 +46,10 @@ public class SubmissionController implements SubmissionControllerApi {
     @Override
     public ResponseEntity<SubmissionResponseDto> rejectSubmission(Long submissionId, @RequestBody CommentRequestDto request) {
         return ResponseEntity.ok(submissionService.rejectSubmission(submissionId, request));
+    }
+
+    @Override
+    public ResponseEntity<SubmissionSnapshotResponseDto> getSubmissionDetails(Long submissionId){
+        return ResponseEntity.ok(submissionService.getSubmissionDetails(submissionId));
     }
 }

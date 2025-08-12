@@ -1,5 +1,9 @@
 package com.edp.careerpackage.service;
 
+import com.edp.careerpackage.data.repository.SectionRepository;
+import com.edp.careerpackage.model.submissionsnapshot.SubmissionSectionSnapshotResponseDto;
+import com.edp.careerpackage.model.submissionsnapshot.SubmissionSnapshotResponseDto;
+import com.edp.careerpackage.model.submissionsnapshot.SubmissionTagSnapshotResponseDto;
 import com.edp.shared.client.auth.AuthServiceClient;
 import com.edp.shared.client.auth.model.UserProfileDto;
 import com.edp.careerpackage.data.entity.*;
@@ -9,10 +13,10 @@ import com.edp.careerpackage.data.repository.CareerPackageRepository;
 import com.edp.careerpackage.data.repository.SubmissionRepository;
 import com.edp.careerpackage.data.repository.SubmissionTagSnapshotRepository;
 import com.edp.careerpackage.mapper.CareerPackageMapper;
-import com.edp.careerpackage.mapper.SubmissionTagSnapshotMapper;
 import com.edp.careerpackage.model.submission.CommentRequestDto;
 import com.edp.careerpackage.model.submission.SubmissionResponseDto;
-import com.edp.careerpackage.model.submissionsnapshot.SubmissionTagSnapshotResponseDto;
+import com.edp.shared.client.tag.TagServiceClient;
+import com.edp.shared.client.tag.model.TagResponseDto;
 import com.edp.shared.security.jwt.JwtUserContext;
 
 import feign.FeignException;
@@ -25,6 +29,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,9 +39,12 @@ public class SubmissionServiceImpl implements SubmissionService {
     private final CareerPackageRepository careerPackageRepository;
     private final SubmissionRepository submissionRepository;
     private final SubmissionTagSnapshotRepository snapshotRepository;
+    private final SectionRepository sectionRepository;
+    private final SubmissionTagSnapshotRepository submissionTagSnapshotRepository;
     private final CareerPackageMapper mapper;
-    private final SubmissionTagSnapshotMapper snapshotMapper;
     private final AuthServiceClient authServiceClient;
+    private final TagServiceClient tagServiceClient;
+
 
     @Override
     @Transactional
@@ -81,25 +90,6 @@ public class SubmissionServiceImpl implements SubmissionService {
         return mapper.toSubmissionResponseDtoList(careerPackage.getSubmissions());
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<SubmissionTagSnapshotResponseDto> getSnapshotsBySubmissionId(Long submissionId) {
-
-        Submission submission = submissionRepository.findById(submissionId)
-                .orElseThrow(() -> new EntityNotFoundException("Submission not found"));
-        CareerPackage careerPackage = submission.getCareerPackage();
-
-        Long userId = JwtUserContext.getUserId();
-        boolean isOwner = careerPackage.getUserId().equals(userId);
-        boolean isManager = validateSubmissionBelongsToManagedUser(submission);
-        if (!isOwner && !isManager) {
-            throw new AuthenticationException("You are not authorized to view this submission") {
-            };
-        }
-
-        List<SubmissionTagSnapshot> snapshots = snapshotRepository.findBySubmission(submission);
-        return snapshotMapper.toSnapshotResponseDtoList(snapshots);
-    }
 
     @Override
     @Transactional(readOnly = true)
@@ -188,6 +178,7 @@ public class SubmissionServiceImpl implements SubmissionService {
                                 .requiredValue(tagProgress.getRequiredValue())
                                 .submittedValue(tagProgress.getCompletedValue())
                                 .proofLink(tagProgress.getProofUrl())
+                                .fileId(tagProgress.getFileId())
                                 .build()
                 ))
                 .toList();
@@ -210,6 +201,99 @@ public class SubmissionServiceImpl implements SubmissionService {
 
         Long submissionOwnerId = submission.getCareerPackage().getUserId();
         return userIds.contains(submissionOwnerId);
+    }
+
+
+    @Override
+    public SubmissionSnapshotResponseDto getSubmissionDetails(Long submissionId) {
+        Submission submission = submissionRepository.findById(submissionId)
+                .orElseThrow(() -> new EntityNotFoundException("Submission not found with ID: " + submissionId));
+
+        CareerPackage careerPackage = submission.getCareerPackage();
+        Long submissionOwnerId = careerPackage.getUserId();
+        String department = careerPackage.getDepartment();
+        String position = careerPackage.getPosition();
+
+        Long currentUserId = JwtUserContext.getUserId();
+        String token = JwtUserContext.getToken();
+
+        boolean isOwner = currentUserId.equals(submissionOwnerId);
+        if (!isOwner && !validateSubmissionBelongsToManagedUser(submission)) {
+            throw new AuthenticationException("You are not authorized to view this submission.") {
+            };
+        }
+
+        UserProfileDto user;
+        try {
+            user = authServiceClient.getUserById(submissionOwnerId, token);
+        } catch (FeignException ex) {
+            throw new IllegalStateException("Failed to contact AuthService: " + ex.getMessage());
+        }
+
+        List<SubmissionTagSnapshot> snapshots = submissionTagSnapshotRepository.findBySubmission(submission);
+
+        Map<Long, List<SubmissionTagSnapshot>> snapshotsBySection = snapshots.stream()
+                .collect(Collectors.groupingBy(SubmissionTagSnapshot::getSourceSectionId));
+
+        List<Long> allTagIds = snapshots.stream().map(SubmissionTagSnapshot::getTagId).distinct().toList();
+        List<Long> allSectionIds = snapshots.stream().map(SubmissionTagSnapshot::getSourceSectionId).distinct().toList();
+
+        Map<Long, TagResponseDto> tagsMap;
+        Map<Long, Section> sectionsMap;
+        try {
+            List<TagResponseDto> tagsList = tagServiceClient.findAllTagsByIds(allTagIds, token);
+            tagsMap = tagsList.stream()
+                    .collect(Collectors.toMap(TagResponseDto::getId, tag -> tag));
+            List<Section> sectionsList = sectionRepository.findAllById(allSectionIds);
+            sectionsMap = sectionsList.stream()
+                    .collect(Collectors.toMap(Section::getId, section -> section));
+            System.out.println(token);
+        } catch (FeignException ex) {
+            throw new IllegalStateException("Failed to contact the TagService: " + ex.getMessage());
+        }
+
+
+        List<SubmissionSectionSnapshotResponseDto> sectionDtos = snapshotsBySection.entrySet().stream()
+                .map(entry -> {
+                    Long sectionId = entry.getKey();
+                    List<SubmissionTagSnapshot> sectionSnapshots = entry.getValue();
+
+                    Section section = sectionsMap.get(sectionId);
+
+                    List<SubmissionTagSnapshotResponseDto> tagDtos = sectionSnapshots.stream()
+                            .map(snapshot -> {
+                                TagResponseDto tag = tagsMap.get(snapshot.getTagId());
+                                return SubmissionTagSnapshotResponseDto.builder()
+                                        .tagName(tag.getName())
+                                        .criteriaType(snapshot.getCriteriaType())
+                                        .requiredValue(snapshot.getRequiredValue())
+                                        .submittedValue(snapshot.getSubmittedValue())
+                                        .proofLink(snapshot.getProofLink())
+                                        .fileId(snapshot.getFileId())
+                                        .build();
+                            })
+                            .collect(Collectors.toList());
+
+                    return SubmissionSectionSnapshotResponseDto.builder()
+                            .sectionId(sectionId)
+                            .sectionName(section.getName())
+                            .sectionDescription(section.getDescription())
+                            .tags(tagDtos)
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        return SubmissionSnapshotResponseDto.builder()
+                .submissionId(submission.getId())
+                .user(user)
+                .department(department)
+                .position(position)
+                .status(submission.getStatus().toString())
+                .comment(submission.getComment())
+                .submittedAt(submission.getSubmittedAt())
+                .reviewedAt(submission.getReviewedAt())
+                .sections(sectionDtos)
+                .build();
     }
 
 }

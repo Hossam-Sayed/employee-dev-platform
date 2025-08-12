@@ -2,6 +2,7 @@ package com.edp.careerpackage.controller;
 
 import com.edp.careerpackage.model.submission.CommentRequestDto;
 import com.edp.careerpackage.model.submission.SubmissionResponseDto;
+import com.edp.careerpackage.model.submissionsnapshot.SubmissionSnapshotResponseDto;
 import com.edp.careerpackage.model.submissionsnapshot.SubmissionTagSnapshotResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -43,17 +44,6 @@ public interface SubmissionControllerApi {
     @GetMapping
     ResponseEntity<List<SubmissionResponseDto>> getSubmissionHistory();
 
-    @Operation(
-            summary = "Get all tag progress snapshots for a submission",
-            description = "Returns a list of all progress snapshot records at time of submission"
-    )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Snapshots retrieved successfully"),
-            @ApiResponse(responseCode = "404", description = "Submission not found"),
-            @ApiResponse(responseCode = "403", description = "User not authorized to view this submission snapshots")
-    })
-    @GetMapping("/{submissionId}/snapshots")
-    ResponseEntity<List<SubmissionTagSnapshotResponseDto>> getSubmissionSnapshots(@PathVariable Long submissionId);
 
     @Operation(
             summary = "Search submissions by user IDs (MANAGER only)",
@@ -98,4 +88,15 @@ public interface SubmissionControllerApi {
             @RequestBody CommentRequestDto commentRequest
     );
 
+    @Operation(
+            summary = "Get a detailed submission by ID",
+            description = "Returns a detailed view of a specific submission, including user info, sections, and tag snapshots."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Submission details fetched successfully"),
+            @ApiResponse(responseCode = "404", description = "Submission not found"),
+            @ApiResponse(responseCode = "403", description = "User not authorized to view this submission")
+    })
+    @GetMapping("/{submissionId}")
+    ResponseEntity<SubmissionSnapshotResponseDto> getSubmissionDetails(@PathVariable Long submissionId);
 }
