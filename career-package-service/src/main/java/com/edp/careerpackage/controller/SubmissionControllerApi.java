@@ -1,6 +1,7 @@
 package com.edp.careerpackage.controller;
 
 import com.edp.careerpackage.model.submission.CommentRequestDto;
+import com.edp.careerpackage.model.submission.ManagedSubmissionResponseDto;
 import com.edp.careerpackage.model.submission.SubmissionResponseDto;
 import com.edp.careerpackage.model.submissionsnapshot.SubmissionSnapshotResponseDto;
 import com.edp.careerpackage.model.submissionsnapshot.SubmissionTagSnapshotResponseDto;
@@ -54,7 +55,7 @@ public interface SubmissionControllerApi {
             @ApiResponse(responseCode = "403", description = "Only managers can access this endpoint")
     })
     @GetMapping("/search")
-    ResponseEntity<List<SubmissionResponseDto>> searchSubmissions();
+    ResponseEntity<List<ManagedSubmissionResponseDto>> searchSubmissions();
 
 
     @Operation(

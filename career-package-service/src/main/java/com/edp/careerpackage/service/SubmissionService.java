@@ -1,6 +1,7 @@
 package com.edp.careerpackage.service;
 
 import com.edp.careerpackage.model.submission.CommentRequestDto;
+import com.edp.careerpackage.model.submission.ManagedSubmissionResponseDto;
 import com.edp.careerpackage.model.submission.SubmissionResponseDto;
 import com.edp.careerpackage.model.submissionsnapshot.SubmissionSnapshotResponseDto;
 import com.edp.careerpackage.model.submissionsnapshot.SubmissionTagSnapshotResponseDto;
@@ -13,7 +14,7 @@ public interface SubmissionService {
 
     List<SubmissionResponseDto> getSubmissionHistory();
 
-    List<SubmissionResponseDto> getSubmissionsByUserIds();
+    List<ManagedSubmissionResponseDto> getSubmissionsByUserIds();
 
     SubmissionResponseDto approveSubmission(Long submissionId, CommentRequestDto request);
 

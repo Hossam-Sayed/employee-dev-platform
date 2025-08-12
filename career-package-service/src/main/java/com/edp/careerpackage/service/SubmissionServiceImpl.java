@@ -1,6 +1,7 @@
 package com.edp.careerpackage.service;
 
 import com.edp.careerpackage.data.repository.SectionRepository;
+import com.edp.careerpackage.model.submission.ManagedSubmissionResponseDto;
 import com.edp.careerpackage.model.submissionsnapshot.SubmissionSectionSnapshotResponseDto;
 import com.edp.careerpackage.model.submissionsnapshot.SubmissionSnapshotResponseDto;
 import com.edp.careerpackage.model.submissionsnapshot.SubmissionTagSnapshotResponseDto;
@@ -30,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -91,9 +93,10 @@ public class SubmissionServiceImpl implements SubmissionService {
     }
 
 
+
     @Override
     @Transactional(readOnly = true)
-    public List<SubmissionResponseDto> getSubmissionsByUserIds() {
+    public List<ManagedSubmissionResponseDto> getSubmissionsByUserIds() {
         Long managerId = JwtUserContext.getUserId();
         String token = JwtUserContext.getToken();
 
@@ -104,16 +107,34 @@ public class SubmissionServiceImpl implements SubmissionService {
             throw new IllegalStateException("Failed to contact AuthService: " + ex.getMessage());
         }
 
+        Map<Long, UserProfileDto> managedUsersMap = managedUsers.stream()
+                .collect(Collectors.toMap(UserProfileDto::getId, Function.identity()));
+
         List<Long> userIds = managedUsers.stream()
                 .map(UserProfileDto::getId)
                 .toList();
+
         List<CareerPackage> packages = careerPackageRepository.findByUserIdInAndActiveTrue(userIds);
 
         List<Submission> submissions = packages.stream()
                 .flatMap(pkg -> pkg.getSubmissions().stream())
                 .toList();
 
-        return mapper.toSubmissionResponseDtoList(submissions);
+        return submissions.stream()
+                .map(submission -> {
+                    Long submissionOwnerId = submission.getCareerPackage().getUserId();
+                    UserProfileDto user = managedUsersMap.get(submissionOwnerId);
+
+                    return ManagedSubmissionResponseDto.builder()
+                            .id(submission.getId())
+                            .submittedAt(submission.getSubmittedAt())
+                            .status(submission.getStatus().toString())
+                            .comment(submission.getComment())
+                            .reviewedAt(submission.getReviewedAt())
+                            .user(user)
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 
 

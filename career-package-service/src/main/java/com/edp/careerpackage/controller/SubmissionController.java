@@ -1,6 +1,7 @@
 package com.edp.careerpackage.controller;
 
 import com.edp.careerpackage.model.submission.CommentRequestDto;
+import com.edp.careerpackage.model.submission.ManagedSubmissionResponseDto;
 import com.edp.careerpackage.model.submission.SubmissionResponseDto;
 import com.edp.careerpackage.model.submissionsnapshot.SubmissionSnapshotResponseDto;
 import com.edp.careerpackage.model.submissionsnapshot.SubmissionTagSnapshotResponseDto;
@@ -34,7 +35,7 @@ public class SubmissionController implements SubmissionControllerApi {
     }
 
     @Override
-    public ResponseEntity<List<SubmissionResponseDto>> searchSubmissions() {
+    public ResponseEntity<List<ManagedSubmissionResponseDto>> searchSubmissions() {
         return ResponseEntity.ok(submissionService.getSubmissionsByUserIds());
     }
 
