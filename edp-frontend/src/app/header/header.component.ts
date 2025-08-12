@@ -21,9 +21,7 @@ export class HeaderComponent {
   router = inject(Router);
 
   goTo(path: string) {
-    console.log("clicked" + " " + path);
-    
-    this.router.navigate([path]);
+        this.router.navigate([path]);
   }
 
   onLogout() {

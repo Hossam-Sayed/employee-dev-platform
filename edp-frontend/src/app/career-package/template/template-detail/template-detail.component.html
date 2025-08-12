@@ -1,4 +1,14 @@
 <mat-card class="mat-elevation-z3 mb-4">
+  <mat-card-header class="d-flex justify-content-between align-items-center">
+    <mat-card-title>Template Details</mat-card-title>
+    <button
+      mat-icon-button
+      routerLink="/career-package/templates"
+      matTooltip="Back to Templates"
+    >
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+  </mat-card-header>
   <mat-card-content>
     <div
       class="d-flex flex-wrap flex-md-nowrap justify-content-between align-items-center mb-3"
@@ -35,17 +45,11 @@
 </mat-card>
 
 @for (section of templateDetailService.template()?.sections; track section.id) {
-  @defer (on viewport) {
-    <app-section
-      [sectionData]="section"
-      [sectionOrder]="$index+1"
-    ></app-section>
-  } @placeholder {
-    <div class="loading-placeholder">
-      Loading section {{ $index+1 }}...
-    </div>
-  }
-}
+@defer (on viewport) {
+<app-section [sectionData]="section" [sectionOrder]="$index + 1"></app-section>
+} @placeholder {
+<div class="loading-placeholder">Loading section {{ $index + 1 }}...</div>
+} }
 
 <div class="text-center my-4">
   <button mat-raised-button color="primary" (click)="openAddSectionDialog()">

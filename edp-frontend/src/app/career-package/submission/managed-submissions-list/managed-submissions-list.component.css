@@ -1,0 +1,11 @@
+mat-card-header {
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 1rem;
+}
+mat-card {
+  transition: transform 0.2s ease-in-out;
+}
+mat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}

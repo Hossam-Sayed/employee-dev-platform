@@ -6,54 +6,70 @@
   <span class="flex-spacer"></span>
 
   @if(tokenService.isLoggedIn()) {
-    <div class="d-none d-md-flex align-items-center">
-      <button mat-button (click)="goTo('/inside')">Dashboard</button>
-      <button mat-button [matMenuTriggerFor]="careerMenu">Career Package</button>
-      <mat-menu #careerMenu="matMenu">
+  <div class="d-none d-md-flex align-items-center">
+    <button mat-button (click)="goTo('/inside')">Dashboard</button>
+    <button mat-button [matMenuTriggerFor]="careerMenu">Career Package</button>
+    <mat-menu #careerMenu="matMenu">
+      <button mat-menu-item (click)="goTo('/career-package/templates')">
+        Templates
+      </button>
+      <button mat-menu-item (click)="goTo('/career-package/my-package')">
+        My Package
+      </button>
+      <button
+        mat-menu-item
+        (click)="goTo('/career-package/submissions/managed')"
+      >
+        Managed
+      </button>
+    </mat-menu>
+
+    <button mat-button [matMenuTriggerFor]="libraryMenu">Library</button>
+    <mat-menu #libraryMenu="matMenu">
+      <button mat-menu-item (click)="goTo('/library/my-materials')">
+        My Materials
+      </button>
+    </mat-menu>
+
+    <button mat-stroked-button color="warn" (click)="onLogout()">Logout</button>
+  </div>
+
+  <div class="d-md-none">
+    <button mat-icon-button [matMenuTriggerFor]="mobileMainMenu">
+      <mat-icon>menu</mat-icon>
+    </button>
+    <mat-menu #mobileMainMenu="matMenu">
+      <button mat-menu-item (click)="goTo('/inside')">Dashboard</button>
+
+      <button mat-menu-item [matMenuTriggerFor]="mobileCareerMenu">
+        Career Package
+      </button>
+      <mat-menu #mobileCareerMenu="matMenu">
         <button mat-menu-item (click)="goTo('/career-package/templates')">
           Templates
         </button>
         <button mat-menu-item (click)="goTo('/career-package/my-package')">
           My Package
         </button>
+        <button
+          mat-menu-item
+          (click)="goTo('/career-package/submissions/managed')"
+        >
+          Managed
+        </button>
       </mat-menu>
 
-      <button mat-button [matMenuTriggerFor]="libraryMenu">Library</button>
-      <mat-menu #libraryMenu="matMenu">
+      <button mat-menu-item [matMenuTriggerFor]="mobileLibraryMenu">
+        Library
+      </button>
+      <mat-menu #mobileLibraryMenu="matMenu">
         <button mat-menu-item (click)="goTo('/library/my-materials')">
           My Materials
         </button>
       </mat-menu>
 
-      <button mat-stroked-button color="warn" (click)="onLogout()">Logout</button>
-    </div>
-
-    <div class="d-md-none">
-      <button mat-icon-button [matMenuTriggerFor]="mobileMainMenu">
-        <mat-icon>menu</mat-icon>
-      </button>
-      <mat-menu #mobileMainMenu="matMenu">
-        <button mat-menu-item (click)="goTo('/inside')">Dashboard</button>
-
-        <button mat-menu-item [matMenuTriggerFor]="mobileCareerMenu">Career Package</button>
-        <mat-menu #mobileCareerMenu="matMenu">
-          <button mat-menu-item (click)="goTo('/career-package/templates')">
-            Templates
-          </button>
-          <button mat-menu-item (click)="goTo('/career-package/my-package')">
-            My Package
-          </button>
-        </mat-menu>
-
-        <button mat-menu-item [matMenuTriggerFor]="mobileLibraryMenu">Library</button>
-        <mat-menu #mobileLibraryMenu="matMenu">
-          <button mat-menu-item (click)="goTo('/library/my-materials')">
-            My Materials
-          </button>
-        </mat-menu>
-
-        <button mat-menu-item (click)="onLogout()">Logout</button>
-      </mat-menu>
-    </div>
+      <button mat-menu-item (click)="onLogout()">Logout</button>
+    </mat-menu>
+  </div>
   }
 </mat-toolbar>

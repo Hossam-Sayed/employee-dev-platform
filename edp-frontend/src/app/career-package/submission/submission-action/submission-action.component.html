@@ -1,0 +1,62 @@
+<div class="container py-4">
+  @if (submissionId()) {
+    <div class="row g-4">
+      <div class="col-lg-8">
+        <app-submission-detail [submissionId]="submissionId()"></app-submission-detail>
+      </div>
+
+      <div class="col-lg-4">
+        <mat-card class="p-4 mat-elevation-z3 h-100">
+          <mat-card-header>
+            <mat-card-title>Review</mat-card-title>
+          </mat-card-header>
+          <mat-card-content class="d-flex flex-column h-100">
+            <p class="text-muted">Review the submission details and add a comment to approve or reject it.</p>
+            
+            <form [formGroup]="commentForm" class="flex-grow-1 d-flex flex-column">
+              <mat-form-field appearance="outline" class="flex-grow-1">
+                <mat-label>Comment</mat-label>
+                <textarea matInput formControlName="comment" cdkTextareaAutosize #autosize="cdkTextareaAutosize"
+                          cdkAutosizeMinRows="5" cdkAutosizeMaxRows="10"></textarea>
+                @if (commentForm.get('comment')?.hasError('required')) {
+                  <mat-error>A comment is required.</mat-error>
+                }
+              </mat-form-field>
+            </form>
+
+            @if (submitting()) {
+              <div class="d-flex justify-content-center my-3">
+                <mat-spinner diameter="30"></mat-spinner>
+              </div>
+            } @else {
+              <div class="d-flex justify-content-between mt-3">
+                <button
+                  mat-raised-button
+                  color="warn"
+                  (click)="onReject()"
+                  [disabled]="commentForm.invalid"
+                  matTooltip="Reject Submission"
+                >
+                  <mat-icon>thumb_down</mat-icon> Reject
+                </button>
+                <button
+                  mat-raised-button
+                  color="primary"
+                  (click)="onApprove()"
+                  [disabled]="commentForm.invalid"
+                  matTooltip="Approve Submission"
+                >
+                  <mat-icon>thumb_up</mat-icon> Approve
+                </button>
+              </div>
+            }
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+  } @else {
+    <div class="alert alert-danger text-center" role="alert">
+      Invalid submission ID.
+    </div>
+  }
+</div>

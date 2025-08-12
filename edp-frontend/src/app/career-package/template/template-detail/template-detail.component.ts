@@ -1,5 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TemplateService } from '../services/template.service';
 import { TemplateDetailResponseDto } from '../models/template-detail-response.dto';
 import { CommonModule } from '@angular/common';
@@ -40,6 +40,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     MatExpansionModule,
     MatDialogModule,
     SectionComponent,
+    RouterLink
   ],
   templateUrl: './template-detail.component.html',
   styleUrls: ['./template-detail.component.css'],

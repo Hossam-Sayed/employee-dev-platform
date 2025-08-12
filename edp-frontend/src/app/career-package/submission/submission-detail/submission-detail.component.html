@@ -9,7 +9,7 @@
         <mat-card-title class="mb-0">
           <h2 class="mb-0">Submission Details:  {{ submissionData()!.user.firstName }} {{ submissionData()!.user.lastName }}</h2>
         </mat-card-title>
-        <button mat-icon-button color="primary" routerLink="/career-package/my-package" matTooltip="Back to My Package">
+        <button mat-icon-button color="primary" [routerLink]=" backRoute" matTooltip="Back">
           <mat-icon>arrow_back</mat-icon>
         </button>
       </mat-card-header>
