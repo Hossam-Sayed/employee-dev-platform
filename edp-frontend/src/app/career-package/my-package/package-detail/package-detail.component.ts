@@ -16,7 +16,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { PackageService } from '../services/career-package.service';
 import { PackageDetailService } from '../services/package-store.service';
-import { SubmissionService } from '../services/submission-service';
+import { SubmissionService } from '../../services/submission-service';
 import { PackageSectionComponent } from "./package-section/package-section.component";
 import { PackageSubmissionComponent } from "./package-submission/package-submission.component";
 

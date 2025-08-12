@@ -11,7 +11,7 @@ import { of } from 'rxjs';
 import { switchMap, tap, catchError } from 'rxjs/operators';
 import { PackageDetailService } from '../services/package-store.service';
 import { SectionProgressService } from '../services/section-progress.service';
-import { FileService } from '../services/file.service';
+import { FileService } from '../../services/file.service';
 import { SectionProgressResponseDto } from '../models/section-progress-response.dto';
 import { MatDialog } from '@angular/material/dialog';
 import { TagProgressService } from '../services/tag-progress.service';

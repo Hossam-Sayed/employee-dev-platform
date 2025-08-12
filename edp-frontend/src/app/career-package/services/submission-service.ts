@@ -1,8 +1,8 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { SubmissionResponseDto } from '../models/submission-response.dto';
-import { SubmissionSnapshotResponseDto } from '../../submission/models/submission-snapshot-response.dto';
+import { SubmissionResponseDto } from '../my-package/models/submission-response.dto';
+import { SubmissionSnapshotResponseDto } from '../submission/models/submission-snapshot-response.dto';
 
 @Injectable({
   providedIn: 'root',

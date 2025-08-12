@@ -11,8 +11,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { of } from 'rxjs';
 import { switchMap, catchError } from 'rxjs/operators';
-import { SubmissionService } from '../../my-package/services/submission-service';
-import { FileService } from '../../my-package/services/file.service';
+import { SubmissionService } from '../../services/submission-service';
+import { FileService } from '../../services/file.service';
 import { SubmissionSnapshotResponseDto } from '../models/submission-snapshot-response.dto';
 import { SubmissionTagSnapshotResponseDto } from '../models/submission-tag-snapshot-response.dto';
 
