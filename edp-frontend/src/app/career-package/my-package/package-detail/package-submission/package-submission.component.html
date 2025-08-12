@@ -3,21 +3,23 @@
     <mat-panel-title
       class="d-flex align-items-center justify-content-between w-100"
     >
-      <div>
-        <strong>Submission Date:</strong>
-        {{ submissionData().submittedAt | date : "yyyy-MM-dd" }}
-      </div>
-      <div class="ms-4">
-        <span
-          class="badge"
-          [ngClass]="{
-            'bg-success': submissionData().status === 'APPROVED',
-            'bg-warning text-dark': submissionData().status === 'PENDING',
-            'bg-danger': submissionData().status === 'REJECTED'
-          }"
-        >
-          {{ submissionData().status }}
-        </span>
+      <div class="d-flex align-items-center">
+        <div>
+          <strong>Submission Date:</strong>
+          {{ submissionData().submittedAt | date : "yyyy-MM-dd" }}
+        </div>
+        <div class="ms-4">
+          <span
+            class="badge"
+            [ngClass]="{
+              'bg-success': submissionData().status === 'APPROVED',
+              'bg-warning text-dark': submissionData().status === 'PENDING',
+              'bg-danger': submissionData().status === 'REJECTED'
+            }"
+          >
+            {{ submissionData().status }}
+          </span>
+        </div>
       </div>
     </mat-panel-title>
   </mat-expansion-panel-header>
@@ -26,4 +28,11 @@
     <strong>Reviewed At:</strong>
     {{ submissionData().reviewedAt | date : "yyyy-MM-dd" }}
   </p>
+  <button
+    mat-icon-button
+    [routerLink]="['/career-package/submissions', submissionData().id]"
+    matTooltip="View Submission Details"
+  >
+    <mat-icon>arrow_forward</mat-icon>
+  </button>
 </mat-expansion-panel>

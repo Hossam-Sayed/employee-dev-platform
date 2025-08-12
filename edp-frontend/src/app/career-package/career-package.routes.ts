@@ -34,6 +34,16 @@ export const careerPackageRoutes: Routes = [
         path: 'sections/:sectionProgressId',
         loadComponent: () =>
           import('./my-package/package-section-detail/package-section-detail.component').then(m => m.PackageSectionDetailComponent),
+      }
+    ],
+  },
+      {
+    path: 'submissions',
+    children: [
+            {
+        path: ':submissionId',
+        loadComponent: () =>
+          import('./submission/submission-detail/submission-detail.component').then(m => m.SubmissionDetailComponent),
       },
     ],
   },

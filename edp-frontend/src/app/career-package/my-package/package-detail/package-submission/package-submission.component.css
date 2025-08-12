@@ -1,0 +1,23 @@
+::ng-deep .mat-card-panel-body p {
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+::ng-deep .mat-expansion-panel-header {
+ padding: 8px 16px !important; 
+}
+
+::ng-deep .mat-expansion-panel-header .mat-expansion-indicator::after {
+ font-size: 16px !important; 
+}
+
+::ng-deep .mat-expansion-panel-header .mat-panel-title {
+ font-size: 14px !important; 
+ margin-right: 8px !important; 
+}
+
+::ng-deep .mat-expansion-panel-header .badge {
+ font-size: 12px !important; 
+ padding: 0.3em 0.6em !important; 
+}
