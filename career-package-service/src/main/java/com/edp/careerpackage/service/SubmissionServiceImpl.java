@@ -5,6 +5,8 @@ import com.edp.careerpackage.model.submission.ManagedSubmissionResponseDto;
 import com.edp.careerpackage.model.submissionsnapshot.SubmissionSectionSnapshotResponseDto;
 import com.edp.careerpackage.model.submissionsnapshot.SubmissionSnapshotResponseDto;
 import com.edp.careerpackage.model.submissionsnapshot.SubmissionTagSnapshotResponseDto;
+import com.edp.shared.kafka.model.NotificationDetails;
+import com.edp.shared.kafka.model.SubmissionType;
 import com.edp.shared.client.auth.AuthServiceClient;
 import com.edp.shared.client.auth.model.UserProfileDto;
 import com.edp.careerpackage.data.entity.*;
@@ -18,6 +20,7 @@ import com.edp.careerpackage.model.submission.CommentRequestDto;
 import com.edp.careerpackage.model.submission.SubmissionResponseDto;
 import com.edp.shared.client.tag.TagServiceClient;
 import com.edp.shared.client.tag.model.TagResponseDto;
+import com.edp.shared.kafka.producer.KafkaProducer;
 import com.edp.shared.security.jwt.JwtUserContext;
 
 import feign.FeignException;
@@ -28,6 +31,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +50,7 @@ public class SubmissionServiceImpl implements SubmissionService {
     private final CareerPackageMapper mapper;
     private final AuthServiceClient authServiceClient;
     private final TagServiceClient tagServiceClient;
+    private final KafkaProducer kafkaProducer;
 
 
     @Override
@@ -78,6 +83,14 @@ public class SubmissionServiceImpl implements SubmissionService {
         careerPackage.setStatus(CareerPackageStatus.SUBMITTED);
         careerPackage.setUpdatedAt(LocalDateTime.now());
 
+        UserProfileDto user;
+        try {
+            user = authServiceClient.getUserById(userId, JwtUserContext.getToken());
+        } catch (FeignException ex) {
+            throw new IllegalStateException("Failed to contact AuthService: " + ex.getMessage());
+        }
+        sendSubmissionNotification(saved, user.getReportsToId(), com.edp.shared.kafka.model.SubmissionStatus.PENDING);
+
         return mapper.toSubmissionResponseDto(saved);
     }
 
@@ -91,7 +104,6 @@ public class SubmissionServiceImpl implements SubmissionService {
 
         return mapper.toSubmissionResponseDtoList(careerPackage.getSubmissions());
     }
-
 
 
     @Override
@@ -160,6 +172,9 @@ public class SubmissionServiceImpl implements SubmissionService {
         submission.getCareerPackage().setStatus(CareerPackageStatus.APPROVED);
 
         submissionRepository.save(submission);
+
+        sendSubmissionNotification(submission, submission.getCareerPackage().getUserId(), com.edp.shared.kafka.model.SubmissionStatus.APPROVED);
+
         return mapper.toSubmissionResponseDto(submission);
     }
 
@@ -184,6 +199,9 @@ public class SubmissionServiceImpl implements SubmissionService {
         submission.getCareerPackage().setStatus(CareerPackageStatus.REJECTED);
 
         submissionRepository.save(submission);
+
+        sendSubmissionNotification(submission, submission.getCareerPackage().getUserId(), com.edp.shared.kafka.model.SubmissionStatus.REJECTED);
+
         return mapper.toSubmissionResponseDto(submission);
     }
 
@@ -315,6 +333,19 @@ public class SubmissionServiceImpl implements SubmissionService {
                 .reviewedAt(submission.getReviewedAt())
                 .sections(sectionDtos)
                 .build();
+    }
+
+    private void sendSubmissionNotification(Submission submission, Long ownerId, com.edp.shared.kafka.model.SubmissionStatus status) {
+        NotificationDetails notificationDetails = NotificationDetails.builder()
+                .title(submission.getCareerPackage().getPosition())
+                .ownerId(ownerId)
+                .actorId(JwtUserContext.getUserId())
+                .submissionType(SubmissionType.PACKAGE)
+                .submissionId(submission.getId())
+                .status(status)
+                .createdAt(Instant.now())
+                .build();
+        kafkaProducer.sendNotification(notificationDetails);
     }
 
 }

@@ -11,7 +11,8 @@ import org.springframework.context.annotation.FilterType;
 @SpringBootApplication
 @EnableFeignClients(basePackages = "com.edp.shared.client")
 @ComponentScan(basePackages = {"com.edp.careerpackage",
-        "com.edp.shared.security.jwt"},
+        "com.edp.shared.security.jwt",
+        "com.edp.shared.kafka"},
         excludeFilters = {@ComponentScan.Filter(
                 type = FilterType.CUSTOM,
                 classes = {TypeExcludeFilter.class}
