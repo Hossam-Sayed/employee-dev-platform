@@ -325,6 +325,7 @@ public class LearningServiceImpl implements LearningService {
                 learning.setCurrentSubmission(updatedSubmission);
                 learningRepository.save(learning);
             }
+            // TODO: Add Kafka producer call HERE
         }
 
         sendNotification(submission, submission.getSubmitterId(), reviewerId);
