@@ -23,6 +23,7 @@ import com.edp.shared.client.auth.AuthServiceClient;
 import com.edp.shared.client.auth.model.UserProfileDto;
 import com.edp.shared.client.tag.TagServiceClient;
 import com.edp.shared.client.tag.model.TagResponseDto;
+import com.edp.shared.kafka.model.LearningProgress;
 import com.edp.shared.security.jwt.JwtUserContext;
 import com.edp.shared.kafka.model.NotificationDetails;
 import com.edp.shared.kafka.model.SubmissionType;
@@ -326,6 +327,16 @@ public class LearningServiceImpl implements LearningService {
                 learningRepository.save(learning);
             }
             // TODO: Add Kafka producer call HERE
+            LearningProgress learningProgress = LearningProgress.builder()
+                    .userID(submission.getSubmitterId()).proofUrl(submission.getProofUrl()).updates(submission.getTags().stream()
+                            .collect(Collectors.toMap(
+                                    LearningSubmissionTag::getId,
+                                    tag -> (double) tag.getDurationMinutes()
+                            )))
+                    .build();
+
+            kafkaProducer.sendLearningProgress(learningProgress);
+            //I ONLY ADDED THE FEW LINES ABOVE TO SEND THE TOPIC
         }
 
         sendNotification(submission, submission.getSubmitterId(), reviewerId);
