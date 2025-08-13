@@ -24,6 +24,9 @@ import com.edp.shared.client.auth.model.UserProfileDto;
 import com.edp.shared.client.tag.TagServiceClient;
 import com.edp.shared.client.tag.model.TagResponseDto;
 import com.edp.shared.security.jwt.JwtUserContext;
+import com.edp.shared.kafka.model.NotificationDetails;
+import com.edp.shared.kafka.model.SubmissionType;
+import com.edp.shared.kafka.producer.KafkaProducer;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
@@ -50,6 +53,7 @@ public class LearningServiceImpl implements LearningService {
     private final LearningMapper learningMapper;
     private final AuthServiceClient authServiceClient;
     private final TagServiceClient tagServiceClient;
+    private final KafkaProducer kafkaProducer;
 
     @Override
     @Transactional
@@ -91,8 +95,8 @@ public class LearningServiceImpl implements LearningService {
         learning.setCurrentSubmission(submission);
         learningRepository.save(learning);
 
-        // TODO: Notification: As a USER, I need to receive notifications when my material submission status changes.
-        // TODO: Notification: As a MANAGER, I need to receive notifications when a new submission is assigned to me for review.
+        UserProfileDto userProfileDto = authServiceClient.getUserById(submitterId, token);
+        sendNotification(submission, userProfileDto.getReportsToId(), submitterId);
 
         return learningMapper.toLearningResponseDTO(learning, tags);
     }
@@ -143,8 +147,8 @@ public class LearningServiceImpl implements LearningService {
         learning.setCurrentSubmission(newSubmission);
         learningRepository.save(learning);
 
-        // TODO: Notification: Similar to create, notify owner of new pending submission
-        // TODO: Notification: Notify manager of new submission assigned for review
+        UserProfileDto userProfileDto = authServiceClient.getUserById(submitterId, token);
+        sendNotification(newSubmission, userProfileDto.getReportsToId(), submitterId);
 
         return learningMapper.toLearningResponseDTO(learning, tags);
     }
@@ -323,8 +327,8 @@ public class LearningServiceImpl implements LearningService {
             }
         }
 
-        // TODO: Notification: As a MANAGER, I need the submitter to be notified when I approve or reject their submission.
-        // TODO: Notification: Notify the manager of their performed action (reviewing process)
+        sendNotification(submission, submission.getSubmitterId(), reviewerId);
+
         Set<Long> tagIds = updatedSubmission.getTags().stream()
                 .map(LearningSubmissionTag::getTagId)
                 .collect(Collectors.toSet());
@@ -333,5 +337,18 @@ public class LearningServiceImpl implements LearningService {
             tags = tagServiceClient.findAllTagsByIds(new ArrayList<>(tagIds), JwtUserContext.getToken());
 
         return learningMapper.toLearningSubmissionResponseDTO(updatedSubmission, tags);
+    }
+
+    private void sendNotification(LearningSubmission submission, Long ownerId, Long actorId) {
+        NotificationDetails notificationDetails = NotificationDetails
+                .builder()
+                .title(submission.getTitle())
+                .ownerId(ownerId)
+                .actorId(actorId)
+                .createdAt(Instant.now())
+                .submissionType(SubmissionType.LEARNING)
+                .submissionId(submission.getId())
+                .status(com.edp.shared.kafka.model.SubmissionStatus.PENDING).build();
+        kafkaProducer.sendNotification(notificationDetails);
     }
 }

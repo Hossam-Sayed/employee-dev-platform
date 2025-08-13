@@ -24,7 +24,10 @@ import com.edp.shared.client.file.FileServiceClient;
 import com.edp.shared.client.file.model.FileResponseDto;
 import com.edp.shared.client.tag.TagServiceClient;
 import com.edp.shared.client.tag.model.TagResponseDto;
+import com.edp.shared.kafka.producer.KafkaProducer;
 import com.edp.shared.security.jwt.JwtUserContext;
+import com.edp.shared.kafka.model.NotificationDetails;
+import com.edp.shared.kafka.model.SubmissionType;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
@@ -54,13 +57,11 @@ public class WikiServiceImpl implements WikiService {
     private final AuthServiceClient authServiceClient;
     private final FileServiceClient fileServiceClient;
     private final TagServiceClient tagServiceClient;
+    private final KafkaProducer kafkaProducer;
 
     @Override
     @Transactional
     public WikiResponseDTO createWiki(WikiCreateRequestDTO request, MultipartFile file) {
-        // TODO: AUTHENTICATION: Ensure the authorId corresponds to a valid authenticated user.
-        // TODO: AUTHORIZATION: Verify the authenticated user has permission to create a wiki.
-
         // 1. Validate tags by calling the remote tag service
         List<Long> tagIds = request.getTagIds();
         String token = JwtUserContext.getToken();
@@ -111,8 +112,8 @@ public class WikiServiceImpl implements WikiService {
         wiki.setCurrentSubmission(submission);
         wikiRepository.save(wiki);
 
-        // TODO: Notification: As a USER, I need to receive notifications when my wiki submission status changes.
-        // TODO: Notification: As a MANAGER, I need to receive notifications when a new wiki submission is assigned to me for review.
+        UserProfileDto userProfileDto = authServiceClient.getUserById(authorId, token);
+        sendNotification(submission, userProfileDto.getReportsToId(), authorId);
 
         // Pass the fetched tags to the mapper
         return wikiMapper.toWikiResponseDTO(wiki, tags);
@@ -121,8 +122,6 @@ public class WikiServiceImpl implements WikiService {
     @Override
     @Transactional
     public WikiResponseDTO editRejectedWikiSubmission(Long wikiId, WikiCreateRequestDTO request, MultipartFile file) {
-        // TODO: AUTHENTICATION: Ensure the authorId corresponds to a valid authenticated user.
-        // TODO: AUTHORIZATION: Verify the authenticated user has permission to edit this wiki (i.e., is the author).
         Wiki wiki = wikiRepository.findById(wikiId)
                 .orElseThrow(() -> new ResourceNotFoundException("Wiki not found with ID: " + wikiId));
 
@@ -179,8 +178,8 @@ public class WikiServiceImpl implements WikiService {
         wiki.setCurrentSubmission(newSubmission);
         wikiRepository.save(wiki);
 
-        // TODO: Notification: Similar to create, notify owner of new pending submission
-        // TODO: Notification: Notify manager of new submission assigned for review
+        UserProfileDto userProfileDto = authServiceClient.getUserById(authorId, token);
+        sendNotification(newSubmission, userProfileDto.getReportsToId(), authorId);
 
         // Pass the fetched tags to the mapper
         return wikiMapper.toWikiResponseDTO(wiki, tags);
@@ -189,7 +188,6 @@ public class WikiServiceImpl implements WikiService {
     @Override
     @Transactional(readOnly = true)
     public PaginationResponseDTO<WikiResponseDTO> getMyWikis(String statusFilter, Long tagIdFilter, PaginationRequestDTO paginationRequestDTO) {
-        // TODO: AUTHORIZATION: Verify the authenticated user's ID matches the authorId in the request header.
         Pageable pageable = PageRequest.of(
                 paginationRequestDTO.getPage(),
                 paginationRequestDTO.getSize()
@@ -285,9 +283,6 @@ public class WikiServiceImpl implements WikiService {
         wikiRepository.findById(wikiId)
                 .orElseThrow(() -> new ResourceNotFoundException("Wiki not found with ID: " + wikiId));
 
-        // TODO: AUTHORIZATION: Restrict this endpoint. Only the author or a reviewer should be able to see the full submission history.
-        // A regular user might only be able to see the current APPROVED submission.
-
         Pageable pageable = PaginationUtils.toPageable(paginationRequestDTO, WikiSubmission.class);
         Page<WikiSubmission> submissions = wikiSubmissionRepository.findByWikiIdOrderBySubmittedAtDesc(wikiId, pageable);
 
@@ -308,8 +303,6 @@ public class WikiServiceImpl implements WikiService {
     @Override
     @Transactional(readOnly = true)
     public PaginationResponseDTO<WikiSubmissionResponseDTO> getPendingWikiSubmissionsForReview(PaginationRequestDTO paginationRequestDTO) {
-        // TODO: AUTHORIZATION: Verify the authenticated user's ID matches the reviewerId in the request header.
-        // TODO: AUTHORIZATION: Verify the authenticated user has a 'REVIEWER' or 'MANAGER' role.
         Pageable pageable = PaginationUtils.toPageable(paginationRequestDTO, WikiSubmission.class);
 
         Long managerId = JwtUserContext.getUserId();
@@ -338,8 +331,6 @@ public class WikiServiceImpl implements WikiService {
     @Override
     @Transactional
     public WikiSubmissionResponseDTO reviewWikiSubmission(Long submissionId, SubmissionReviewRequestDTO reviewDTO) {
-        // TODO: AUTHORIZATION: Verify the authenticated user's ID matches the reviewerId in the request header.
-        // TODO: AUTHORIZATION: Verify the authenticated user has a 'REVIEWER' or 'MANAGER' role.
         WikiSubmission submission = wikiSubmissionRepository.findById(submissionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Wiki Submission not found with ID: " + submissionId));
 
@@ -384,8 +375,7 @@ public class WikiServiceImpl implements WikiService {
             }
         }
 
-        // TODO: Notification: Notify submitter about status change.
-        // TODO: Notification: Notify reviewer of their performed action.
+        sendNotification(submission, submission.getSubmitterId(), reviewerId);
 
         // Fetch tags for the updated submission
         Set<Long> tagIds = updatedSubmission.getTags().stream()
@@ -403,7 +393,6 @@ public class WikiServiceImpl implements WikiService {
     @Override
     @Transactional(readOnly = true)
     public PaginationResponseDTO<WikiResponseDTO> getAllApprovedAndActiveWikis(String searchKeyword, List<Long> tagIds, PaginationRequestDTO paginationRequestDTO) {
-        // TODO: AUTHENTICATION: This endpoint may not require authentication, but its logic might change if user roles are introduced (e.g., an 'admin' can see more).
         Pageable pageable = PaginationUtils.toPageable(paginationRequestDTO, Wiki.class);
 
         Specification<Wiki> spec = (root, query, cb) -> {
@@ -443,5 +432,18 @@ public class WikiServiceImpl implements WikiService {
 
         // Pass the fetched tags to the mapper
         return PaginationUtils.mapToPaginationResponseDTO(wikis, wikiMapper.toWikiResponseDTOs(wikis.getContent(), tags));
+    }
+
+    private void sendNotification(WikiSubmission submission, Long ownerId, Long actorId) {
+        NotificationDetails notificationDetails = NotificationDetails
+                .builder()
+                .title(submission.getTitle())
+                .ownerId(ownerId)
+                .actorId(actorId)
+                .createdAt(Instant.now())
+                .submissionType(SubmissionType.WIKI)
+                .submissionId(submission.getId())
+                .status(com.edp.shared.kafka.model.SubmissionStatus.PENDING).build();
+        kafkaProducer.sendNotification(notificationDetails);
     }
 }

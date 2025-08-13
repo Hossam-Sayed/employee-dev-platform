@@ -16,6 +16,9 @@ import com.edp.shared.client.tag.TagServiceClient;
 import com.edp.shared.client.tag.model.TagRequestDto;
 import com.edp.shared.client.tag.model.TagResponseDto;
 import com.edp.shared.security.jwt.JwtUserContext;
+import com.edp.shared.kafka.model.NotificationDetails;
+import com.edp.shared.kafka.model.SubmissionType;
+import com.edp.shared.kafka.producer.KafkaProducer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -36,6 +39,7 @@ public class TagServiceImpl implements TagService {
     private final TagRequestRepository tagRequestRepository;
     private final TagMapper tagMapper;
     private final TagServiceClient tagServiceClient;
+    private final KafkaProducer kafkaProducer;
 
     @Override
     @Transactional
@@ -49,15 +53,6 @@ public class TagServiceImpl implements TagService {
         tagRequest.setStatus(TagRequestStatus.PENDING); // Ensure status is PENDING
 
         tagRequest = tagRequestRepository.save(tagRequest);
-
-        // TODO: Notification: As a USER, I need to be notified if my tag request is approved or rejected.
-        //  Initial notification: "Your tag request for 'X' has been submitted and is pending review."
-        //  Event data: requesterId, tagRequestId, requestedName, status.
-        //  Triggered: On successful creation of tag request.
-
-        // TODO: Notification: As an ADMIN, I need to receive notifications when a new tag request is submitted.
-        //  Event data: tagRequestId, requestedName, requesterId.
-        //  Triggered: On successful creation of tag request.
 
         return tagMapper.toTagRequestResponseDTO(tagRequest);
     }
@@ -130,10 +125,21 @@ public class TagServiceImpl implements TagService {
 
         tagRequest = tagRequestRepository.save(tagRequest);
 
-        // TODO: Notification: As a USER, I need to be notified if my tag request is approved or rejected.
-        //  Event data: requesterId, tagRequestId, requestedName, newStatus, reviewerComment (if rejected)
-        //  Triggered: On approval/rejection of tag request.
+        sendNotification(tagRequest, tagRequest.getRequesterId(), adminId);
 
         return tagMapper.toTagRequestResponseDTO(tagRequest);
+    }
+
+    private void sendNotification(TagRequest tagRequest, Long ownerId, Long actorId) {
+        NotificationDetails notificationDetails = NotificationDetails
+                .builder()
+                .title("Your tag request titled " + tagRequest.getRequestedName() + " has been reviewed")
+                .ownerId(ownerId)
+                .actorId(actorId)
+                .createdAt(Instant.now())
+                .submissionType(SubmissionType.TAG)
+                .submissionId(tagRequest.getId())
+                .status(com.edp.shared.kafka.model.SubmissionStatus.PENDING).build();
+        kafkaProducer.sendNotification(notificationDetails);
     }
 }

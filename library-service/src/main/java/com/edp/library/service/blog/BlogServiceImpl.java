@@ -9,7 +9,9 @@ import com.edp.library.data.repository.blog.BlogSubmissionRepository;
 import com.edp.library.data.repository.blog.BlogSubmissionTagRepository;
 import com.edp.library.exception.InvalidOperationException;
 import com.edp.library.exception.ResourceNotFoundException;
-import com.edp.library.kafka.KafkaProducer;
+import com.edp.shared.kafka.model.NotificationDetails;
+import com.edp.shared.kafka.model.SubmissionType;
+import com.edp.shared.kafka.producer.KafkaProducer;
 import com.edp.library.mapper.BlogMapper;
 import com.edp.library.model.PaginationRequestDTO;
 import com.edp.library.model.PaginationResponseDTO;
@@ -19,8 +21,6 @@ import com.edp.library.model.blog.BlogResponseDTO;
 import com.edp.library.model.blog.BlogSubmissionResponseDTO;
 import com.edp.library.model.enums.SubmissionStatusDTO;
 import com.edp.library.utils.PaginationUtils;
-import com.edp.shared.client.NotificationDetails;
-import com.edp.shared.client.SubmissionType;
 import com.edp.shared.client.auth.AuthServiceClient;
 import com.edp.shared.client.auth.model.UserProfileDto;
 import com.edp.shared.client.file.FileServiceClient;
@@ -62,9 +62,6 @@ public class BlogServiceImpl implements BlogService {
     @Override
     @Transactional
     public BlogResponseDTO createBlog(BlogCreateRequestDTO request, MultipartFile file) {
-        // TODO: AUTHENTICATION: Ensure the authorId corresponds to a valid authenticated user.
-        // TODO: AUTHORIZATION: Verify the authenticated user has permission to create a blog.
-
         // 1. Validate tags by calling the remote tag service
         List<Long> tagIds = request.getTagIds();
         String token = JwtUserContext.getToken();
@@ -114,17 +111,8 @@ public class BlogServiceImpl implements BlogService {
         blog.setCurrentSubmission(submission);
         blogRepository.save(blog);
 
-        // TODO: Notification: As a USER, I need to receive notifications when my blog submission status changes.
-        // TODO: Notification: As a MANAGER, I need to receive notifications when a new blog submission is assigned to me for review.
-        NotificationDetails notificationDetails = NotificationDetails
-                .builder()
-                .title(submission.getTitle())
-                .ownerId(3L)
-                .actorId(authorId)
-                .submissionType(SubmissionType.BLOG)
-                .submissionId(submission.getId())
-                .status(com.edp.shared.client.SubmissionStatus.PENDING).build();
-        kafkaProducer.sendNotification("notifications-topic", notificationDetails);
+        UserProfileDto userProfileDto = authServiceClient.getUserById(authorId, token);
+        sendNotification(submission, userProfileDto.getReportsToId(), authorId);
 
         // Pass the fetched tags to the mapper
         return blogMapper.toBlogResponseDTO(blog, tags);
@@ -133,8 +121,6 @@ public class BlogServiceImpl implements BlogService {
     @Override
     @Transactional
     public BlogResponseDTO editRejectedBlogSubmission(Long blogId, BlogCreateRequestDTO request, MultipartFile file) {
-        // TODO: AUTHENTICATION: Ensure the authorId corresponds to a valid authenticated user.
-        // TODO: AUTHORIZATION: Verify the authenticated user has permission to edit this blog (i.e., is the author).
         Blog blog = blogRepository.findById(blogId)
                 .orElseThrow(() -> new ResourceNotFoundException("Blog not found with ID: " + blogId));
 
@@ -191,8 +177,8 @@ public class BlogServiceImpl implements BlogService {
         blog.setCurrentSubmission(newSubmission);
         blogRepository.save(blog);
 
-        // TODO: Notification: Similar to create, notify owner of new pending submission
-        // TODO: Notification: Notify manager of new submission assigned for review
+        UserProfileDto userProfileDto = authServiceClient.getUserById(authorId, token);
+        sendNotification(newSubmission, userProfileDto.getReportsToId(), authorId);
 
         // Pass the fetched tags to the mapper
         return blogMapper.toBlogResponseDTO(blog, tags);
@@ -201,7 +187,6 @@ public class BlogServiceImpl implements BlogService {
     @Override
     @Transactional(readOnly = true)
     public PaginationResponseDTO<BlogResponseDTO> getMyBlogs(String statusFilter, Long tagIdFilter, PaginationRequestDTO paginationRequestDTO) {
-        // TODO: AUTHORIZATION: Verify the authenticated user's ID matches the authorId in the request header.
         Pageable pageable = PageRequest.of(
                 paginationRequestDTO.getPage(),
                 paginationRequestDTO.getSize()
@@ -377,8 +362,7 @@ public class BlogServiceImpl implements BlogService {
             }
         }
 
-        // TODO: Notification: Notify submitter about status change.
-        // TODO: Notification: Notify reviewer of their performed action.
+        sendNotification(submission, submission.getSubmitterId(), reviewerId);
 
         Set<Long> tagIds = updatedSubmission.getTags().stream()
                 .map(BlogSubmissionTag::getTagId)
@@ -431,5 +415,18 @@ public class BlogServiceImpl implements BlogService {
             tags = tagServiceClient.findAllTagsByIds(new ArrayList<>(uniqueTagIds), JwtUserContext.getToken());
 
         return PaginationUtils.mapToPaginationResponseDTO(blogs, blogMapper.toBlogResponseDTOs(blogs.getContent(), tags));
+    }
+
+    private void sendNotification(BlogSubmission submission, Long ownerId, Long actorId) {
+        NotificationDetails notificationDetails = NotificationDetails
+                .builder()
+                .title(submission.getTitle())
+                .ownerId(ownerId)
+                .actorId(actorId)
+                .createdAt(Instant.now())
+                .submissionType(SubmissionType.BLOG)
+                .submissionId(submission.getId())
+                .status(com.edp.shared.kafka.model.SubmissionStatus.PENDING).build();
+        kafkaProducer.sendNotification(notificationDetails);
     }
 }
