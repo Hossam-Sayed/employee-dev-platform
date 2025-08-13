@@ -13,7 +13,8 @@ import org.springframework.context.annotation.FilterType;
 @ComponentScan(
         basePackages = {
                 "com.edp.library",
-                "com.edp.shared.security.jwt"
+                "com.edp.shared.security.jwt",
+                "com.edp.shared.kafka",
         },
         excludeFilters = {
                 @ComponentScan.Filter(
