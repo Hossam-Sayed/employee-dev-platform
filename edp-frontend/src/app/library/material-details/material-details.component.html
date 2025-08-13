@@ -10,24 +10,27 @@
   } @else if (material()) {
   <mat-toolbar class="header-toolbar">
     <h1 class="page-title">{{ material()?.title }}</h1>
-    @if (isOwner() && isRejected()) {
-    <button
-      mat-flat-button
-      class="edit-button"
-      [routerLink]="[`/library/edit-${materialType()}`, material()?.id]"
-    >
-      <mat-icon>edit</mat-icon>
-      Edit
-    </button>
-    }
-    <button
-      mat-button
-      color="accent"
-      [routerLink]="['/library/history', materialType(), material()?.id]"
-    >
-      <mat-icon>history</mat-icon>
-      History
-    </button>
+    <div class="header-actions">
+      @if (isOwner() && isRejected()) {
+      <button
+        mat-flat-button
+        color="primary"
+        class="edit-button"
+        [routerLink]="[`/library/edit-${materialType()}`, material()?.id]"
+      >
+        <mat-icon>edit</mat-icon>
+        Edit
+      </button>
+      }
+      <button
+        mat-button
+        color="primary"
+        [routerLink]="['/library/history', materialType(), material()?.id]"
+      >
+        <mat-icon>history</mat-icon>
+        History
+      </button>
+    </div>
   </mat-toolbar>
 
   <mat-card class="material-card">

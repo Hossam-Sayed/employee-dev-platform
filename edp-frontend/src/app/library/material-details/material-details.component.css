@@ -6,6 +6,7 @@
   padding: 1.5rem;
   font-family: "Inter", sans-serif;
   background-color: #f3f4f6;
+  box-sizing: border-box;
 }
 
 .details-container {
@@ -31,21 +32,22 @@
   background-color: #fef2f2;
   color: #b91c1c;
   border: 1px solid #fca5a5;
+  width: 90%;
+  text-align: center;
 }
 
 .header-toolbar {
-  padding: 1.5rem;
+  padding: 1rem 1.5rem;
   height: auto;
   background-color: #ffffff;
   border-bottom: 1px solid #e5e7eb;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-}
-
-.header-content {
-  width: 100%;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 0.5rem;
+  box-sizing: border-box;
+  flex-wrap: wrap;
 }
 
 .page-title {
@@ -54,16 +56,25 @@
   color: #1f2937;
   margin: 0;
   line-height: 1.5;
-  flex-grow: 1;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: break-word;
+  flex-shrink: 1;
+  min-width: 0;
 }
 
-.edit-button {
-  /* padding: 1.5rem 1.5rem;
-  font-size: 1rem;
-  transition: background-color 0.2s ease-in-out;
+/* Updated styling for the buttons container */
+.header-actions {
   display: flex;
-  align-items: center; */
-  gap: 0.01rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.header-actions button {
+  flex-grow: 1;
+  min-width: 120px;
+  max-width: 100%;
 }
 
 .edit-button mat-icon {
@@ -85,6 +96,7 @@
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid #e5e7eb;
+  width: 100%;
 }
 
 .mat-mdc-card-title {
@@ -101,6 +113,8 @@
   font-size: 0.875rem;
   font-weight: 500;
   color: #6b7280;
+  flex-wrap: wrap;
+  gap: 0.25rem;
 }
 
 .status-label {
@@ -118,14 +132,14 @@
 
 .detail-row {
   display: flex;
-  align-items: flex-start;
-  margin-bottom: 1rem;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .label {
   font-weight: 500;
   color: #6b7280;
-  min-width: 128px;
   flex-shrink: 0;
   padding-top: 2px;
 }
@@ -175,7 +189,8 @@
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   overflow: hidden;
-  height: 80vh;
+  height: 60vh;
+  margin-top: 1rem;
 }
 
 .file-iframe {
@@ -205,64 +220,13 @@
   margin-bottom: 1.25rem;
 }
 
-.review-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.review-buttons button {
-  min-width: 140px;
-  font-weight: 600;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.review-buttons button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-}
-
-.rejection-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  animation: fadeIn 0.3s ease-in-out;
-}
-
-.rejection-textarea {
-  width: 100%;
-}
-
-.rejection-textarea textarea {
-  resize: vertical;
-  font-family: "Inter", sans-serif;
-  font-size: 0.95rem;
-}
-
-.rejection-form button {
-  align-self: flex-end;
-  font-weight: 600;
-  min-width: 160px;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .review-selection {
   margin-bottom: 1.5rem;
 }
 
 mat-button-toggle-group {
   display: flex;
+  flex-direction: column;
   border-radius: 0.5rem;
   overflow: hidden;
   background: #f3f4f6;
@@ -275,6 +239,12 @@ mat-button-toggle {
   font-weight: 600;
   color: #374151;
   transition: background 0.2s ease;
+  border: none !important;
+  border-bottom: 1px solid #d1d5db !important;
+}
+
+mat-button-toggle:last-child {
+  border-bottom: none !important;
 }
 
 mat-button-toggle.approve-toggle {
@@ -295,4 +265,64 @@ mat-button-toggle.reject-toggle {
 mat-button-toggle.reject-toggle.mat-button-toggle-checked {
   background-color: #dc2626;
   color: white;
+}
+
+.submit-review-button {
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.rejection-textarea {
+  width: 100%;
+}
+
+@media (min-width: 775px) {
+  .header-toolbar {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .header-actions {
+    width: auto;
+  }
+
+  .header-actions button {
+    flex-grow: 0;
+  }
+
+  .page-title {
+    flex-grow: 1;
+  }
+
+  .detail-row {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 1.5rem;
+  }
+
+  .label {
+    min-width: 128px;
+  }
+
+  .file-viewer-container {
+    height: 80vh;
+  }
+
+  mat-button-toggle-group {
+    flex-direction: row;
+  }
+
+  mat-button-toggle {
+    border-right: 1px solid #d1d5db !important;
+    border-bottom: none !important;
+  }
+
+  mat-button-toggle:last-child {
+    border-right: none !important;
+  }
+
+  .submit-review-button {
+    width: auto;
+  }
 }
