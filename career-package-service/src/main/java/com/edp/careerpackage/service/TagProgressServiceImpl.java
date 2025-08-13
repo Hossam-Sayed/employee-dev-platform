@@ -9,11 +9,13 @@ import com.edp.careerpackage.mapper.CareerPackageMapper;
 import com.edp.careerpackage.model.tagprogress.TagPogressResponseDto;
 import com.edp.shared.client.tag.TagServiceClient;
 import com.edp.shared.client.tag.model.TagResponseDto;
+import com.edp.shared.kafka.model.LearningProgress;
 import com.edp.shared.security.jwt.JwtUserContext;
 
 import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
@@ -21,9 +23,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TagProgressServiceImpl implements TagProgressService {
 
     private final CareerPackageTagProgressRepository tagProgressRepository;
@@ -82,7 +86,41 @@ public class TagProgressServiceImpl implements TagProgressService {
         }
 
 
-        return mapper.toCareerPackageTagProgress(tagProgress,response.getName());
+        return mapper.toCareerPackageTagProgress(tagProgress, response.getName());
+    }
+
+    @Transactional
+    public void updateLearningProgressFromKafka(LearningProgress progress) {
+        Long userId = progress.getUserID();
+        String proofUrl = progress.getProofUrl();
+
+        for (Map.Entry<Long, Double> entry : progress.getUpdates().entrySet()) {
+            Long tagId = entry.getKey();
+            Double completedValue = entry.getValue();
+
+            try {
+                CareerPackageTagProgress tagProgress = tagProgressRepository.findByUserIdAndTagIdAndLearningSection(userId, tagId)
+                        .orElseThrow(() -> new EntityNotFoundException("Tag progress for userId " + userId + " and tagId " + tagId + " in Learning section not found."));
+
+                CareerPackageStatus status = tagProgress.getCareerPackageSectionProgress().getCareerPackage().getStatus();
+                if (status == CareerPackageStatus.SUBMITTED || status == CareerPackageStatus.APPROVED) {
+                    throw new DataIntegrityViolationException("Cannot update tag progress for a submitted or approved package");
+                }
+
+                //the min value required for completing a tag is the max value to be submitted as progress for this tag
+                double maxValue = tagProgress.getRequiredValue();
+                double boundValue = Math.min(completedValue, maxValue);
+
+                tagProgress.setCompletedValue(boundValue);
+                tagProgress.setProofUrl(proofUrl);
+
+                recalculateSectionProgress(tagProgress.getCareerPackageSectionProgress());
+                recalculatePackageProgress(tagProgress.getCareerPackageSectionProgress().getCareerPackage());
+
+            } catch (Exception e) {
+                log.error("Error updating tag progress for userId {} and tagId {}: {}", userId, tagId, e.getMessage());
+            }
+        }
     }
 
     private void recalculateSectionProgress(CareerPackageSectionProgress sectionProgress) {
