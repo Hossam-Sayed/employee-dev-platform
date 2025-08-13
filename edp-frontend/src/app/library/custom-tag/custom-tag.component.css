@@ -8,11 +8,18 @@
   border-radius: 16px;
   line-height: 1.5;
   margin: 2px;
-  white-space: nowrap;
-  transition: background-color 0.3s, color 0.3s;
+  white-space: normal;
+  overflow: visible;
+  word-break: break-word;
+  flex-wrap: wrap;
   gap: 4px;
   position: relative;
-  overflow: hidden;
+}
+
+.status-chip,
+.default-chip,
+.duration-text {
+  overflow-wrap: break-word;
 }
 
 /* Tag background opacity controller */
