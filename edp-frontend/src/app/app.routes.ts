@@ -4,9 +4,8 @@ import { HeaderComponent } from './header/header.component';
 import { authGuard, reverseAuthGuard } from './auth/guard/auth.guard';
 import { UserUpdateComponent } from './user/user-update/user-update.component';
 import { UserCreateComponent } from './user/user-create/user-create.component';
-import { TemplateListComponent } from './career-package/template/template-list/template-list.component';
 import { adminGuard } from './user/guards/admin.guard';
-import { careerPackageRoutes } from './career-package/career-package.routes';
+import { UserProfileComponent } from './user/user-profile/user-profile.component';
 
 export const routes: Routes = [
   {
@@ -33,6 +32,10 @@ export const routes: Routes = [
     path: 'create',
     component: UserCreateComponent,
     canActivate: [authGuard, adminGuard],
+  },
+  {
+    path: 'users/:id',
+    component: UserProfileComponent,
   },
   {
     path: 'library',
