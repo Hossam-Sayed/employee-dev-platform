@@ -21,6 +21,7 @@
         <module>error-lib</module>
         <module>client-lib</module>
         <module>security-lib</module>
+        <module>kafka-lib</module>
     </modules>
     <name>Shared Libraries</name>
 </project>
