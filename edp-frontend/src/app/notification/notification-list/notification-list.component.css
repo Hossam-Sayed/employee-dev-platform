@@ -1,0 +1,55 @@
+.notification-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.notification-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: start;
+  gap: 12px;
+  padding-block: 8px;
+  white-space: normal; /* allow wrapping titles */
+}
+
+.status-icon {
+  margin-top: 2px;
+}
+
+/* Status colors */
+.status-approved {
+  color: #2e7d32;
+} /* success */
+.status-rejected {
+  color: #c62828;
+} /* danger */
+.status-pending {
+  color: #ed6c02;
+} /* warning */
+
+.info .title {
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.info .meta {
+  font-size: 0.78rem;
+  opacity: 0.75;
+}
+
+.unread-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  align-self: center;
+  background: #d32f2f;
+}
+
+/* Mobile-friendly height */
+@media (max-width: 600px) {
+  .notification-list {
+    max-height: 60vh;
+  }
+}

@@ -1,0 +1,24 @@
+<div class="notification-list">
+  @if (notifications().length === 0) {
+  <div class="empty-state">No notifications</div>
+  } @else { @for (n of notifications(); track n.id) {
+  <button mat-menu-item class="notification-item" (click)="onClick(n)">
+    <mat-icon
+      class="status-icon"
+      [ngClass]="{
+        'status-approved': n.status === 'APPROVED',
+        'status-rejected': n.status === 'REJECTED',
+        'status-pending': n.status === 'PENDING'
+      }"
+      >notifications</mat-icon
+    >
+    <div class="info">
+      <div class="title">{{ n.title }}</div>
+      <div class="meta">{{ n.createdAt | date : "short" }}</div>
+    </div>
+    @if (!n.read) {
+    <span class="unread-dot" aria-label="unread"></span>
+    }
+  </button>
+  } }
+</div>

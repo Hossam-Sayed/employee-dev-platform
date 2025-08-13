@@ -13,12 +13,15 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { Subscription } from 'rxjs';
+import { connect, Subscription } from 'rxjs';
 import { Router } from '@angular/router';
 import { MatStepperModule } from '@angular/material/stepper';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { AuthService } from './service/auth.service';
 import { MatDatepickerModule } from '@angular/material/datepicker';
+import { NotificationStateService } from '../notification/services/notification-state.service';
+import { NotificationStreamService } from '../notification/services/notification-stream.service';
+import { TokenService } from './service/token.service';
 
 @Component({
   selector: 'app-auth',
@@ -46,6 +49,9 @@ export class AuthComponent implements OnInit {
   private authService = inject(AuthService);
   router = inject(Router);
   breakPointObserver = inject(BreakpointObserver);
+  private notificationStreamService = inject(NotificationStreamService);
+  private notificationStateService = inject(NotificationStateService);
+  private tokenService = inject(TokenService);
 
   loginForm = new FormGroup({
     username: new FormControl('', {
@@ -80,6 +86,19 @@ export class AuthComponent implements OnInit {
     return this.signupForm.controls.formArray.controls;
   }
 
+  connectStream() {
+    const token = this.tokenService.getAccessToken();
+    if (token) {
+      this.notificationStreamService.connect().subscribe({
+        next: (notification) => {
+          console.log('New SSE notification:', notification);
+          this.notificationStateService.addNotification(notification);
+        },
+        error: (err) => console.error('SSE connection error', err),
+      });
+    }
+  }
+
   onLogin() {
     if (this.loginForm.invalid) return;
 
@@ -102,6 +121,7 @@ export class AuthComponent implements OnInit {
       next: () => {
         this.router.navigate(['/inside']);
         this.authService.setUserFromToken();
+        this.connectStream();
       },
       error: (error) => {
         this.error.set(error?.message || 'Login failed');
@@ -155,6 +175,7 @@ export class AuthComponent implements OnInit {
       next: () => {
         this.router.navigate(['/inside']);
         this.authService.setUserFromToken();
+        this.connectStream();
       },
       error: (error) => {
         this.error.set(error?.message || 'Signup failed');
