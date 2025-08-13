@@ -1,0 +1,73 @@
+@if (loading) {
+<div class="loading-container">
+  <mat-spinner diameter="50"></mat-spinner>
+  <p>Loading user profile...</p>
+</div>
+} @else if (!loading && error) {
+<mat-card class="error-card">
+  <mat-card-title>Error</mat-card-title>
+  <mat-card-content>
+    <p>{{ error }}</p>
+  </mat-card-content>
+</mat-card>
+} @else if (!loading && user) {
+<div class="profile-container">
+  <mat-card class="profile-card">
+    <mat-card-header>
+      <div mat-card-avatar class="avatar">
+        <span>{{ user.firstName[0] }}{{ user.lastName[0] }}</span>
+      </div>
+      <mat-card-title class="main-title"
+        >{{ user.firstName }} {{ user.lastName }}</mat-card-title
+      >
+      <mat-card-subtitle class="username-subtitle">{{
+        user.username
+      }}</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="info-grid">
+        <div class="info-item">
+          <mat-icon class="info-icon">email</mat-icon>
+          <span class="info-text">{{ user.email }}</span>
+        </div>
+        <div class="info-item">
+          <mat-icon class="info-icon">cake</mat-icon>
+          <span class="info-text">{{ user.birthdate }}</span>
+        </div>
+        <div class="info-item">
+          <mat-icon class="info-icon">phone</mat-icon>
+          <span class="info-text">{{ user.phoneNumber }}</span>
+        </div>
+        <div class="info-item">
+          <mat-icon class="info-icon">business</mat-icon>
+          <span class="info-text">{{ user.department }}</span>
+        </div>
+        <div class="info-item">
+          <mat-icon class="info-icon">work</mat-icon>
+          <span class="info-text">{{ user.position }}</span>
+        </div>
+        <div class="info-item">
+          <mat-icon class="info-icon">verified_user</mat-icon>
+          <span class="info-text">{{ user.admin ? "Admin" : "User" }}</span>
+        </div>
+      </div>
+    </mat-card-content>
+
+    @if (user.id === userId) {
+    <mat-card-actions class="card-actions">
+      <button
+        mat-flat-button
+        color="primary"
+        class="action-button"
+        [routerLink]="[`/update/${user.id}`]"
+        routerLinkActive="router-link-active"
+      >
+        <mat-icon>edit</mat-icon>
+        Edit Profile
+      </button>
+    </mat-card-actions>
+    }
+  </mat-card>
+</div>
+}
