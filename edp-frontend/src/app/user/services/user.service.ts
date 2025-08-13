@@ -41,4 +41,8 @@ export class UserService {
     console.log('UserService: Creating user:', userData);
     return this.http.post<void>(this.apiUrl, userData);
   }
+
+  getUserById(id: number): Observable<UserResponse> {
+    return this.http.get<UserResponse>(`${this.apiUrl}/${id}`);
+  }
 }

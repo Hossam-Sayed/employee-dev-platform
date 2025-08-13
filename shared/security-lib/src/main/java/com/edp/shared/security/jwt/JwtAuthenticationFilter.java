@@ -38,13 +38,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
 
+        String token = null;
+
+        // First, try the Authorization header
         final String authHeader = request.getHeader("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            token = authHeader.substring(7);
+        }
+
+        // If header is missing, try the "token" query param (for SSE)
+        if (token == null) {
+            token = request.getParameter("token");
+        }
+
+        if (token == null || token.isBlank()) {
             unauthorized(response, request, "Missing or invalid authorization token");
             return;
         }
 
-        final String token = authHeader.substring(7);
+        System.out.println(token);
 
         try {
             if (!jwtService.isTokenValid(token)) {
