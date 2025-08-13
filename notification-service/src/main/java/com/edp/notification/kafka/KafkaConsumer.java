@@ -5,7 +5,7 @@ import com.edp.notification.data.repository.NotificationRepository;
 import com.edp.notification.mapper.NotificationMapper;
 import com.edp.notification.model.NotificationSubmissionDTO;
 import com.edp.notification.sse.SseEmitterService;
-import com.edp.shared.client.NotificationDetails;
+import com.edp.shared.kafka.model.NotificationDetails;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;

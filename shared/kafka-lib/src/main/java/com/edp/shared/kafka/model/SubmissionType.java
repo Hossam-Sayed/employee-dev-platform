@@ -7,5 +7,6 @@ public enum SubmissionType {
     LEARNING,
     BLOG,
     WIKI,
+    TAG,
     PACKAGE
 }

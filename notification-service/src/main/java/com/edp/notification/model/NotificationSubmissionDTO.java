@@ -1,7 +1,7 @@
 package com.edp.notification.model;
 
-import com.edp.shared.client.SubmissionStatus;
-import com.edp.notification.data.enums.SubmissionType;
+import com.edp.shared.kafka.model.SubmissionStatus;
+import com.edp.shared.kafka.model.SubmissionType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
