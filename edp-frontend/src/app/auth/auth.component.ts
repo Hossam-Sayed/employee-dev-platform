@@ -13,7 +13,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { connect, Subscription } from 'rxjs';
+import { connect, Subscription, switchMap, tap } from 'rxjs';
 import { Router } from '@angular/router';
 import { MatStepperModule } from '@angular/material/stepper';
 import { BreakpointObserver } from '@angular/cdk/layout';
@@ -89,13 +89,25 @@ export class AuthComponent implements OnInit {
   connectStream() {
     const token = this.tokenService.getAccessToken();
     if (token) {
-      this.notificationStreamService.connect().subscribe({
-        next: (notification) => {
-          console.log('New SSE notification:', notification);
-          this.notificationStateService.addNotification(notification);
-        },
-        error: (err) => console.error('SSE connection error', err),
-      });
+      this.notificationStreamService
+        .getMyNotifications()
+        .pipe(
+          tap((page) => {
+            // Add the fetched notifications to state
+            this.notificationStateService.setNotifications(page.content);
+          }),
+          switchMap(() => {
+            // Now start SSE connection only after HTTP success
+            return this.notificationStreamService.connect();
+          })
+        )
+        .subscribe({
+          next: (notification) => {
+            console.log('New SSE notification:', notification);
+            this.notificationStateService.addNotification(notification);
+          },
+          error: (err) => console.error('Error in notification flow', err),
+        });
     }
   }
 
