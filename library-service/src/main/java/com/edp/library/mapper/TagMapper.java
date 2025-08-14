@@ -4,7 +4,6 @@ import com.edp.library.data.entity.tag.TagRequest;
 import com.edp.library.data.enums.TagRequestStatus;
 import com.edp.library.model.enums.TagRequestStatusDTO;
 import com.edp.library.model.tag.TagCreateRequestDTO;
-import com.edp.library.model.tag.TagDTO;
 import com.edp.library.model.tag.TagRequestResponseDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
