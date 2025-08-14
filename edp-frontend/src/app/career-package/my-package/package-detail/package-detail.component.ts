@@ -72,11 +72,11 @@ export class PackageDetailComponent implements OnInit {
     submitForReview(): void {
     if (this.careerPackage()?.status === 'COMPLETED') {
       this.submissionService.submitCareerPackage().subscribe({
-        next: () => {
+        next: (submission) => {
           this.snackBar.open('Career package submitted for review.', 'Close', {
             duration: 3000,
           });
-          this.packageStoreService.submitCareerPackage();
+          this.packageStoreService.submitCareerPackage(submission);
         },
         error: () => {
           this.snackBar.open('Submission failed.', 'Close', {

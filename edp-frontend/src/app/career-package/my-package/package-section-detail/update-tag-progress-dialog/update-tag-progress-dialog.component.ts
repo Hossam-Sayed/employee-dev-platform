@@ -50,6 +50,11 @@ export class UpdateTagProgressDialogComponent {
 
   save() {
     this.isSaving.set(true);
+    if(this.data.criteriaType=='BOOLEAN'){
+      if(this.proofUrl()||this.file()){
+        this.completedValue.set(1);
+      }
+    }
     const result = {
       completedValue: this.completedValue(),
       proofUrl: this.proofUrl(),

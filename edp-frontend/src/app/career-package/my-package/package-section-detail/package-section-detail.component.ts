@@ -32,7 +32,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatButtonModule,
     RouterLink,
     MatIcon,
-    MatTooltipModule
+    MatTooltipModule,
   ],
   templateUrl: './package-section-detail.component.html',
   styleUrls: ['./package-section-detail.component.css'],
@@ -186,9 +186,13 @@ export class PackageSectionDetailComponent implements OnInit {
                 const updatedTags = currentSectionData.tags.map((t) =>
                   t.tagProgressId === updatedTag.tagProgressId ? updatedTag : t
                 );
+                const newSectionProgressPercent =
+                  this.calculateSectionProgress(updatedTags);
+
                 this.sectionData.set({
                   ...currentSectionData,
                   tags: updatedTags,
+                  sectionProgressPercent: newSectionProgressPercent,
                 });
               }
               this.loading.set(false);
@@ -212,5 +216,19 @@ export class PackageSectionDetailComponent implements OnInit {
           });
       }
     });
+  }
+  private calculateSectionProgress(tags: TagProgressResponseDto[]): number {
+    if (!tags || tags.length === 0) {
+      return 0;
+    }
+
+    let totalProgress = 0;
+    for (const tag of tags) {
+      if (tag.requiredValue > 0) {
+        totalProgress += tag.completedValue / tag.requiredValue;
+      }
+    }
+
+    return (totalProgress / tags.length) * 100;
   }
 }
