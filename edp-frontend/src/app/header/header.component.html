@@ -10,9 +10,11 @@
     <button mat-button (click)="goTo('/inside')">Dashboard</button>
     <button mat-button [matMenuTriggerFor]="careerMenu">Career Package</button>
     <mat-menu #careerMenu="matMenu">
-      <button mat-menu-item (click)="goTo('/career-package/templates')">
-        Templates
-      </button>
+      @if(authService.isAdmin()) {
+        <button mat-menu-item (click)="goTo('/career-package/templates')">
+          Templates
+        </button>
+      }
       <button mat-menu-item (click)="goTo('/career-package/my-package')">
         My Package
       </button>
@@ -45,9 +47,12 @@
         Career Package
       </button>
       <mat-menu #mobileCareerMenu="matMenu">
-        <button mat-menu-item (click)="goTo('/career-package/templates')">
-          Templates
-        </button>
+        @if(authService.isAdmin()) {
+          <button mat-menu-item (click)="goTo('/career-package/templates')">
+            Templates
+          </button>
+        }
+
         <button mat-menu-item (click)="goTo('/career-package/my-package')">
           My Package
         </button>

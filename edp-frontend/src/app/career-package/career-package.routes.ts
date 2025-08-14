@@ -1,9 +1,10 @@
 import { Routes } from '@angular/router';
+import { adminGuard } from '../user/guards/admin.guard';
 
 export const careerPackageRoutes: Routes = [
   {
     path: '',
-    redirectTo: 'templates',
+    redirectTo: 'my-package',
     pathMatch: 'full',
   },
   {
@@ -24,6 +25,7 @@ export const careerPackageRoutes: Routes = [
           ),
       },
     ],
+    canActivate:[adminGuard]
   },
   {
     path: 'my-package',
