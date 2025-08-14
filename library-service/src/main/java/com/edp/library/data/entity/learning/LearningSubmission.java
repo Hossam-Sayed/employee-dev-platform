@@ -50,7 +50,6 @@ public class LearningSubmission {
     @Column(name = "reviewer_id")
     private Long reviewerId;
 
-    @UpdateTimestamp
     @Column(name = "reviewed_at")
     private Instant reviewedAt;
 

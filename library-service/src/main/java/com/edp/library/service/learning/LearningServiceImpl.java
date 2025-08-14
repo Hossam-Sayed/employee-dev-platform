@@ -341,15 +341,34 @@ public class LearningServiceImpl implements LearningService {
     }
 
     private void sendNotification(LearningSubmission submission, Long ownerId, Long actorId) {
+        String title = getNotificationTitle(submission);
+        com.edp.shared.kafka.model.SubmissionStatus notificationStatus = switch (submission.getStatus()) {
+            case APPROVED -> com.edp.shared.kafka.model.SubmissionStatus.APPROVED;
+            case REJECTED -> com.edp.shared.kafka.model.SubmissionStatus.REJECTED;
+            default -> com.edp.shared.kafka.model.SubmissionStatus.PENDING;
+        };
+
         NotificationDetails notificationDetails = NotificationDetails
                 .builder()
-                .title(submission.getTitle())
+                .title(title)
                 .ownerId(ownerId)
                 .actorId(actorId)
                 .createdAt(Instant.now())
                 .submissionType(SubmissionType.LEARNING)
-                .submissionId(submission.getId())
-                .status(com.edp.shared.kafka.model.SubmissionStatus.PENDING).build();
+                .submissionId(submission.getLearning().getId())
+                .status(notificationStatus).build();
         kafkaProducer.sendNotification(notificationDetails);
+    }
+
+    private static String getNotificationTitle(LearningSubmission submission) {
+        String truncatedTitle = submission.getTitle().length() > 20
+                ? submission.getTitle().substring(0, 20) + "..."
+                : submission.getTitle();
+
+        return switch (submission.getStatus()) {
+            case PENDING -> "A learning submission titled '" + truncatedTitle + "' is pending your review";
+            case APPROVED -> "Your learning submission titled '" + truncatedTitle + "' is approved by your manager";
+            case REJECTED -> "Your learning submission titled '" + truncatedTitle + "' is rejected by your manager";
+        };
     }
 }
