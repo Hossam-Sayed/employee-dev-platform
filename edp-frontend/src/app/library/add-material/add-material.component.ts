@@ -231,7 +231,7 @@ export class AddMaterialComponent implements OnInit {
     tags.forEach((tag) => {
       this.tagsArray.push(
         this.fb.group({
-          tagId: [tag.id],
+          tagId: [tag.tagId],
           tagName: [tag.tagName],
           durationMinutes: [
             tag.durationMinutes,
@@ -368,7 +368,6 @@ export class AddMaterialComponent implements OnInit {
           return;
       }
     } else {
-      // Create logic remains the same
       switch (this.materialType()) {
         case 'learning':
           const learningCreateRequest: LearningCreateRequest = {
@@ -379,6 +378,7 @@ export class AddMaterialComponent implements OnInit {
               durationMinutes: t.durationMinutes,
             })),
           };
+
           actionObservable = this.libraryService.createLearning(
             learningCreateRequest
           );

@@ -80,14 +80,12 @@
     [matBadgeHidden]="unreadCount() === 0"
     [matBadgeOverlap]="false"
     aria-label="Notifications"
+    class="notification-icon-button"
   >
     <mat-icon>notifications</mat-icon>
   </button>
 
-  <mat-menu
-    #notificationMenu="matMenu"
-    [overlapTrigger]="false"
-  >
+  <mat-menu #notificationMenu="matMenu" [overlapTrigger]="false">
     <app-notification-list
       [notifications]="notifications() ?? []"
       (notificationClick)="onNotificationClick($event)"
