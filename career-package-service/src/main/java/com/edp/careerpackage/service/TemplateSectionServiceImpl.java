@@ -22,7 +22,10 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -68,13 +71,29 @@ public class TemplateSectionServiceImpl implements TemplateSectionService {
         PackageTemplateSection section = templateSectionRepository.findById(templateSectionId)
                 .orElseThrow(() -> new EntityNotFoundException("TemplateSection not found with id " + templateSectionId));
 
-        List<TagResponseDto> response;
+        List<TemplateSectionRequiredTag> requiredTagsList = section.getRequiredTags();
+        List<Long> tagIds = requiredTagsList.stream()
+                .map(TemplateSectionRequiredTag::getTagId)
+                .toList();
+
         String token = JwtUserContext.getToken();
         try {
-            response = tagServiceClient.findAllTagsByIds(section.getRequiredTags().stream().map(TemplateSectionRequiredTag::getTagId).toList(), token);
+            List<TagResponseDto> tagResponses = tagServiceClient.findAllTagsByIds(tagIds, token);
+
+            Map<Long, String> tagIdToNameMap = tagResponses.stream()
+                    .collect(Collectors.toMap(TagResponseDto::getId, TagResponseDto::getName));
+
+            List<TemplateSectionRequiredTagResponseDto> result = new ArrayList<>();
+            for (TemplateSectionRequiredTag requiredTag : requiredTagsList) {
+                String tagName = tagIdToNameMap.get(requiredTag.getTagId());
+                if (tagName != null) {
+                    result.add(templateMapper.toTemplateSectionRequiredTagResponse(requiredTag, tagName));
+                }
+            }
+            return result;
+
         } catch (FeignException ex) {
             throw new IllegalStateException("Failed to contact TagService: " + ex.getMessage());
         }
-        return templateMapper.toTemplateSectionRequiredTagResponseList(section.getRequiredTags(),response.stream().map(TagResponseDto::getName).toList());
     }
 }

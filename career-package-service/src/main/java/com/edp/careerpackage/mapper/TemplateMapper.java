@@ -74,21 +74,5 @@ public interface TemplateMapper {
             @Mapping(target = "position", source = "position")
     })
     void updatePackageTemplate(@MappingTarget PackageTemplate template, TemplateUpdateRequestDto request);
-
-
-    //Custom method to map TemplateSectionRequiredTag list + Tag name list parameter by iterating on the single mapper
-    default List<TemplateSectionRequiredTagResponseDto> toTemplateSectionRequiredTagResponseList(
-            List<TemplateSectionRequiredTag> requiredTags, List<String> tagNames
-    ) {
-        if (requiredTags == null || tagNames == null || requiredTags.size() != tagNames.size()) {
-            throw new IllegalArgumentException("Lists must have the same size");
-        }
-
-        List<TemplateSectionRequiredTagResponseDto> result = new ArrayList<>();
-        for (int i = 0; i < requiredTags.size(); i++) {
-            result.add(toTemplateSectionRequiredTagResponse(requiredTags.get(i), tagNames.get(i)));
-        }
-        return result;
-    }
 }
 

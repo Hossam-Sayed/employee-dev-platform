@@ -17,7 +17,10 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -57,13 +60,29 @@ public class CareerPackageSectionProgressServiceImpl implements CareerPackageSec
             throw new AuthenticationException("User not authorized to view this section tags progress") {
             };
         }
-        List<TagResponseDto> response;
+        List<CareerPackageTagProgress> tagsProgressList = sectionProgress.getTagProgressList();
+        List<Long> tagIds = tagsProgressList.stream()
+                .map(CareerPackageTagProgress::getTagId)
+                .toList();
+
         String token = JwtUserContext.getToken();
         try {
-            response = tagServiceClient.findAllTagsByIds(sectionProgress.getTagProgressList().stream().map(CareerPackageTagProgress::getTagId).toList(), token);
+            List<TagResponseDto> tagResponses = tagServiceClient.findAllTagsByIds(tagIds, token);
+
+            Map<Long, String> tagIdToNameMap = tagResponses.stream()
+                    .collect(Collectors.toMap(TagResponseDto::getId, TagResponseDto::getName));
+
+            List<TagPogressResponseDto> result = new ArrayList<>();
+            for (CareerPackageTagProgress tagProgress : tagsProgressList) {
+                String tagName = tagIdToNameMap.get(tagProgress.getTagId());
+                if (tagName != null) {
+                    result.add(careerPackageMapper.toCareerPackageTagProgress(tagProgress, tagName));
+                }
+            }
+            return result;
+
         } catch (FeignException ex) {
             throw new IllegalStateException("Failed to contact TagService: " + ex.getMessage());
         }
-        return careerPackageMapper.toSectionTagsProgressResponseList(sectionProgress.getTagProgressList(),response.stream().map(TagResponseDto::getName).toList());
     }
 }
