@@ -1,1 +1,1 @@
-export type SubmissionType = 'LEARNING' | 'BLOG' | 'WIKI' | 'PACKAGE';
+export type SubmissionType = 'LEARNING' | 'BLOG' | 'WIKI' | 'TAG' | 'PACKAGE';

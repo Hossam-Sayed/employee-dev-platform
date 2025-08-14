@@ -1,24 +1,23 @@
 <div class="notification-list">
   @if (notifications().length === 0) {
-  <div class="empty-state">No notifications</div>
+  <div class="empty-state">
+    <mat-icon>notifications_off</mat-icon>
+    <span>No notifications</span>
+  </div>
   } @else { @for (n of notifications(); track n.id) {
-  <button mat-menu-item class="notification-item" (click)="onClick(n)">
-    <mat-icon
-      class="status-icon"
-      [ngClass]="{
-        'status-approved': n.status === 'APPROVED',
-        'status-rejected': n.status === 'REJECTED',
-        'status-pending': n.status === 'PENDING'
-      }"
-      >notifications</mat-icon
-    >
-    <div class="info">
-      <div class="title">{{ n.title }}</div>
-      <div class="meta">{{ n.createdAt | date : "short" }}</div>
+  <mat-card class="notification-card" (click)="onClick(n)">
+    <div class="title-row">
+      <mat-icon class="status-icon" [ngClass]="n.status.toLowerCase()">
+        @switch (n.status) { @case ('APPROVED') { check_circle } @case
+        ('PENDING') { timelapse } @case ('REJECTED') { block } }
+      </mat-icon>
+      <h4 class="title">{{ n.title }}</h4>
+      @if (!n.read) {
+      <span class="unread-dot"></span>
+      }
     </div>
-    @if (!n.read) {
-    <span class="unread-dot" aria-label="unread"></span>
-    }
-  </button>
+    <p class="message">Click to view the details of this submission.</p>
+    <span class="meta">{{ n.createdAt | date : "short" }}</span>
+  </mat-card>
   } }
 </div>
