@@ -1,15 +1,16 @@
 import { inject, Injectable } from '@angular/core';
-import { Observable, shareReplay, Subscriber, from } from 'rxjs';
+import { Observable, shareReplay } from 'rxjs';
 import { NotificationSubmission } from '../models/notification-submission.model';
 import { TokenService } from '../../auth/service/token.service';
-import { TokenRefreshService } from '../../auth/service/token-refresh.service';
+import { HttpClient } from '@angular/common/http';
+import { Page } from '../../shared/models/page.dto';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationStreamService {
   private apiUrl = 'http://localhost:8084/api/notifications';
   private stream$?: Observable<NotificationSubmission>;
   private tokenService = inject(TokenService);
-  private tokenRefreshService = inject(TokenRefreshService);
+  private http = inject(HttpClient);
 
   connect(): Observable<NotificationSubmission> {
     if (!this.stream$) {
@@ -25,26 +26,7 @@ export class NotificationStreamService {
 
           es.onerror = async (err: any) => {
             es.close();
-
-            const retryFn = (newToken: string) => {
-              // This is where the retry happens
-              return new Promise<void>((resolve) => {
-                console.log('NEW TOKEN:', newToken);
-
-                openConnection(newToken);
-                resolve();
-              });
-            };
-
-            // TODO: Debug this logic.
-            // this.tokenRefreshService.refreshAndRetry(retryFn).subscribe({
-            //   next: () =>
-            //     console.log('SSE connection re-established with new token'),
-            //   error: (refreshErr) => {
-            //     console.error('Failed to refresh token during SSE', refreshErr);
-            //     observer.error(refreshErr);
-            //   },
-            // });
+            console.log('Error connecting to SSE service');
           };
         };
 
@@ -63,5 +45,11 @@ export class NotificationStreamService {
       }).pipe(shareReplay(1));
     }
     return this.stream$;
+  }
+
+  getMyNotifications(read?: boolean, page: number = 0, size: number = 20) {
+    const params: any = { page, size };
+    if (read !== undefined) params.read = read;
+    return this.http.get<Page<NotificationSubmission>>(this.apiUrl, { params });
   }
 }
