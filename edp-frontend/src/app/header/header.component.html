@@ -7,7 +7,7 @@
 
   @if(tokenService.isLoggedIn()) {
   <div class="d-none d-md-flex align-items-center">
-    <button mat-button (click)="goTo('/inside')">Dashboard</button>
+    <button mat-button (click)="goTo('/dashboard')">Dashboard</button>
     <button mat-button [matMenuTriggerFor]="careerMenu">Career Package</button>
     <mat-menu #careerMenu="matMenu">
       @if(authService.isAdmin()) {
@@ -41,7 +41,7 @@
       <mat-icon>menu</mat-icon>
     </button>
     <mat-menu #mobileMainMenu="matMenu">
-      <button mat-menu-item (click)="goTo('/inside')">Dashboard</button>
+      <button mat-menu-item (click)="goTo('/dashboard')">Dashboard</button>
 
       <button mat-menu-item [matMenuTriggerFor]="mobileCareerMenu">
         Career Package

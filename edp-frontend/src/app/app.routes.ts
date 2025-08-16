@@ -6,6 +6,7 @@ import { UserUpdateComponent } from './user/user-update/user-update.component';
 import { UserCreateComponent } from './user/user-create/user-create.component';
 import { adminGuard } from './user/guards/admin.guard';
 import { UserProfileComponent } from './user/user-profile/user-profile.component';
+import { DashboardComponent } from './Dashboard/dashboard.component';
 
 export const routes: Routes = [
   {
@@ -19,8 +20,8 @@ export const routes: Routes = [
     canActivate: [reverseAuthGuard],
   },
   {
-    path: 'inside',
-    component: HeaderComponent,
+    path: 'dashboard',
+    component: DashboardComponent,
     canActivate: [authGuard],
   },
   {

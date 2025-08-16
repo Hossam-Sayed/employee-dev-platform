@@ -131,7 +131,7 @@ export class AuthComponent implements OnInit {
 
     this.authService.login(authrequestDto).subscribe({
       next: () => {
-        this.router.navigate(['/inside']);
+        this.router.navigate(['/dashboard']);
         this.authService.setUserFromToken();
         this.connectStream();
       },
@@ -185,7 +185,7 @@ export class AuthComponent implements OnInit {
 
     this.authService.register(request).subscribe({
       next: () => {
-        this.router.navigate(['/inside']);
+        this.router.navigate(['/dashboard']);
         this.authService.setUserFromToken();
         this.connectStream();
       },

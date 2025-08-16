@@ -14,7 +14,7 @@ export const adminGuard: CanActivateFn = () => {
     notificationService.showWarning(
       'Access Denied: Only administrators can access this feature.'
     );
-    router.navigate(['/inside']);
+    router.navigate(['/dashboard']);
     return false;
   }
 };

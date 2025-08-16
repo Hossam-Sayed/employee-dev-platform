@@ -17,5 +17,5 @@ export function reverseAuthGuard(): boolean | UrlTree {
 
   const isLoggedIn = tokenService.isLoggedIn() ;
 
-  return isLoggedIn ? router.createUrlTree(['/inside']) : true;
+  return isLoggedIn ? router.createUrlTree(['/dashboard']) : true;
 }
