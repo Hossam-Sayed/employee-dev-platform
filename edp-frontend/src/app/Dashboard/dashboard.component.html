@@ -1,0 +1,54 @@
+<div class="container-fluid py-4">
+  <mat-card class="p-4 mb-4">
+    <mat-card-header class="d-flex align-items-center justify-content-between mb-3">
+      <mat-card-title class="fw-bold">Employee Learning Leaderboard</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      @if (loading()) {
+        <div class="d-flex justify-content-center">
+          <mat-spinner></mat-spinner>
+        </div>
+      } @else {
+        <div class="table-responsive">
+          <mat-table [dataSource]="employeeRankings()" class="mat-elevation-z2 w-100">
+            <ng-container matColumnDef="position">
+              <mat-header-cell *matHeaderCellDef>#</mat-header-cell>
+              <mat-cell *matCellDef="let element; let i = index">
+                {{ i + 1 + pageIndex() * pageSize() }}
+              </mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="username">
+              <mat-header-cell *matHeaderCellDef>Employee</mat-header-cell>
+              <mat-cell *matCellDef="let element">{{ element.username }}</mat-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="count">
+              <mat-header-cell *matHeaderCellDef>Approved Learnings</mat-header-cell>
+              <mat-cell *matCellDef="let element">
+                <span class="badge bg-primary text-light rounded-pill fs-6 py-2 px-3">{{ element.approvedLearningsCount }}</span>
+              </mat-cell>
+            </ng-container>
+
+            <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+            <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+
+            @if (employeeRankings().length === 0) {
+              <tr class="mat-row no-data-row">
+                <td class="mat-cell" colspan="3">No approved learning data to display.</td>
+              </tr>
+            }
+          </mat-table>
+        </div>
+        <mat-paginator
+          [length]="totalElements()"
+          [pageSize]="pageSize()"
+          [pageIndex]="pageIndex()"
+          [pageSizeOptions]="[5, 10, 25, 50]"
+          (page)="handlePageEvent($event)"
+          aria-label="Select page"
+        ></mat-paginator>
+      }
+    </mat-card-content>
+  </mat-card>
+</div>

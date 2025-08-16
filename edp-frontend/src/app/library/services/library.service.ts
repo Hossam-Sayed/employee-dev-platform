@@ -16,6 +16,7 @@ import { SubmissionStatus } from '../models/submission-status.model';
 import { TagCreateRequest } from '../models/tag-create-request.model';
 import { TagRequestResponse } from '../models/tag-request-response.model';
 import { TagRequestReview } from '../models/tag-request-review.model';
+import { ApprovedLearningByEmployeeResponse } from '../models/approved-learning-by-employee-response.model';
 
 @Injectable({
   providedIn: 'root',
@@ -347,6 +348,19 @@ export class LibraryService {
     return this.http.patch<TagRequestResponse>(
       `${this.baseUrl}tags/requests/${tagRequestId}/review`,
       review
+    );
+  }
+
+  getApprovedLearningsRanking(
+    request: PaginationRequest
+  ): Observable<PaginationResponse<ApprovedLearningByEmployeeResponse>> {
+    const params = new HttpParams()
+      .set('page', request.page)
+      .set('size', request.size);
+
+    return this.http.get<PaginationResponse<ApprovedLearningByEmployeeResponse>>(
+      `${this.baseUrl}learnings/approved-count-by-employee`,
+      { params }
     );
   }
 }
