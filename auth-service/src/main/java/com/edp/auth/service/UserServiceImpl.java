@@ -81,4 +81,11 @@ public class UserServiceImpl implements UserService {
         return userMapper.toUserResponseDtoList(reports);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserResponseDto> getUsersByIds(List<Long> ids) {
+        List<AppUser> users = userRepo.findAllByIdIn(ids);
+        return userMapper.toUserResponseDtoList(users);
+    }
+
 }

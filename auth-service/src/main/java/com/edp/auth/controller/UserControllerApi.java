@@ -166,4 +166,15 @@ public interface UserControllerApi {
     @PreAuthorize("hasRole('ADMIN') or #managerId == T(com.edp.auth.data.entity.AppUser).cast(authentication.principal).id")
     ResponseEntity<List<UserResponseDto>> getManagedUsers(@PathVariable Long managerId);
 
+    @Operation(
+            summary = "Get users by a list of IDs",
+            description = "Retrieves a list of user details for the given IDs."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Users found", content = @Content(schema = @Schema(implementation = UserResponseDto.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid request payload")
+    })
+    @GetMapping(params = "ids")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    ResponseEntity<List<UserResponseDto>> getUsersByIds(@RequestParam("ids") List<Long> ids);
 }

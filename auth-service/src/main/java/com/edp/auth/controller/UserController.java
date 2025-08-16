@@ -52,4 +52,10 @@ public class UserController implements UserControllerApi {
         List<UserResponseDto> users = userService.getManagedUsers(managerId);
         return ResponseEntity.ok(users);
     }
+
+    @Override
+    public ResponseEntity<List<UserResponseDto>> getUsersByIds(List<Long> ids) {
+        List<UserResponseDto> users = userService.getUsersByIds(ids);
+        return ResponseEntity.ok(users);
+    }
 }

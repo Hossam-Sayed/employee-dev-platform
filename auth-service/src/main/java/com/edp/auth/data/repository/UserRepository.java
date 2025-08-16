@@ -15,4 +15,6 @@ public interface UserRepository extends JpaRepository<AppUser, Long> {
     List<AppUser> findByAdmin(boolean admin);
 
     List<AppUser> findByReportsTo_Id(Long managerId);
+
+    List<AppUser> findAllByIdIn(List<Long> ids);
 }

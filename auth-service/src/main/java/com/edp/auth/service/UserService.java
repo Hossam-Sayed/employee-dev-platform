@@ -20,4 +20,6 @@ public interface UserService {
 
     List<UserResponseDto> getManagedUsers(Long managerId);
 
+    List<UserResponseDto> getUsersByIds(List<Long> ids);
+
 }
