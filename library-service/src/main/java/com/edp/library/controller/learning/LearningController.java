@@ -3,6 +3,7 @@ package com.edp.library.controller.learning;
 import com.edp.library.model.PaginationRequestDTO;
 import com.edp.library.model.PaginationResponseDTO;
 import com.edp.library.model.SubmissionReviewRequestDTO;
+import com.edp.library.model.learning.ApprovedLearningByEmployeeResponseDTO;
 import com.edp.library.model.learning.LearningCreateRequestDTO;
 import com.edp.library.model.learning.LearningResponseDTO;
 import com.edp.library.model.learning.LearningSubmissionResponseDTO;
@@ -115,5 +116,14 @@ public interface LearningController {
     ResponseEntity<LearningSubmissionResponseDTO> reviewLearningSubmission(
             @Parameter(description = "ID of the learning submission to review", required = true) @PathVariable Long submissionId,
             @Valid @RequestBody SubmissionReviewRequestDTO reviewDTO
+    );
+
+    @Operation(summary = "Get a paginated count of approved learnings grouped by user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved data")
+    })
+    @GetMapping("/approved-count-by-employee")
+    ResponseEntity<PaginationResponseDTO<ApprovedLearningByEmployeeResponseDTO>> getApprovedLearningsByEmployee(
+            @Valid @Parameter(description = "Pagination parameters") PaginationRequestDTO paginationRequestDTO
     );
 }

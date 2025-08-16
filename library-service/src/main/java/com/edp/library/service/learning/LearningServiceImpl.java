@@ -14,10 +14,7 @@ import com.edp.library.model.PaginationRequestDTO;
 import com.edp.library.model.PaginationResponseDTO;
 import com.edp.library.model.SubmissionReviewRequestDTO;
 import com.edp.library.model.enums.SubmissionStatusDTO;
-import com.edp.library.model.learning.LearningCreateRequestDTO;
-import com.edp.library.model.learning.LearningResponseDTO;
-import com.edp.library.model.learning.LearningSubmissionResponseDTO;
-import com.edp.library.model.learning.LearningTagDTO;
+import com.edp.library.model.learning.*;
 import com.edp.library.utils.PaginationUtils;
 import com.edp.shared.client.auth.AuthServiceClient;
 import com.edp.shared.client.auth.model.UserProfileDto;
@@ -381,5 +378,35 @@ public class LearningServiceImpl implements LearningService {
             case APPROVED -> "Your learning submission titled '" + truncatedTitle + "' is approved by your manager";
             case REJECTED -> "Your learning submission titled '" + truncatedTitle + "' is rejected by your manager";
         };
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PaginationResponseDTO<ApprovedLearningByEmployeeResponseDTO> getApprovedLearningsByEmployee(PaginationRequestDTO paginationRequestDTO) {
+        Pageable pageable = PageRequest.of(
+                paginationRequestDTO.getPage(),
+                paginationRequestDTO.getSize()
+        );
+
+        Page<UserApprovedLearningCount> approvedCountsPage = learningSubmissionRepository.countApprovedLearningsBySubmitter(pageable);
+
+        List<Long> userIds = approvedCountsPage.getContent().stream()
+                .map(UserApprovedLearningCount::getUserId)
+                .toList();
+
+        String token = JwtUserContext.getToken();
+        Map<Long, String> userNamesMap = authServiceClient.getUsersByIds(userIds, token).stream()
+                .collect(Collectors.toMap(UserProfileDto::getId, UserProfileDto::getUsername));
+
+        List<ApprovedLearningByEmployeeResponseDTO> dtos = approvedCountsPage.getContent().stream()
+                .map(count -> {
+                    ApprovedLearningByEmployeeResponseDTO dto = new ApprovedLearningByEmployeeResponseDTO();
+                    dto.setUsername(userNamesMap.getOrDefault(count.getUserId(), "Unknown User"));
+                    dto.setApprovedLearningsCount(count.getCount());
+                    return dto;
+                })
+                .collect(Collectors.toList());
+
+        return PaginationUtils.mapToPaginationResponseDTO(approvedCountsPage, dtos);
     }
 }

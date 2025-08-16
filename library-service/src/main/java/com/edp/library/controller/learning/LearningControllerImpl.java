@@ -3,6 +3,7 @@ package com.edp.library.controller.learning;
 import com.edp.library.model.PaginationRequestDTO;
 import com.edp.library.model.PaginationResponseDTO;
 import com.edp.library.model.SubmissionReviewRequestDTO;
+import com.edp.library.model.learning.ApprovedLearningByEmployeeResponseDTO;
 import com.edp.library.model.learning.LearningCreateRequestDTO;
 import com.edp.library.model.learning.LearningResponseDTO;
 import com.edp.library.model.learning.LearningSubmissionResponseDTO;
@@ -78,6 +79,12 @@ public class LearningControllerImpl implements LearningController {
     ) {
         LearningSubmissionResponseDTO response =
                 learningService.reviewLearningSubmission(submissionId, reviewDTO);
+        return ResponseEntity.ok(response);
+    }
+
+    @Override
+    public ResponseEntity<PaginationResponseDTO<ApprovedLearningByEmployeeResponseDTO>> getApprovedLearningsByEmployee(PaginationRequestDTO paginationRequestDTO) {
+        PaginationResponseDTO<ApprovedLearningByEmployeeResponseDTO> response = learningService.getApprovedLearningsByEmployee(paginationRequestDTO);
         return ResponseEntity.ok(response);
     }
 }

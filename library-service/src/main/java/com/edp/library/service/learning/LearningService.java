@@ -3,6 +3,7 @@ package com.edp.library.service.learning;
 import com.edp.library.model.PaginationRequestDTO;
 import com.edp.library.model.PaginationResponseDTO;
 import com.edp.library.model.SubmissionReviewRequestDTO;
+import com.edp.library.model.learning.ApprovedLearningByEmployeeResponseDTO;
 import com.edp.library.model.learning.LearningCreateRequestDTO;
 import com.edp.library.model.learning.LearningResponseDTO;
 import com.edp.library.model.learning.LearningSubmissionResponseDTO;
@@ -83,4 +84,7 @@ public interface LearningService {
 
     // Potentially needed for "Explore all blogs and wikis" but not directly for learning
     // PaginationResponseDTO<LearningResponseDTO> getAllApprovedLearnings(String titleFilter, Long tagIdFilter, PaginationRequestDTO paginationRequestDTO);
+
+    PaginationResponseDTO<ApprovedLearningByEmployeeResponseDTO> getApprovedLearningsByEmployee(PaginationRequestDTO paginationRequestDTO);
+
 }
