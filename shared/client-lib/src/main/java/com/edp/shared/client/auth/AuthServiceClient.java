@@ -5,6 +5,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -17,4 +18,7 @@ public interface AuthServiceClient {
 
     @GetMapping("/api/users/{managerId}/managed")
     List<UserProfileDto> getManagedUsers(@PathVariable("managerId") Long managerId, @RequestHeader("Authorization") String token);
+
+    @GetMapping("/api/users")
+    List<UserProfileDto> getUsersByIds(@RequestParam("ids") List<Long> ids, @RequestHeader("Authorization") String token);
 }
